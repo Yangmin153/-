@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#f6f8fb">
   <meta name="description" content="제주도 여행 장소를 선택하고 동선을 자동 계산하는 시제품">
   <title>동선 | 제주 여행 동선 최적화 데모</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoak3cwzOfNbKU=" crossorigin="">
   <style>
     :root{--ink:#192433;--muted:#697a8b;--line:#e5ebf1;--blue:#2563eb;--bg:#f6f8fb;--panel:#fff;--s1:#2563eb;--s2:#f97316;--s3:#10a085}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5}
@@ -101,9 +100,19 @@
       </section>
     </div>
   </div>
-  <p class="foot">ⓘ 지도: © OpenStreetMap contributors · 지도 표시에는 인터넷 연결이 필요합니다. 각 경로를 잇는 선은 실제 도로가 아닌 위치 연결선입니다.</p>
+  <p class="foot">ⓘ 지도: NAVER Maps API · 각 경로를 잇는 선은 실제 도로 경로가 아닌 위치 연결선입니다. 네이버 지도 API Client ID 설정과 인터넷 연결이 필요합니다.</p>
 </div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- 네이버 클라우드 Web Dynamic Map에서 발급한 Client ID만 넣으세요. Client Secret은 넣지 않습니다. -->
+<script>
+  window.navermap_authFailure = function () {
+    const el = document.getElementById('map');
+    if (el) {
+      el.textContent = '네이버 지도 인증에 실패했습니다. Client ID와 Web 서비스 URL 등록을 확인하세요.';
+      el.style.padding = '24px';
+    }
+  };
+</script>
+<script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ncp_iam_BPAMKR3BqrbhWoBEeOLX"></script>
 <script>
   "use strict";
   const PLACES = [
@@ -125,7 +134,7 @@
   const COLORS=["#2563eb","#f97316","#10a085"];
   const byId=id=>document.getElementById(id);
   let chosen=[...DEFAULT_IDS];
-  let map=null,drawLayer=null;
+  let map=null,drawObjects=[];
 
   function km(a,b){
     const r=Math.PI/180,dlat=(b.lat-a.lat)*r,dlng=(b.lng-a.lng)*r;
@@ -211,33 +220,74 @@
     nodes.push({place:HOTEL,time:now,info:"숙소 도착"});
     return {day,nodes,stops,distance:dist,driving:mins};
   }
-  function makePin(number,color){return L.divIcon({className:"",html:'<div class="pin" style="background:'+color+'">'+number+'</div>',iconSize:[29,29],iconAnchor:[14,14]});}
+  // 네이버 지도의 번호 마커. ID는 공개 가능한 Web Dynamic Map Client ID만 사용합니다.
+  function makePin(number,color){
+    return {
+      content: '<div class="pin" style="background:'+color+'">'+number+'</div>',
+      size: new naver.maps.Size(29,29),
+      anchor: new naver.maps.Point(14,14)
+    };
+  }
   function initMap(){
-    if(typeof L==="undefined"){
-      byId("map").textContent="지도를 불러오지 못했습니다. 인터넷 연결과 CDN 접근을 확인하세요. 아래 일정은 정상적으로 사용할 수 있습니다.";
-      byId("map").style.padding="30px";return;
+    if (typeof naver === "undefined" || !naver.maps || !naver.maps.Map){
+      const area=byId("map");
+      area.textContent="네이버 지도를 불러오지 못했습니다. Web Dynamic Map의 Client ID와 등록 도메인을 확인하세요.";
+      area.style.padding="24px";
+      return;
     }
-    map=L.map("map",{scrollWheelZoom:false}).setView([33.385,126.56],10);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
-    drawLayer=L.layerGroup().addTo(map);
+    map=new naver.maps.Map("map",{
+      center:new naver.maps.LatLng(33.385,126.56),
+      zoom:10,
+      scrollWheel:false
+    });
   }
   function drawMap(dayData){
     if(!map)return;
-    drawLayer.clearLayers();const bounds=[];
+    // 이전 마커/선을 제거한 뒤 새 일정으로 다시 그립니다.
+    for(const obj of drawObjects)obj.setMap(null);
+    drawObjects=[];
+    const allPoints=[];
     dayData.forEach((day,d)=>{
-      const color=COLORS[d],linePoints=day.nodes.map(n=>[n.place.lat,n.place.lng]);
-      L.polyline(linePoints,{color,weight:4,opacity:.78,dashArray:"8 6"}).addTo(drawLayer);
+      const color=COLORS[d];
+      const path=day.nodes.map(n=>new naver.maps.LatLng(n.place.lat,n.place.lng));
+      allPoints.push(...path);
+      if(path.length>1){
+        const line=new naver.maps.Polyline({
+          map:map,path:path,strokeColor:color,strokeWeight:4,
+          strokeOpacity:.8,strokeStyle:"shortdash"
+        });
+        drawObjects.push(line);
+      }
       day.nodes.forEach((n,i)=>{
-        bounds.push([n.place.lat,n.place.lng]);
-        // 중복 숙소 마커는 범례 대신 팝업에서 안내합니다.
-        if(i===day.nodes.length-1)return;
+        if(i===day.nodes.length-1)return; // 마지막 숙소는 공통 마커로 한 번만 표시
         const num=i===0?(d===0?"✈":"⌂"):String(i);
-        const marker=L.marker([n.place.lat,n.place.lng],{icon:makePin(num,color)}).addTo(drawLayer);
-        marker.bindPopup("<b>"+(d+1)+"일차 · "+n.place.name+"</b><br>예정 "+timeText(n.time));
+        const marker=new naver.maps.Marker({
+          map:map,
+          position:new naver.maps.LatLng(n.place.lat,n.place.lng),
+          icon:makePin(num,color),
+          title:(d+1)+"일차 "+n.place.name
+        });
+        drawObjects.push(marker);
+        const popup=new naver.maps.InfoWindow({
+          content:'<div style="padding:10px 12px;font-size:13px"><b>'+(d+1)+'일차 · '+n.place.name+'</b><br>예정 '+timeText(n.time)+'</div>'
+        });
+        naver.maps.Event.addListener(marker,"click",()=>popup.open(map,marker));
       });
     });
-    L.marker([HOTEL.lat,HOTEL.lng],{icon:makePin("⌂","#27364a")}).addTo(drawLayer).bindPopup("<b>중문 숙소</b><br>하루 일정 종료 지점");
-    if(bounds.length)map.fitBounds(bounds,{padding:[36,36],maxZoom:11});
+    const hotelMarker=new naver.maps.Marker({
+      map:map,
+      position:new naver.maps.LatLng(HOTEL.lat,HOTEL.lng),
+      icon:makePin("⌂","#27364a"),
+      title:"중문 숙소"
+    });
+    drawObjects.push(hotelMarker);
+    const hotelInfo=new naver.maps.InfoWindow({
+      content:'<div style="padding:10px 12px;font-size:13px"><b>중문 숙소</b><br>매일 일정 종료 지점</div>'
+    });
+    naver.maps.Event.addListener(hotelMarker,"click",()=>hotelInfo.open(map,hotelMarker));
+    if(allPoints.length>1){
+      map.fitBounds(naver.maps.LatLngBounds.bounds(...allPoints),{top:40,right:40,bottom:40,left:40});
+    }
   }
   function renderSchedule(data){
     const root=byId("schedule");root.replaceChildren();
