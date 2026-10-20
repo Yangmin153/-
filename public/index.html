@@ -62,8 +62,18 @@
 
   <div class="modal-backdrop hidden" id="place-modal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading"><div class="modal-top"><div><div class="section-kicker">ADD A PLACE</div><h2 id="modal-heading">장소 선택</h2></div><button class="icon-btn" id="modal-close" aria-label="창 닫기">✕</button></div>
-      <div class="modal-tabs" role="tablist" aria-label="좌표 찾기 방식"><button class="active" data-modal-tab="address">주소 검색</button><button data-modal-tab="coordinate">좌표 직접 입력</button><button data-modal-tab="example">예시 장소</button></div>
+      <div class="modal-tabs" role="tablist" aria-label="장소 찾기 방식"><button class="active" data-modal-tab="place">장소 검색</button><button data-modal-tab="address">주소 검색</button><button data-modal-tab="coordinate">좌표 직접 입력</button><button data-modal-tab="example">예시 장소</button></div>
       <div class="modal-body">
+        <div id="modal-place" class="modal-tab">
+          <label class="field-label" for="place-query">관광지 · 음식점 · 카페 · 숙소 · 상호명</label>
+          <div class="address-search"><input id="place-query" enterkeyhint="search" autocomplete="off" maxlength="80" placeholder="예: 하림각, 성산일출봉, 스타벅스"><button id="btn-search-place" type="button">검색</button></div>
+          <div class="place-search-options"><label for="place-scope">검색 범위</label><select id="place-scope"><option value="all">전국 검색</option><option value="nearby">오늘 출발지 주변 20km</option></select><small>동일 상호의 여러 지점도 주소로 구분합니다.</small></div>
+          <div id="place-search-status" class="place-search-status" role="status" aria-live="polite">상호명 또는 관광지 이름을 입력해 주세요.</div>
+          <div id="place-results" class="place-results" aria-live="polite"></div>
+          <button id="place-more" class="place-more hidden" type="button">검색 결과 더 보기 ↓</button>
+          <div id="place-selected" class="place-selected hidden" role="status"></div>
+          <p class="place-attribution">장소 정보 제공: 카카오맵. 위치·상호명은 최신 정보와 다를 수 있습니다. 지도와 자동차 길찾기는 네이버 지도를 사용합니다.</p>
+        </div>
         <div id="modal-address" class="modal-tab"><label class="field-label" for="address-query">도로명·지번 주소 검색</label><div class="address-search"><input id="address-query" placeholder="예: 제주특별자치도 제주시 공항로 2"><button id="btn-search-address">검색</button></div><p class="modal-explain">네이버 Maps 주소 검색입니다. 관광지 이름 검색이 아니라 <strong>주소 검색</strong>이며, 결과를 선택한 뒤 이름을 바꿀 수 있습니다.</p><div id="address-results" class="address-results"></div><button class="linkish" id="btn-pick-map">⌖ 지도에서 직접 위치 찍기 ↗</button></div>
         <div id="modal-coordinate" class="modal-tab hidden"><div class="coord-grid"><div><label class="field-label" for="input-lat">위도 (Latitude)</label><input id="input-lat" type="number" min="-90" max="90" step="any" placeholder="33.5104"></div><div><label class="field-label" for="input-lng">경도 (Longitude)</label><input id="input-lng" type="number" min="-180" max="180" step="any" placeholder="126.4913"></div></div><button class="linkish" id="btn-pick-map-2">⌖ 지도 클릭으로 좌표 선택하기 ↗</button></div>
         <div id="modal-example" class="modal-tab hidden"><p class="modal-explain">아래는 화면 체험을 위한 <strong>예시 좌표</strong>입니다. 실제 여행 전 장소 입구 위치를 확인하세요.</p><div id="preset-list" class="preset-list"></div></div>

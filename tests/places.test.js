@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {searchPlaces,normalizeKakao} from '../lib/place-search.js';
+const req=(q,extra='')=>new Request(`https://example.vercel.app/api/places?q=${encodeURIComponent(q)}${extra}`);
+const docs=[{id:'123',place_name:'하림각 본점',category_name:'음식점 > 중식',road_address_name:'서울 종로구 자하문로 255',address_name:'서울 종로구 부암동 1',x:'126.9665',y:'37.5892',place_url:'https://place.map.kakao.com/123'},{id:'456',place_name:'하림각',category_name:'음식점 > 중식',road_address_name:'제주 제주시 예시로 1',x:'126.5312',y:'33.5001'}];
+const fakeFetch=async(url,opts)=>{assert.match(url.toString(),/keyword\.json/);assert.equal(url.searchParams.get('query'),'하림각');assert.match(opts.headers.Authorization,/KakaoAK demo/);return Response.json({documents:docs,meta:{total_count:23,is_end:false}})};
+test('상호명 여러 지점의 별도 주소/좌표 및 다음 페이지 반환',async()=>{const r=await searchPlaces(req('하림각'),{KAKAO_REST_API_KEY:'demo'},fakeFetch);assert.equal(r.status,200);const data=await r.json();assert.equal(data.items.length,2);assert.notEqual(data.items[0].address,data.items[1].address);assert.equal(data.items[1].lat,33.5001);assert.equal(data.hasNext,true);assert.equal(data.source,'kakao');assert.ok(!JSON.stringify(data).includes('demo'));});
+test('주변 검색은 요청한 출발지 기준 20km 제한',async()=>{await searchPlaces(req('하림각','&nearby=1&lat=33.5&lng=126.5'),{KAKAO_REST_API_KEY:'demo'},async u=>{assert.equal(u.searchParams.get('radius'),'20000');assert.equal(u.searchParams.get('sort'),'distance');return Response.json({documents:[],meta:{is_end:true}})});});
+test('입력 오류, 미설정 키, 페이지 제한',async()=>{assert.equal((await searchPlaces(req('a'),{})).status,400);assert.equal((await searchPlaces(req('하림각','&page=30'),{})).status,400);assert.equal((await searchPlaces(req('하림각'),{})).status,503);assert.equal((await searchPlaces(req('하림각','&nearby=1&lat=100'),{})).status,400);});
+test('좌표 및 외부 주소 검증, html 텍스트가 그대로 유지돼도 UI에서 escape 처리',()=>{assert.equal(normalizeKakao({...docs[0],x:'NaN'}),null);assert.equal(normalizeKakao({...docs[0],place_url:'javascript:alert(1)'}).url,'');});
+test('API 장애/속도제한 사용자 안내',async()=>{const f=async()=>new Response('',{status:429});assert.equal((await searchPlaces(req('하림각'),{KAKAO_REST_API_KEY:'demo'},f)).status,429);});
