@@ -10,3 +10,25 @@
 
 /* Responsive itinerary UI additions */
 .trip-date-field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 4px}.trip-date-field label{font-size:11px;font-weight:800;color:#4e675e}.trip-date-field input{max-width:170px;font:inherit;font-size:12px;color:#30584b;border:1px solid #e0eae4;border-radius:8px;background:#fbfdfc;padding:10px}.auto-recalc{display:flex;align-items:center;gap:8px;margin-top:15px;font-size:11px;color:#516a60;line-height:1.6;cursor:pointer}.auto-recalc input{accent-color:#10876e;width:15px;height:15px;flex-shrink:0}.stop-transfer{max-width:190px;min-width:0;font-size:10px;border:1px solid #e1eae4;border-radius:6px;background:white;color:#3f7262;padding:5px;margin-top:5px}.route-savings{margin:-11px 0 18px;border-radius:8px;background:#e9f6f0;color:#147653;padding:10px 12px;font-size:11px;font-weight:700;line-height:1.6}@media(max-width:460px){.stop-transfer{max-width:130px}.trip-date-field{flex-wrap:wrap}}
+
+/* 장소 통합 검색: 기존 앱 레이아웃 및 모바일 순서 편집 영역에 영향 없이 추가 */
+.place-search-options{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;color:#556b62;font-size:12px}
+.place-search-options select{min-height:40px;border-radius:9px;border:1px solid #d5e4dc;background:#fff;padding:0 10px;max-width:100%}
+.place-search-options small{font-size:11px;color:#67776f}
+.place-search-status{min-height:20px;font-size:12px;color:#426a5c;margin:12px 0}
+.place-results{display:grid;gap:10px;max-height:340px;overflow-y:auto;overscroll-behavior:contain}
+.place-hit{border:1px solid #e1e9e5;border-radius:13px;padding:13px;background:#fff}
+.place-hit.is-selected{border-color:#138374;box-shadow:0 0 0 2px #d6f2e9;background:#f9fffc}
+.place-hit-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.place-hit-top strong{color:#203b31;font-size:14px;line-height:1.4}
+.place-hit-top span{flex-shrink:0;max-width:40%;font-size:11px;color:#58776a;background:#eff6f1;border-radius:20px;padding:4px 7px}
+.place-hit-address{margin-top:7px;font-size:12px;color:#455b53;overflow-wrap:anywhere}
+.place-hit small{display:block;margin-top:5px;font-size:11px;color:#819087;overflow-wrap:anywhere}
+.place-hit-actions{display:flex;gap:12px;align-items:center;margin-top:10px}
+.place-hit-actions button{border:0;border-radius:9px;background:#e1f3ea;color:#116d56;font-weight:700;min-height:40px;padding:8px 14px}
+.place-hit-actions a{font-size:12px;text-decoration:underline;color:#647d70}
+.place-no-results{padding:22px 8px;text-align:center;font-size:12px;color:#597264;background:#f4f8f5;border-radius:10px}
+.place-more{margin:12px 0;min-height:44px;width:100%;border:1px solid #cde5d9;border-radius:10px;color:#13745b;background:#f2faf6;font-weight:700}
+.place-selected{font-size:12px;color:#0d6e50;background:#e7f8ed;border-radius:8px;padding:10px;margin-top:10px;line-height:1.5}
+.place-attribution{font-size:11px;color:#77867b;line-height:1.6;margin:13px 0}
+@media(max-width:600px){.place-results{max-height:42vh}.place-hit{padding:14px}.place-hit-actions button{min-height:46px}.place-search-options select{min-height:44px}}
