@@ -118,9 +118,8 @@ function init(){
     app.markDirty(false);app.toast('전날 도착지를 오늘 출발지로 연결했어요.');
   });
   $('place-address-fallback').addEventListener('click',()=>{
-    $('address-query').value=$('place-query').value;
-    document.querySelector('[data-modal-tab="address"]').click();
-    $('address-query').focus();
+    $('place-query').focus();
+    $('place-query').select();
   });
   $('input-stay').addEventListener('input',updateQuickChips);
   $('place-modal').addEventListener('click',()=>queueMicrotask(syncModalVisible));

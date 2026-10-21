@@ -65,7 +65,7 @@ async function calculateRoute(explicit=true){const d=day();if(state.loading){if(
 // — 장소 편집 / 지도 클릭 —
 function openModal(kind,id=null){window.TripUX?.beforeModal?.();const d=day();const existing=kind==='origin'?d.origin:kind==='destination'?d.destination:d.stops.find(s=>s.id===id);
  state.modal={kind,id,lat:existing?.lat??null,lng:existing?.lng??null,selectedAddress:existing?.address||null};$('modal-heading').textContent=kind==='origin'?'출발지 변경':kind==='destination'?'도착지 변경':id?'관광지 수정':'관광지 추가';
- $('place-query').value='';$('place-results').innerHTML='';$('place-search-status').textContent='상호명 또는 관광지 이름을 입력해 주세요.';$('place-more').classList.add('hidden');$('place-selected').classList.add('hidden');placeResults=[];placePage=0;placeMore=false;placeQuery='';
+ $('place-query').value='';$('place-results').innerHTML='';$('place-search-status').textContent='여행지 이름이나 주소를 입력하면 함께 찾아드려요.';$('place-more').classList.add('hidden');$('place-selected').classList.add('hidden');$('search-suggestions').classList.remove('hidden');placeResults=[];placePage=0;placeMore=false;placeQuery='';
  $('input-name').value=existing?.name||'';$('input-stay').value=existing?.stayMinutes??60;$('stay-field').classList.toggle('hidden',kind!=='stop');$('address-query').value='';$('address-results').innerHTML='';$('input-lat').value=existing?.lat??'';$('input-lng').value=existing?.lng??'';selectModalTab('place');updateCoordLabel();$('place-modal').classList.remove('hidden');$('place-modal').setAttribute('aria-hidden','false');setTimeout(()=>$('place-query').focus(),40)
 }
 function closeModal(){if(state.mapPicking)return;window.TripUX?.onModalClosed?.();cancelPlaceSearch();state.modal=null;$('place-modal').classList.add('hidden');$('place-modal').setAttribute('aria-hidden','true')}
@@ -80,28 +80,45 @@ function saveModal(){if(!state.modal)return;const {kind,id}=state.modal;const na
  state.modal=null;$('place-modal').classList.add('hidden');$('place-modal').setAttribute('aria-hidden','true');markDirty();toast('일정에 장소를 반영했습니다.')
 }
 // 상호명 검색은 별도 카카오 로컬 API 사용. 네이버 주소 변환/지도/동선 엔진은 변경하지 않음.
-function cancelPlaceSearch(){clearTimeout(placeTimer);placeSeq++;if(placeAbort)placeAbort.abort();placeAbort=null;}
+function cancelPlaceSearch(){clearTimeout(placeTimer);placeSeq++;if(placeAbort)placeAbort.abort();placeAbort=null;$('btn-search-place').disabled=false;}
 function placeStatus(msg){$('place-search-status').textContent=msg;}
 function renderPlaceResults(){
  const container=$('place-results');
- if(!placeResults.length){container.innerHTML='<div class="place-no-results">검색 결과가 없습니다. 지역을 함께 입력하거나 주소로 찾아보세요.</div>';$('place-address-fallback').classList.remove('hidden');return;} $('place-address-fallback').classList.add('hidden');
- container.innerHTML=placeResults.map((x,i)=>`<div class="place-hit"><div class="place-hit-top"><strong>${esc(x.name)}</strong><span>${esc(x.category.split(' > ').at(-1))}</span></div><div class="place-hit-address">${esc(x.address||'주소 정보 없음')}</div>${x.jibunAddress&&x.jibunAddress!==x.address?`<small>지번 ${esc(x.jibunAddress)}</small>`:''}<div class="place-hit-actions"><button type="button" data-place-select="${i}">이 지점 선택</button>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">카카오맵 상세 ↗</a>`:''}</div></div>`).join('');
+ if(!placeResults.length){container.innerHTML='<div class="place-no-results"><strong>검색 결과가 없어요</strong><p>이름에 지역을 추가하거나 도로명주소를 입력해 보세요.</p></div>';$('place-address-fallback').classList.remove('hidden');return;}
+ $('place-address-fallback').classList.add('hidden');
+ container.innerHTML=placeResults.map((x,i)=>{
+   const address=String(x.address||'주소 정보 없음'),isAddress=x.source==='naver-address',category=isAddress?'주소':String(x.category||'장소').split(' > ').at(-1);
+   return `<div class="place-hit ${isAddress?'place-address-hit':''}"><div class="place-hit-main"><span class="place-result-icon" aria-hidden="true">${isAddress?'⌖':'↗'}</span><div class="place-hit-content"><div class="place-hit-top"><strong>${esc(x.name)}</strong><span>${esc(category)}</span></div><div class="place-hit-address">${esc(address)}</div>${x.jibunAddress&&x.jibunAddress!==address?`<small>지번 ${esc(x.jibunAddress)}</small>`:''}</div></div><div class="place-hit-actions"><button type="button" data-place-select="${i}">이 장소 선택 →</button>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">상세 정보 ↗</a>`:''}</div></div>`;
+ }).join('');
 }
 async function searchPlaces(nextPage=false){
- const q=$('place-query').value.trim();if(q.length<2){cancelPlaceSearch();placeResults=[];$('place-results').innerHTML='';placeStatus('두 글자 이상 검색어를 입력해 주세요.');$('place-more').classList.add('hidden');return;}
+ const q=$('place-query').value.trim();
+ if(q.length<2){cancelPlaceSearch();placeResults=[];$('place-results').innerHTML='';placeStatus('두 글자 이상 입력해 주세요.');$('place-more').classList.add('hidden');return;}
  if(!nextPage){cancelPlaceSearch();placeResults=[];placePage=0;placeQuery=q;$('place-results').innerHTML='';$('place-address-fallback').classList.add('hidden');}
  else if(q!==placeQuery||!placeMore)return;
- const seq=++placeSeq;placeAbort=new AbortController();const page=placePage+1;
+ const seq=++placeSeq;placeAbort=new AbortController();const signal=placeAbort.signal,page=placePage+1;
  const params=new URLSearchParams({q,page:String(page)});
  if($('place-scope').value==='nearby'){params.set('nearby','1');params.set('lat',day().origin.lat);params.set('lng',day().origin.lng);}
- $('btn-search-place').disabled=true;$('place-more').classList.add('hidden');placeStatus('검색 중…');
+ $('btn-search-place').disabled=true;$('place-more').classList.add('hidden');$('search-suggestions').classList.add('hidden');placeStatus('장소와 주소를 찾고 있어요…');
+ async function requestJson(path){const res=await fetch(path,{signal});const data=await res.json();if(!res.ok)throw Error(data?.detail||'검색 서비스를 사용할 수 없습니다.');return data;}
+ const addressPath=`/api/geocode?q=${encodeURIComponent(q)}`;
+ const placeRequest=requestJson(`/api/places?${params}`);
+ const addressRequest=!nextPage&&window.TripSearch.looksLikeAddress(q)?requestJson(addressPath):null;
  try{
-  const response=await fetch(`/api/places?${params}`,{signal:placeAbort.signal});const data=await response.json();if(seq!==placeSeq||!state.modal)return;
-  if(!response.ok)throw Error(data?.detail||'검색에 실패했습니다.');
-  placeResults=nextPage?placeResults.concat(data.items||[]):(data.items||[]);placePage=page;placeMore=Boolean(data.hasNext);
-  renderPlaceResults();$('place-more').classList.toggle('hidden',!placeMore);
-  placeStatus(`검색 결과 ${placeResults.length}개${placeMore?' · 더 보기 가능':''} · 카카오맵 장소 정보`);
- }catch(error){if(seq!==placeSeq||error.name==='AbortError')return;placeStatus(error.message);if(!nextPage)$('place-results').innerHTML='';}
+   const [placeOutcome,addressOutcome]=await Promise.allSettled([placeRequest,addressRequest||Promise.resolve(null)]);
+   if(seq!==placeSeq||!state.modal)return;
+   const items=placeOutcome.status==='fulfilled'?(placeOutcome.value.items||[]):[];
+   let addressData=addressOutcome.status==='fulfilled'?addressOutcome.value:null,addressError=addressOutcome.status==='rejected'?addressOutcome.reason:null;
+   if(!nextPage&&!addressRequest&&!items.length){try{addressData=await requestJson(addressPath);}catch(e){addressError=e;}}
+   if(seq!==placeSeq||!state.modal)return;
+   if(placeOutcome.status==='rejected'&&!addressData?.results?.length)throw placeOutcome.reason;
+   const merged=window.TripSearch.combine(items,addressData?.results||[]);
+   placeResults=nextPage?placeResults.concat(merged):merged;
+   placePage=page;placeMore=placeOutcome.status==='fulfilled'&&Boolean(placeOutcome.value.hasNext);
+   renderPlaceResults();$('place-more').classList.toggle('hidden',!placeMore);
+   const addrCount=placeResults.filter(x=>x.source==='naver-address').length;
+   placeStatus(placeResults.length?`${placeResults.length}개 결과${addrCount?' · 주소 검색 포함':''}${placeMore?' · 더 보기 가능':''}`:(addressError?'해당하는 결과가 없습니다. 주소를 다시 확인해 주세요.':'검색 결과가 없습니다. 다른 검색어로 시도해 주세요.'));
+ }catch(e){if(seq!==placeSeq||e.name==='AbortError')return;placeStatus(e.message);if(!nextPage)$('place-results').innerHTML='<div class="place-no-results">검색 서비스를 연결하지 못했어요. 잠시 후 다시 시도해 주세요.</div>';}
  finally{if(seq===placeSeq)$('btn-search-place').disabled=false;}
 }
 async function searchAddress(){const query=$('address-query').value.trim();if(query.length<2)return toast('검색할 도로명·지번 주소를 입력해 주세요.');$('address-results').textContent='주소 검색 중…';
@@ -143,10 +160,11 @@ $('modal-close').addEventListener('click',closeModal);$('btn-modal-cancel').addE
 document.querySelectorAll('[data-modal-tab]').forEach(x=>x.addEventListener('click',()=>selectModalTab(x.dataset.modalTab)));
 $('btn-search-place').addEventListener('click',()=>{clearTimeout(placeTimer);searchPlaces()});
 $('place-query').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(placeTimer);searchPlaces()}});
-$('place-query').addEventListener('input',()=>{clearTimeout(placeTimer);cancelPlaceSearch();if($('place-query').value.trim().length>=2)placeTimer=setTimeout(()=>searchPlaces(),480);else{placeStatus('두 글자 이상 검색어를 입력해 주세요.');$('place-results').innerHTML='';$('place-more').classList.add('hidden')}});
+$('place-query').addEventListener('input',()=>{clearTimeout(placeTimer);cancelPlaceSearch();if($('place-query').value.trim().length>=2)placeTimer=setTimeout(()=>searchPlaces(),520);else{placeResults=[];placeStatus('장소 이름이나 주소를 입력해 주세요.');$('place-results').innerHTML='';$('place-more').classList.add('hidden');$('search-suggestions').classList.remove('hidden')}});
 $('place-scope').addEventListener('change',()=>{cancelPlaceSearch();if($('place-query').value.trim().length>=2)searchPlaces()});
 $('place-more').addEventListener('click',()=>searchPlaces(true));
-$('place-results').addEventListener('click',e=>{const btn=e.target.closest('[data-place-select]');if(!btn||!state.modal)return;const item=placeResults[Number(btn.dataset.placeSelect)];if(!item)return;setModalCoords(item.lat,item.lng,item.name);state.modal.selectedAddress=item.address;document.querySelectorAll('.place-hit').forEach((node,i)=>node.classList.toggle('is-selected',i===Number(btn.dataset.placeSelect)));$('place-selected').classList.remove('hidden');$('place-selected').textContent=`선택됨: ${item.name} · ${item.address}. 아래 ‘장소 적용하기’를 눌러주세요.`;toast('선택한 지점의 주소를 확인한 뒤 적용하세요.');});
+$('search-suggestions').addEventListener('click',e=>{const b=e.target.closest('[data-search-suggest]');if(!b)return;$('place-query').value=b.dataset.searchSuggest;searchPlaces();});
+$('place-results').addEventListener('click',e=>{const btn=e.target.closest('[data-place-select]');if(!btn||!state.modal)return;const item=placeResults[Number(btn.dataset.placeSelect)];if(!item)return;setModalCoords(item.lat,item.lng,item.name);state.modal.selectedAddress=item.address;document.querySelectorAll('.place-hit').forEach((node,i)=>node.classList.toggle('is-selected',i===Number(btn.dataset.placeSelect)));$('place-selected').classList.remove('hidden');$('place-selected').textContent=`${item.name} 선택 완료 · 아래에서 방문 시간을 확인하고 적용해 주세요.`;toast('선택한 지점의 주소를 확인한 뒤 적용하세요.');});
 $('btn-search-address').addEventListener('click',searchAddress);$('address-query').addEventListener('keydown',e=>{if(e.key==='Enter')searchAddress()});
 $('address-results').addEventListener('click',e=>{const btn=e.target.closest('[data-address-index]');if(!btn)return;const item=geocoderResults[Number(btn.dataset.addressIndex)];if(!item)return;setModalCoords(item.lat,item.lng);if(!$('input-name').value.trim())$('input-name').value=item.address;toast('주소 좌표를 선택했습니다.')});
 $('btn-pick-map').addEventListener('click',startMapPick);$('btn-pick-map-2').addEventListener('click',startMapPick);$('btn-cancel-map-pick').addEventListener('click',cancelMapPick);
