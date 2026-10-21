@@ -14,17 +14,19 @@ function switchView(next) {
   activeView=next;
   document.body.dataset.mobileView=activeView;
   document.querySelectorAll('[data-view]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.view===activeView)));
-  if(media.matches){window.scrollTo({top:0,behavior:'instant'}); if(next==='map')requestAnimationFrame(()=>setTimeout(()=>app.resizeMap(),70));}
+  if(media.matches&&next==='map')requestAnimationFrame(()=>setTimeout(()=>app.resizeMap(),90));
+  window.TripQuickAdd?.syncView?.(next);
 }
 
 function render() {
   if(!app)return;
   if(pendingRouteSwitch){pendingRouteSwitch=false;switchView('map');}
+  window.TripQuickAdd?.sync?.();
   const day=app.getDay(),days=app.getDays();
   const hasPlaces=days.some(d=>d.stops.length>0);
   document.body.classList.toggle('has-places',hasPlaces);
   $('mobile-route').disabled=document.querySelector('#btn-route')?.disabled||false;
-  $('mobile-route').textContent=day.mode==='manual'?'이 순서로 계산하기':'동선 계산하기';
+  $('mobile-route').textContent=day.mode==='manual'?'이 순서로 계산하고 지도 보기':'동선 자동 정리하고 지도 보기';
   $('btn-inherit-origin').hidden=app.getActive()===0;
   // These controls are intentionally separate from the original editor render path.
   document.querySelectorAll('.stop-card').forEach(card=>{

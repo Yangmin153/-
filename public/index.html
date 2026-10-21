@@ -15,8 +15,10 @@
   <link rel="stylesheet" href="/static/map-workspace.css?v=4.3.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
-  <script defer src="/static/app.js?v=4.4.0"></script>
-  <script type="module" src="/static/mobile-ux.js?v=4.3.0"></script>
+  <script defer src="/static/app.js?v=4.5.0"></script>
+  <script type="module" src="/static/mobile-ux.js?v=4.5.0"></script>
+  <script type="module" src="/static/quick-add.js?v=4.5.0"></script>
+  <link rel="stylesheet" href="/static/quick-add.css?v=4.5.0">
   <script defer src="/static/map-workspace.js?v=4.3.0"></script>
   <link rel="stylesheet" href="/static/map-v44.css?v=4.4.0">
   <script defer src="/static/route-export.js?v=4.4.0"></script>
@@ -43,6 +45,7 @@
     <div class="workspace" id="trip-workspace">
       <main class="editor">
         <div class="panel-heading"><div><div class="section-kicker">MY ITINERARY</div><h2>나의 여행 일정</h2></div><button class="small-quiet" id="btn-reset">예시로 초기화</button></div>
+        <div class="trip-region-row"><label for="trip-region">여행 지역</label><input id="trip-region" list="trip-region-options" type="text" maxlength="28" value="제주" autocomplete="off" aria-label="여행 지역 선택" placeholder="지역 입력"><datalist id="trip-region-options"><option value="제주"><option value="서울"><option value="부산"><option value="강릉"><option value="경주"><option value="속초"><option value="여수"><option value="전주"></datalist><small>여행 중 언제든 변경 가능</small></div>
         <div class="day-tabs" id="day-tabs" role="tablist" aria-label="날짜 선택"></div>
         <div class="editor-inner" id="editor-inner">
           <div class="day-title-row"><div><h3 id="day-heading">1일 차</h3><p id="day-caption">하루의 출발과 도착을 정하세요</p></div><button class="icon-btn delete-day" id="btn-delete-day" aria-label="현재 날짜 삭제" title="날짜 삭제">✕</button></div>
@@ -52,7 +55,7 @@
           </div>
           <button class="inherit-origin" id="btn-inherit-origin" type="button" hidden>전날 도착지를 오늘 출발지로 사용</button>
           <div class="trip-date-field"><label for="travel-date">여행 날짜 (선택)</label><input id="travel-date" type="date" aria-label="여행 날짜 선택"></div><div class="time-field"><label for="departure">출발 시간</label><input id="departure" type="time" value="09:00" aria-label="출발 시각"><small>자동차 이동시간 기준</small></div>
-          <div class="section-between"><div><h3>방문할 장소 <span class="count" id="place-count">0</span></h3><p>장소를 눌러 지도에서 찾고, 메뉴에서 세부사항을 변경해요.</p></div><button class="add-place" id="btn-add-place">+ 장소 추가</button></div>
+          <div class="section-between"><div><h3>방문할 장소 <span class="count" id="place-count">0</span></h3><p>방문지는 순서대로 담고, 마지막에 한 번에 동선을 정리하세요.</p></div><button class="add-place" id="btn-add-place">+ 장소 추가</button></div>
           <div id="stops-list" class="stops-list" aria-live="polite"></div>
           <div class="empty-list hidden" id="stops-empty"><span>◈</span><strong>아직 추가한 장소가 없어요</strong><p>가고 싶은 곳을 하나씩 담아보세요.</p></div>
           <div class="location-group end-group"><label class="field-label">이날의 마지막 도착지 <span>FINISH</span></label><button class="location-select" data-action="pick-destination"><span class="location-symbol finish">⌂</span><span class="location-body"><strong id="destination-name">도착지를 선택하세요</strong><small id="destination-coord">다른 숙소나 공항도 선택 가능</small></span><span class="location-right">변경 ↗</span></button></div>
@@ -77,8 +80,11 @@
   </div>
 
   <div class="mobile-bottom-actions" id="mobile-bottom-actions" aria-label="일정 빠른 실행">
-    <button type="button" id="mobile-add-place" class="mobile-add">+ 장소 추가</button>
-    <button type="button" id="mobile-route" class="mobile-calculate">동선 계산하기</button>
+    <div id="quick-results" class="quick-results" role="listbox" aria-label="장소 검색 결과" hidden></div>
+    <form id="quick-form" class="quick-form" role="search" autocomplete="off"><span id="quick-region-label" class="quick-region-label">제주</span><input id="quick-input" type="search" enterkeyhint="search" autocomplete="off" placeholder="장소 이름 붙여넣기" aria-label="여행지 빠른 검색"><button id="quick-submit" type="submit" aria-label="장소 검색">검색</button></form>
+    <div id="quick-feedback" role="status" aria-live="polite" class="quick-feedback" hidden></div>
+    <button type="button" id="mobile-add-place" class="mobile-add" hidden>+ 장소 추가</button>
+    <button type="button" id="mobile-route" class="mobile-calculate">동선 자동 정리하고 지도 보기</button>
   </div>
 
   <div class="modal-backdrop hidden" id="place-modal" aria-hidden="true">

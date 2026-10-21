@@ -82,6 +82,6 @@ test('브라우저 HTML 정적 리소스 주소와 화면 필수 요소',async()
  const js=await readFile(new URL('../public/static/app.js',import.meta.url),'utf8');
  assert.match(html,/\/static\/app\.js/);
  for(const id of ['day-tabs','stops-list','mode-auto','mode-manual','btn-route','map','travel-date','origin-name','destination-name'])assert.ok(html.includes(`id="${id}"`),id);
- assert.match(js,/pointerdown/);assert.match(js,/pointermove/);assert.match(js,/\/api\/route/);
+ assert.doesNotMatch(js,/setPointerCapture|addEventListener\('pointerdown'/);assert.match(js,/\/api\/route/);
  assert.ok(!html.includes('Cloudflare'));
 });
