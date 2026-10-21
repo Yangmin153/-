@@ -1,3 +1,21 @@
+# 여행길 4.1 — 모바일 퍼스트 UI/UX 개발본
+
+이번 변경은 2026-10-21 기준 GitHub `main` 커밋 `cc434f540b55214bd5edca625e14756fc8727afb`에서 출발했습니다. 운영 `main`에 직접 적용된 파일이 아니라 검증용 배포 패키지입니다.
+
+- 모바일 768px 이하 일정/지도 탭, 하단 고정 액션, 안전영역, 히어로 자동 접힘, 검색 바텀시트, 체류시간 퀵칩, 분리된 드래그 핸들(44px 이상)
+- 네이버 지도 차량 길안내 딥링크(모바일 앱) 및 웹 페이지 폴백, 타임라인·장소 카드 길안내
+- 다른 일차로 장소 이동(기존 기능 유지), 전날 도착지 -> 당일 출발지 원탭 연결
+- 링크로 일정 공유(Web Share API / 복사) 및 저장 키 `yeohaenggil.v2.days` 유지
+- PWA 매니페스트·아이콘, 모바일 WebView 패키징 지침(`docs/APP_PACKAGING.md`)
+- 로컬 서버 `api/places` 경로 및 웹 앱 매니페스트/아이콘 MIME 처리 보완
+- 기존 Naver/Kakao 서버 API 소스, `lib/core.js`, `lib/place-search.js`는 변경 없음
+
+**검증 범위**: Node.js `npm test` 20건 통과, 로컬 HTTP 테스트에서 정적 파일·API 경로 확인. 실제 네이버/카카오 키를 이용한 운영 테스트, Android/iOS 네이티브 앱 딥링크, Playwright 실기기 UI 테스트는 수행하지 못했습니다.
+
+**배포**: GitHub의 `main`을 직접 덮어쓰지 말고 `feature/mobile-first-ui` 새 브랜치에 수정 파일을 올리고, Vercel Preview에서 장소 검색, 지도, 길찾기, 공유, 각 날짜의 장소 이동을 확인한 후 PR로 병합하세요. Preview 도메인은 네이버 지도 허용 도메인에 별도 등록해야 할 수 있습니다. 네이버/카카오 API 키는 기존 Vercel 환경변수에 유지합니다.
+
+---
+
 # 여행길 v4 — GitHub + Vercel 배포판
 
 네이버 지도와 도로 길찾기를 사용하여 **출발지 → 관광지 전체 → 최종 도착지** 순서의 자동차 여행 동선을 계산하는 웹사이트입니다. **Cloudflare 및 Google Cloud Run을 사용하지 않습니다.** GitHub에는 코드가 있고, Vercel은 정적 화면과 서버 측 API를 제공합니다.
