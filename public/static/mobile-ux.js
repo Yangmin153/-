@@ -41,13 +41,8 @@ function render() {
     const action=document.createElement('button');action.type='button';action.className='timeline-nav';action.dataset.navigateIndex=String(i);action.textContent='네이버 지도 길안내 ↗';
     card.querySelector('.timeline-info')?.append(action);
   });
-  updateQuickChips();
 }
 
-function updateQuickChips(){
-  const value=Number($('input-stay').value);
-  document.querySelectorAll('[data-stay-minutes]').forEach(btn=>btn.classList.toggle('selected',Number(btn.dataset.stayMinutes)===value));
-}
 function beforeModal(){modalFocus=document.activeElement;lastModalOpen=true;document.body.classList.add('modal-visible');}
 function onModalClosed(){lastModalOpen=false;document.body.classList.remove('modal-visible');modalFocus?.focus?.({preventScroll:true});}
 function syncModalVisible(){
@@ -102,7 +97,6 @@ function onClick(event){
   const viewButton=event.target.closest('[data-view]');if(viewButton){switchView(viewButton.dataset.view);return;}
   const navStop=event.target.closest('[data-navigate-stop]');if(navStop){event.stopPropagation();navigateStop(navStop.dataset.navigateStop);return;}
   const navIndex=event.target.closest('[data-navigate-index]');if(navIndex){navigateTimeline(Number(navIndex.dataset.navigateIndex));return;}
-  const chip=event.target.closest('[data-stay-minutes]');if(chip){$('input-stay').value=chip.dataset.stayMinutes;updateQuickChips();return;}
 }
 function init(){
   if(!app)return;
@@ -121,7 +115,6 @@ function init(){
     $('place-query').focus();
     $('place-query').select();
   });
-  $('input-stay').addEventListener('input',updateQuickChips);
   $('place-modal').addEventListener('click',()=>queueMicrotask(syncModalVisible));
   document.addEventListener('keydown',event=>{
     if(event.key!=='Tab'||$('place-modal').classList.contains('hidden'))return;

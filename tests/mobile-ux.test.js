@@ -30,7 +30,7 @@ test('잘못된 내비게이션 좌표 거부',()=>assert.throws(()=>naverRouteL
 test('모바일 핵심 UI 구조와 합의한 데이터 저장 키 유지',async()=>{
  const [html,js,css]=await Promise.all(['../public/index.html','../public/static/app.js','../public/static/styles.css'].map(path=>readFile(new URL(path,import.meta.url),'utf8')));
  for(const id of ['mobile-view-tabs','mobile-bottom-actions','mobile-add-place','mobile-route','btn-share','btn-inherit-origin','place-address-fallback'])assert.ok(html.includes(`id="${id}"`),id);
- assert.match(html,/data-stay-minutes="90"/);
+ assert.doesNotMatch(html,/data-stay-minutes=/);
  assert.match(js,/yeohaenggil\.v2\.days/);assert.match(js,/\/api\/route/);assert.match(js,/\/api\/places/);assert.match(js,/TripApp/);
  assert.match(css,/safe-area-inset-bottom/);assert.match(css,/85dvh/);assert.match(css,/touch-action:\s*none/);assert.equal(MOBILE_BREAKPOINT,768);
 });
