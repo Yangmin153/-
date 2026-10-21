@@ -26,7 +26,7 @@ test('잘못된 사용자 입력과 중복 관광지 차단',()=>{
  assert.equal(validatePlan(example),null);
  for(const invalid of [
   {...example,departure:'26:00'},
-  {...example,stops:Array.from({length:13},(_,i)=>place('x'+i,126.1+i/200))},
+  {...example,stops:Array.from({length:31},(_,i)=>place('x'+i,126.1+i/200))},
   {...example,stops:[example.stops[0],example.stops[0]]},
   {...example,origin:{...example.origin,lat:Infinity}},
   {...example,mode:'unknown'}

@@ -12,15 +12,18 @@
   <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <link rel="stylesheet" href="/static/styles.css?v=4.2.0">
   <link rel="stylesheet" href="/static/polish.css?v=4.2.0">
+  <link rel="stylesheet" href="/static/map-workspace.css?v=4.3.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
-  <script defer src="/static/app.js?v=4.2.0"></script>
-  <script type="module" src="/static/mobile-ux.js?v=4.2.0"></script>
+  <script defer src="/static/place-meta.js?v=4.3.0"></script>
+  <script defer src="/static/app.js?v=4.3.0"></script>
+  <script type="module" src="/static/mobile-ux.js?v=4.3.0"></script>
+  <script defer src="/static/map-workspace.js?v=4.3.0"></script>
 </head>
 <body>
   <div class="app-shell">
     <header class="site-header">
       <div class="brand" aria-label="여행길">
-        <span class="brand-symbol">↗</span>
+        <span class="brand-symbol" aria-hidden="true">↗</span>
         <div><strong>여행길</strong><small>나만의 여행 플래너</small></div>
       </div>
       <div class="header-right"><span class="api-indicator" id="api-indicator"><i></i>지도 연결 확인 중</span><button class="header-action" id="btn-export" title="일정 JSON 백업">일정 저장 <span>↓</span></button><button class="header-icon" id="btn-import" title="백업된 일정 불러오기" aria-label="일정 불러오기">↥</button><button class="header-share" id="btn-share" type="button">일정 공유</button></div>
@@ -35,7 +38,7 @@
       <div class="trip-meta"><div class="hero-orbit" aria-hidden="true"><span>1</span><i></i><span>2</span><i></i><span>3</span></div><span class="hero-orbit-caption">어디든, 가장 좋은 순서로</span></div>
     </section>
 
-    <div class="workspace">
+    <div class="workspace" id="trip-workspace">
       <main class="editor">
         <div class="panel-heading"><div><div class="section-kicker">MY ITINERARY</div><h2>나의 여행 일정</h2></div><button class="small-quiet" id="btn-reset">예시로 초기화</button></div>
         <div class="day-tabs" id="day-tabs" role="tablist" aria-label="날짜 선택"></div>
@@ -47,7 +50,7 @@
           </div>
           <button class="inherit-origin" id="btn-inherit-origin" type="button" hidden>전날 도착지를 오늘 출발지로 사용</button>
           <div class="trip-date-field"><label for="travel-date">여행 날짜 (선택)</label><input id="travel-date" type="date" aria-label="여행 날짜 선택"></div><div class="time-field"><label for="departure">출발 시간</label><input id="departure" type="time" value="09:00" aria-label="출발 시각"><small>이동 및 체류시간 계산에 사용</small></div>
-          <div class="section-between"><div><h3>방문할 장소 <span class="count" id="place-count">0</span></h3><p>오른쪽 이동 손잡이 또는 화살표로 순서를 바꿀 수 있어요.</p></div><button class="add-place" id="btn-add-place">+ 장소 추가</button></div>
+          <div class="section-between"><div><h3>방문할 장소 <span class="count" id="place-count">0</span></h3><p>장소를 눌러 지도에서 찾고, 메뉴에서 세부사항을 변경해요.</p></div><button class="add-place" id="btn-add-place">+ 장소 추가</button></div>
           <div id="stops-list" class="stops-list" aria-live="polite"></div>
           <div class="empty-list hidden" id="stops-empty"><span>◈</span><strong>아직 추가한 장소가 없어요</strong><p>가고 싶은 곳을 하나씩 담아보세요.</p></div>
           <div class="location-group end-group"><label class="field-label">이날의 마지막 도착지 <span>FINISH</span></label><button class="location-select" data-action="pick-destination"><span class="location-symbol finish">⌂</span><span class="location-body"><strong id="destination-name">도착지를 선택하세요</strong><small id="destination-coord">다른 숙소나 공항도 선택 가능</small></span><span class="location-right">변경 ↗</span></button></div>
@@ -58,9 +61,9 @@
       </main>
 
       <section class="view-panel" aria-label="여행 동선 결과">
-        <div class="view-toolbar"><div class="view-title"><span class="live-ring"></span><div><h2>여행 동선 지도</h2><p id="map-caption">선택한 날짜의 경로를 지도에서 확인하세요</p></div></div><button class="map-fit" id="btn-map-fit" title="현재 날짜의 전체 장소 보기">⤢ <span>전체 보기</span></button></div>
-        <div class="map-region" id="map-region"><div id="map"></div><div class="map-placeholder" id="map-placeholder"><div class="map-pattern"></div><div class="map-illustration">⌖</div><strong>네이버 지도를 연결하면<br>실제 여행 경로가 표시됩니다.</strong><span>지도 API 키 등록 후 사용할 수 있어요.</span></div><div class="map-select-notice hidden" id="map-select-notice"><strong>지도에서 위치를 선택하세요</strong><span>원하는 곳을 한 번 눌러 좌표를 지정합니다</span><button id="btn-cancel-map-pick">취소</button></div><span class="map-watermark">Powered by NAVER Maps</span></div>
-        <div class="result-section">
+        <div class="view-toolbar"><div class="view-title"><span class="live-ring"></span><div><h2>여행 동선 지도</h2><p id="map-caption">선택한 날짜의 경로를 지도에서 확인하세요</p></div></div><div class="view-actions"><button class="map-fit" id="btn-sidebar-toggle" type="button" aria-pressed="false" title="일정 편집 영역 접기">목록 접기</button><button class="map-fit" id="btn-map-fit" type="button" title="현재 날짜의 전체 장소 보기">전체 동선 보기</button></div></div>
+        <div class="map-region" id="map-region"><div id="map"></div><div class="map-overlay-controls" id="map-overlay-controls"><div class="map-current-day"><span>현재 동선</span><select id="map-day-select" aria-label="지도 날짜 선택"></select></div><div class="map-control-buttons"><button type="button" id="map-lock" aria-pressed="false" title="지도 이동 잠금">지도 잠금</button><button type="button" id="map-fit-overlay" title="전체 동선 보기">전체 보기</button><button type="button" id="map-maximize" aria-pressed="false" title="전체 화면 지도">확대 보기</button></div></div><button type="button" id="map-full-close" class="map-full-close" hidden>✕ 지도 닫기</button><div class="map-placeholder" id="map-placeholder"><div class="map-pattern"></div><div class="map-illustration">⌖</div><strong>네이버 지도를 연결하면<br>실제 여행 경로가 표시됩니다.</strong><span>지도 API 키 등록 후 사용할 수 있어요.</span></div><div class="map-select-notice hidden" id="map-select-notice"><strong>지도에서 위치를 선택하세요</strong><span>원하는 곳을 한 번 눌러 좌표를 지정합니다</span><button id="btn-cancel-map-pick">취소</button></div><span class="map-watermark">Powered by NAVER Maps</span></div>
+        <div class="map-sheet" id="map-sheet"><button class="map-sheet-toggle" id="map-sheet-toggle" type="button" aria-expanded="false">방문 순서 보기 <span aria-hidden="true">⌃</span></button><div class="map-sheet-list" id="map-sheet-list"></div></div><div class="result-section">
           <div class="result-title"><div><div class="section-kicker">YOUR ROUTE</div><h2>오늘의 이동 요약</h2></div><span class="result-status" id="result-status">계산 전</span></div>
           <div class="metrics"><div class="metric"><span>방문 장소</span><strong id="metric-places">—</strong><small>곳</small></div><div class="metric"><span>자동차 이동</span><strong id="metric-drive">—</strong><small>분</small></div><div class="metric"><span>이동 거리</span><strong id="metric-distance">—</strong><small>km</small></div></div>
           <p id="route-savings" class="route-savings hidden" aria-live="polite"></p><div id="result-alert" class="result-alert hidden" role="status"></div>
@@ -79,12 +82,13 @@
 
   <div class="modal-backdrop hidden" id="place-modal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading" tabindex="-1"><div class="sheet-grabber" aria-hidden="true"></div><div class="modal-top"><div><div class="section-kicker">FIND A PLACE</div><h2 id="modal-heading">장소 선택</h2></div><button class="icon-btn" id="modal-close" aria-label="창 닫기">✕</button></div>
-      <div class="modal-tabs" role="tablist" aria-label="장소 찾기 방식"><button class="active" data-modal-tab="place">장소 · 주소 통합 검색</button><button class="legacy-address-tab" data-modal-tab="address" hidden>주소 검색</button><button data-modal-tab="coordinate">직접 입력</button><button data-modal-tab="example">추천 장소</button></div>
+      <div class="modal-tabs" role="tablist" aria-label="장소 찾기 방식"><button class="active" data-modal-tab="place">장소 · 주소 통합 검색</button><button class="legacy-address-tab" data-modal-tab="address" hidden>주소 검색</button><button data-modal-tab="example">추천 장소</button></div>
       <div class="modal-body">
         <div id="modal-place" class="modal-tab">
           <label class="field-label" for="place-query">장소 이름 또는 도로명·지번 주소</label>
-          <div class="address-search unified-search-field"><span class="search-leading" aria-hidden="true">⌕</span><input id="place-query" enterkeyhint="search" autocomplete="off" maxlength="80" placeholder="어디로 가시나요? 장소·주소 검색" aria-describedby="place-search-status"><button id="btn-search-place" type="button">검색</button></div><div class="search-suggestions" id="search-suggestions" aria-label="빠른 검색"><span>많이 찾는 장소</span><button type="button" data-search-suggest="성산일출봉">성산일출봉</button><button type="button" data-search-suggest="제주국제공항">제주공항</button><button type="button" data-search-suggest="서울시청">서울시청</button></div>
-          <div class="place-search-options"><label for="place-scope">검색 범위</label><select id="place-scope"><option value="all">전국 검색</option><option value="nearby">오늘 출발지 주변 20km</option></select><small>검색 결과에서 지점과 주소를 비교할 수 있어요.</small></div>
+          <div class="address-search unified-search-field"><span class="search-leading" aria-hidden="true">⌕</span><input id="place-query" enterkeyhint="search" autocomplete="off" maxlength="80" placeholder="어디로 가시나요? 장소·주소 검색" aria-describedby="place-search-status"><button id="btn-search-place" type="button">검색</button></div>
+          <div class="search-suggestions" id="search-suggestions" aria-label="빠른 검색"><span>많이 찾는 장소</span><button type="button" data-search-suggest="성산일출봉">성산일출봉</button><button type="button" data-search-suggest="제주국제공항">제주공항</button><button type="button" data-search-suggest="서울시청">서울시청</button></div>
+          <div class="place-search-options"><label for="place-scope">검색 범위</label><select id="place-scope"><option value="all">전국 검색</option><option value="nearby">오늘 출발지 주변 20km</option></select><small>검색 결과에서 주소와 지점을 비교해 선택할 수 있어요.</small></div>
           <div id="place-search-status" class="place-search-status" role="status" aria-live="polite">여행지 이름이나 주소를 입력하면 함께 찾아드려요.</div>
           <div id="place-results" class="place-results" aria-live="polite"></div>
           <button id="place-address-fallback" class="place-more hidden" type="button">검색어 수정하기</button>
@@ -92,12 +96,12 @@
           <div id="place-selected" class="place-selected hidden" role="status"></div>
           <p class="place-attribution">장소 정보는 카카오맵, 주소 확인은 네이버 지도에서 제공합니다. 실제 방문 전 위치를 확인해 주세요.</p>
         </div>
-        <div id="modal-address" class="modal-tab hidden"><label class="field-label" for="address-query">도로명·지번 주소 검색</label><div class="address-search"><input id="address-query" placeholder="예: 제주특별자치도 제주시 공항로 2"><button id="btn-search-address">검색</button></div><p class="modal-explain">네이버 Maps 주소 검색입니다. 관광지 이름 검색이 아니라 <strong>주소 검색</strong>이며, 결과를 선택한 뒤 이름을 바꿀 수 있습니다.</p><div id="address-results" class="address-results"></div><button class="linkish" id="btn-pick-map">⌖ 지도에서 직접 위치 찍기 ↗</button></div>
-        <div id="modal-coordinate" class="modal-tab hidden"><div class="coord-grid"><div><label class="field-label" for="input-lat">위도 (Latitude)</label><input id="input-lat" type="number" min="-90" max="90" step="any" placeholder="33.5104"></div><div><label class="field-label" for="input-lng">경도 (Longitude)</label><input id="input-lng" type="number" min="-180" max="180" step="any" placeholder="126.4913"></div></div><button class="linkish" id="btn-pick-map-2">⌖ 지도 클릭으로 좌표 선택하기 ↗</button></div>
-        <div id="modal-example" class="modal-tab hidden"><p class="modal-explain">아래는 화면 체험을 위한 <strong>예시 좌표</strong>입니다. 실제 여행 전 장소 입구 위치를 확인하세요.</p><div id="preset-list" class="preset-list"></div></div>
+        <div id="modal-address" class="modal-tab hidden" aria-label="이전 주소 검색 방식"><label class="field-label" for="address-query">도로명·지번 주소 검색</label><div class="address-search"><input id="address-query" placeholder="예: 제주특별자치도 제주시 공항로 2"><button id="btn-search-address">검색</button></div><p class="modal-explain">네이버 Maps 주소 검색입니다. 관광지 이름 검색이 아니라 <strong>주소 검색</strong>이며, 결과를 선택한 뒤 이름을 바꿀 수 있습니다.</p><div id="address-results" class="address-results"></div><button class="linkish" id="btn-pick-map">⌖ 지도에서 직접 위치 찍기 ↗</button></div>
+        <div id="modal-coordinate" hidden aria-hidden="true"><input id="input-lat" type="hidden"><input id="input-lng" type="hidden"></div>
+        <div id="modal-example" class="modal-tab hidden"><p class="modal-explain">아래는 탐색용 예시 장소입니다. 방문 전 정확한 위치를 검색해 확인해 주세요.</p><div id="preset-list" class="preset-list"></div></div>
         <div class="modal-divider"></div><label class="field-label" for="input-name">표시할 장소 이름</label><input id="input-name" maxlength="100" placeholder="예: 협재해수욕장">
-        <div id="stay-field"><label class="field-label" for="input-stay">관광지 체류시간</label><div class="stay-chips" role="group" aria-label="체류 시간 빠른 선택"><button type="button" data-stay-minutes="30">30분</button><button type="button" data-stay-minutes="60">1시간</button><button type="button" data-stay-minutes="90">1시간 30분</button><button type="button" data-stay-minutes="120">2시간</button></div><div class="stay-entry"><input id="input-stay" type="number" min="0" max="720" value="60"><span>분</span></div></div>
-        <p id="selected-coord" class="selected-coord">위치를 아직 선택하지 않았습니다.</p>
+        <div id="category-field"><label class="field-label" for="input-category">장소 종류</label><select id="input-category" class="category-select" aria-label="장소 종류"></select></div><div id="stay-field"><label class="field-label" for="input-stay">관광지 체류시간</label><div class="stay-chips" role="group" aria-label="체류 시간 빠른 선택"><button type="button" data-stay-minutes="30">30분</button><button type="button" data-stay-minutes="60">1시간</button><button type="button" data-stay-minutes="90">1시간 30분</button><button type="button" data-stay-minutes="120">2시간</button></div><div class="stay-entry"><input id="input-stay" type="number" min="0" max="720" value="60"><span>분</span></div></div>
+        <p id="selected-coord" class="selected-coord hidden" aria-hidden="true"></p>
       </div><div class="modal-actions"><button class="quiet-btn" id="btn-modal-cancel">취소</button><button class="confirm-btn" id="btn-modal-save">장소 적용하기 ↗</button></div>
     </div>
   </div>

@@ -1,0 +1,12 @@
+/** Domain presentation metadata only; never mutates routing coordinates or server contracts. */
+(function(root){
+ 'use strict';
+ const categories=Object.freeze({restaurant:{label:'음식점',color:'#e27048',path:'M3 3v7a3 3 0 0 0 6 0V3M6 3v18M9 3v7M17 3c-2 2-2 5-2 8h4V3M19 3v18'},cafe:{label:'카페',color:'#a6744d',path:'M3 8h14v6a7 7 0 0 1-14 0V8ZM17 9h2a3 3 0 0 1 0 6h-2M3 21h16'},sight:{label:'관광지',color:'#4477cc',path:'M3 7h4l2-3h6l2 3h4v13H3V7Zm9 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z'},hotel:{label:'숙소',color:'#806ac5',path:'M3 4v17M21 21v-9H3M6 12V7h6v5M14 9h5a2 2 0 0 1 2 2v1'},shopping:{label:'쇼핑',color:'#b45f90',path:'M4 8h16l-1 13H5L4 8Zm4 0V6a4 4 0 0 1 8 0v2'},activity:{label:'액티비티',color:'#259c91',path:'M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18'},transport:{label:'교통',color:'#547188',path:'M5 4h14v13H5V4Zm2 13-2 4m12-4 2 4M8 8h8M8 13h1m6 0h1'},other:{label:'기타',color:'#647b8e',path:'M12 22s7-7 7-13a7 7 0 1 0-14 0c0 6 7 13 7 13ZM12 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z'}});
+ function infer(place){const raw=String(place?.categoryName||place?.category_name||place?.category||'')+' '+String(place?.name||'');if(place?.category&&categories[place.category])return place.category;
+ if(/중식|한식|일식|양식|음식점|식당|분식|고깃집|횟집|레스토랑/.test(raw))return 'restaurant';if(/카페|커피|디저트|베이커리|빵집/.test(raw))return 'cafe';if(/호텔|숙박|모텔|펜션|리조트|게스트하우스|숙소/.test(raw))return 'hotel';if(/마트|쇼핑|백화점|시장|아울렛|편의점/.test(raw))return 'shopping';if(/체험|놀이공원|스키|서핑|액티비티|레저/.test(raw))return 'activity';if(/공항|기차역|버스터미널|지하철|정류장|주차장/.test(raw))return 'transport';if(/관광|해수욕장|박물관|미술관|공원|산책|전망대|동굴|일출봉/.test(raw))return 'sight';return 'other';}
+ function meta(place){return categories[infer(place)];}
+ function icon(place,size=20){const m=meta(place),n=Math.max(12,Math.min(32,Number(size)||20));return `<svg xmlns="http://www.w3.org/2000/svg" width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${m.path}"/></svg>`;}
+ function choices(current){return Object.entries(categories).map(([key,v])=>`<option value="${key}" ${current===key?'selected':''}>${v.label}</option>`).join('');}
+ function locationLabel(place){const addr=String(place?.address||'').trim();const m=addr.match(/(?:서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)(?:특별시|광역시|특별자치도|특별자치시|도)?\s+([^\s]+)/);return m?m[1]:addr.split(/\s+/).slice(0,2).join(' ');}
+ root.TripMeta=Object.freeze({categories,infer,meta,icon,choices,locationLabel});
+})(globalThis);
