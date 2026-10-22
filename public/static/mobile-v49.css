@@ -400,3 +400,37 @@ body.search-open,body.account-open{overflow:hidden;overscroll-behavior:none}
 }
 @media(prefers-reduced-motion:reduce){.search-screen *, .account-panel *{scroll-behavior:auto!important}}
 
+
+/* v4.9.1: discoverable collection and persistent fullscreen search feedback */
+.quick-add-guide{display:flex;align-items:center;gap:10px;background:#f0f6ff;border:1px solid #dbe8fc;
+ border-radius:12px;padding:12px 10px;margin:10px 0;color:#254673;min-width:0}
+.quick-add-guide[hidden]{display:none!important}
+.quick-add-guide-icon{display:grid;place-items:center;flex:0 0 32px;height:32px;width:32px;
+ border-radius:10px;background:#286dd5;color:white;font-size:23px;font-weight:600}
+.quick-add-guide>div:nth-child(2){flex:1;min-width:0}
+.quick-add-guide strong{font-size:13px;font-weight:850;line-height:1.4}
+.quick-add-guide p{margin:3px 0 0;font-size:12px;line-height:1.5;color:#536c91}
+.quick-add-guide button{flex:0 0 auto;min-height:44px;border:0;border-radius:10px;
+ padding:9px 11px;background:#256bd6;color:white;font-weight:750;font-size:12px}
+.search-screen #search-screen-count{background:#eaf4ff;color:#245da8;padding:5px 8px;border-radius:999px;
+ white-space:nowrap;font-size:12px;font-weight:800}
+.search-screen #search-screen-feedback{display:flex;align-items:center;min-height:0;margin:0 12px 8px;
+ padding:10px 12px;border-radius:10px;background:#e9f8ef;color:#146b3f;
+ font-size:13px;font-weight:750;line-height:1.35;box-shadow:0 2px 9px #0d4b2220}
+.search-screen #search-screen-feedback[hidden]{display:none!important}
+.search-screen #search-screen-feedback.search-success-pop{animation:ygSearchAdded .23s ease-out}
+@keyframes ygSearchAdded{from{opacity:.35;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){
+ .section-between .add-place{min-height:44px;white-space:nowrap}
+ .mobile-bottom-actions .quick-form input{font-size:16px!important}
+ .quick-add-guide{padding:10px 8px;gap:8px}
+ .quick-add-guide strong{font-size:12px}
+ .quick-add-guide p{font-size:11px}
+ .quick-add-guide button{padding:8px 10px}
+ .search-screen-results-mount{min-height:0;flex:1;overscroll-behavior:contain}
+}
+@media(max-width:350px){
+ .quick-add-guide{flex-wrap:wrap}
+ .quick-add-guide button{margin-left:40px}
+}
+@media(prefers-reduced-motion:reduce){.search-screen #search-screen-feedback.search-success-pop{animation:none}}

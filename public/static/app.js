@@ -94,6 +94,7 @@ async function calculateRoute(explicit=true){
  clearTimeout(pendingCalc);
  if(!d.origin||!d.destination)return toast('출발지와 최종 도착지를 지정해 주세요.');
  const dayId=d.id;
+ let calculationSucceeded=false;
  const body={origin:d.origin,destination:d.destination,stops:d.stops,departure:d.departure,mode:d.mode};
  const snapshot=JSON.stringify(body);
  state.loading=true;$('route-loading-status').hidden=false;$('mobile-route-status').hidden=false;
@@ -105,14 +106,14 @@ async function calculateRoute(explicit=true){
   const dest=state.days.find(x=>x.id===dayId);
   if(!dest||JSON.stringify({origin:dest.origin,destination:dest.destination,stops:dest.stops,departure:dest.departure,mode:dest.mode})!==snapshot)throw Error('계산 중 일정이 변경되었습니다. 다시 계산해 주세요.');
   if(dest.mode==='auto'){const byId=new Map(dest.stops.map(stop=>[stop.id,stop]));const sorted=result.orderIds.map(id=>byId.get(id)).filter(Boolean);if(sorted.length===dest.stops.length)dest.stops=sorted;}
-  dest.result=result;mapFitQueued=true;window.TripQuickAdd?.setDirty?.(false);
+  dest.result=result;calculationSucceeded=true;mapFitQueued=true;window.TripQuickAdd?.setDirty?.(false);
   if(result.status==='estimated')toast('일부 구간은 추정치입니다. 네이버 자동차 경로 정보를 확인해 주세요.');else toast('여행 동선을 계산했습니다.');
  }catch(error){
   toast('동선 계산 실패: '+error.message);state.routeError=error.message;
  }finally{
   state.loading=false;$('route-loading-status').hidden=true;$('mobile-route-status').hidden=true;refresh();
   if(state.routeError){$('result-alert').textContent=state.routeError+' · 이동수단과 장소를 확인한 후 다시 계산해 주세요.';$('result-alert').classList.remove('hidden');state.routeError=null;}
-  if(day().result&&day().id===dayId){window.TripUX?.switchView?.('map');requestAnimationFrame(()=>setTimeout(()=>{resizeMapStable({fit:true});if(matchMedia('(max-width:768px)').matches)$('map-region').scrollIntoView({behavior:'smooth',block:'start'});},120));}
+  if(calculationSucceeded&&day().result&&day().id===dayId){window.YeoSearch?.hide?.();window.TripUX?.switchView?.('map');requestAnimationFrame(()=>setTimeout(()=>{resizeMapStable({fit:true});if(matchMedia('(max-width:768px)').matches)$('map-region').scrollIntoView({behavior:'smooth',block:'start'});},120));}
  }
 }
 // — 장소 편집 / 지도 클릭 —
@@ -281,7 +282,7 @@ $('travel-date').addEventListener('change',e=>{day().date=e.target.value;refresh
 $('auto-recalc').checked=localStorage.getItem(RECALC_KEY)==='1';$('auto-recalc').addEventListener('change',e=>{localStorage.setItem(RECALC_KEY,e.target.checked?'1':'0');toast(e.target.checked?'변경 후 경로 자동 재계산을 켰습니다. 유료 API 호출에 유의하세요.':'자동 재계산을 껐습니다. 필요할 때 계산 버튼을 누르세요.')});
 $('departure').addEventListener('change',e=>{day().departure=e.target.value;markDirty()});
 $('editor-inner').addEventListener('click',e=>{const select=e.target.closest('[data-action]');if(select){openModal(select.dataset.action==='pick-origin'?'origin':'destination');return}});
-$('btn-add-place').addEventListener('click',()=>openModal('stop'));
+$('btn-add-place').addEventListener('click',()=>{if(window.YeoSearch&&matchMedia('(max-width:768px)').matches)window.YeoSearch.show();else openModal('stop');});
 $('stops-list').addEventListener('click',e=>{
  const categoryButton=e.target.closest('[data-cycle-category]');if(categoryButton){const item=day().stops.find(x=>x.id===categoryButton.dataset.cycleCategory);if(!item)return;const kinds=Object.keys(TripMeta.categories),index=kinds.indexOf(TripMeta.infer(item));item.category=kinds[(index+1)%kinds.length];save();renderEditor();renderResult();renderMap();window.MapWorkspace?.refresh?.();return;}
  const pin=e.target.closest('[data-stop-pin]');if(pin){const item=day().stops.find(x=>x.id===pin.dataset.stopPin);if(!item)return;item.locked=!item.locked;markDirty(false);toast(item.locked?'이 방문지의 순서를 고정했어요.':'순서 고정을 해제했어요.');return;}

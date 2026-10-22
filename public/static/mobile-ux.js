@@ -25,6 +25,7 @@ function render() {
   window.TripQuickAdd?.sync?.();
   const day=app.getDay(),days=app.getDays();
   const hasPlaces=days.some(d=>d.stops.length>0);
+  const guide=$('quick-add-guide');if(guide)guide.hidden=day.stops.length>0;
   document.body.classList.toggle('has-places',hasPlaces);
   $('mobile-route').disabled=document.querySelector('#btn-route')?.disabled||false;
   $('mobile-route').textContent=day.mode==='manual'?'이 순서로 계산하고 지도 보기':'동선 자동 정리하고 지도 보기';
@@ -90,8 +91,9 @@ function init(){
   if(!app)return;
   document.body.dataset.mobileView='edit';
   document.addEventListener('click',onClick);
-  $('mobile-add-place').addEventListener('click',()=>app.openModal('stop'));
+  $('mobile-add-place').addEventListener('click',()=>{if(window.YeoSearch&&media.matches)window.YeoSearch.show();else app.openModal('stop');});
   $('mobile-route').addEventListener('click',()=>app.calculateRoute());
+  $('quick-add-guide-action')?.addEventListener('click',()=>{if(window.YeoSearch&&media.matches)window.YeoSearch.show();else $('quick-input').focus()});
   $('btn-share').addEventListener('click',shareTrip);
   $('btn-inherit-origin').addEventListener('click',()=>{
     const index=app.getActive(),days=app.getDays();if(index===0)return;
