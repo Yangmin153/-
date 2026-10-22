@@ -10,20 +10,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="icon" type="image/svg+xml" href="/icon.svg">
-  <link rel="stylesheet" href="/static/styles.css?v=4.2.0">
-  <link rel="stylesheet" href="/static/polish.css?v=4.2.0">
-  <link rel="stylesheet" href="/static/map-workspace.css?v=4.3.0">
+  <link rel="stylesheet" href="/static/foundation-v49.css?v=4.9.0">
+  <link rel="stylesheet" href="/static/mobile-v49.css?v=4.9.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
-  <script defer src="/static/app.js?v=4.8.0"></script>
+  <script defer src="/static/app.js?v=4.9.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
-  <script type="module" src="/static/quick-add.js?v=4.8.0"></script>
-  <link rel="stylesheet" href="/static/quick-add.css?v=4.5.0">
-<link rel="stylesheet" href="/static/map-first-v46.css?v=4.6.0"><link rel="stylesheet" href="/static/native-v47.css?v=4.7.0">
-  <link rel="stylesheet" href="/static/tabs-v48.css?v=4.8.0">
+  <script type="module" src="/static/quick-add.js?v=4.9.0"></script>
+  <script type="module" src="/static/search-screen.js?v=4.9.0"></script>
   <script defer src="/static/map-workspace.js?v=4.3.0"></script>
-  <link rel="stylesheet" href="/static/map-v44.css?v=4.4.0">
-  
+  <script type="module" src="/static/accounts.js?v=4.9.0"></script>
 </head>
 <body data-mobile-view="edit">
   <div class="app-shell">
@@ -32,7 +28,7 @@
         <span class="brand-symbol" aria-hidden="true">↗</span>
         <div><strong>여행길</strong><small>나만의 여행 플래너</small></div>
       </div>
-      <div class="header-right"><span class="api-indicator" id="api-indicator"><i></i>지도 연결 확인 중</span><button class="header-action" id="btn-export" title="일정 JSON 백업">일정 저장 <span>↓</span></button><button class="header-icon" id="btn-import" title="백업된 일정 불러오기" aria-label="일정 불러오기">↥</button><button class="header-share" id="btn-share" type="button">일정 공유</button></div>
+      <div class="header-right"><span class="api-indicator" id="api-indicator"><i></i>지도 연결 확인 중</span><button class="header-action" id="btn-export" title="일정 JSON 백업">일정 저장 <span>↓</span></button><button class="header-icon" id="btn-import" title="백업된 일정 불러오기" aria-label="일정 불러오기">↥</button><button class="header-share" id="btn-share" type="button">일정 공유</button><button class="account-header-button" id="cloud-save" type="button" hidden>클라우드 저장</button><button class="account-header-button" id="account-button" type="button">로그인</button></div>
     </header>
 
     <nav class="mobile-view-tabs" id="mobile-view-tabs" aria-label="여행 계획 화면 선택">
@@ -116,5 +112,46 @@
   </div>
   <input type="file" id="import-file" accept="application/json,.json" hidden>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="search-screen" class="search-screen" role="dialog" aria-modal="true" aria-label="장소 검색" hidden>
+ <div class="search-screen-top">
+  <button type="button" id="search-screen-back" aria-label="검색 닫고 일정으로 돌아가기">←</button>
+  <span id="search-screen-region">제주 · 장소 검색</span>
+  <span id="search-screen-count" aria-live="polite"></span>
+ </div>
+ <div id="search-screen-form-mount" class="search-screen-form-mount"></div>
+ <div id="search-screen-results-mount" class="search-screen-results-mount"></div>
+ <p id="search-screen-feedback" role="status" aria-live="polite"></p>
+</div>
+<div id="account-panel" class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-panel-title" hidden>
+ <section class="account-sheet">
+  <div class="account-top"><h2 id="account-panel-title">내 여행</h2><button id="account-close" type="button" aria-label="닫기">×</button></div>
+  <p id="account-user">비회원으로도 여행을 계획할 수 있습니다.</p>
+  <p id="account-feedback" role="status" aria-live="polite"></p>
+  <div id="account-auth-form" class="account-auth-form">
+   <label>이메일 <input id="account-email" type="email" autocomplete="username" placeholder="name@example.com"></label>
+   <label>비밀번호 <input id="account-password" type="password" autocomplete="current-password" minlength="8" placeholder="8자 이상"></label>
+   <div class="account-auth-buttons">
+    <button data-account-action="signin" type="button">로그인</button>
+    <button data-account-action="signup" type="button">회원가입</button>
+   </div>
+   <button data-account-action="reset" type="button" class="account-link">비밀번호 재설정</button>
+   <p class="account-caption">가입 시 이메일 인증이 필요합니다. 로그인하지 않아도 일정 만들기와 자동차 동선 계산이 가능합니다.</p>
+  </div>
+  <div id="account-signed" hidden>
+   <label>여행 이름 <input id="account-trip-name" maxlength="90" value="새 여행" autocomplete="off"></label>
+   <div class="account-toolbar">
+    <button data-account-action="save" type="button">여행 저장</button>
+    <button data-account-action="new" type="button">새 여행</button>
+    <button data-account-action="import" type="button">기존 브라우저 일정 가져오기</button>
+   </div>
+   <h3>저장된 여행</h3><div id="account-trips" class="account-trips"></div>
+   <div class="account-bottom">
+    <button data-account-action="password" type="button">비밀번호 변경</button>
+    <button data-account-action="signout" type="button">로그아웃</button>
+    <button data-account-action="delete" class="danger" type="button">계정 삭제</button>
+   </div>
+  </div>
+ </section>
+</div>
 </body>
 </html>

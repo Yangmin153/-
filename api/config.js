@@ -1,2 +1,2 @@
 import {json,ready} from '../lib/core.js';
-export function GET(){const env=process.env;return json({mapsKeyId:env.NAVER_MAPS_JS_KEY_ID||env.NAVER_MAPS_CLIENT_ID||'',directionsReady:ready(env),geocodeReady:ready(env),version:'4.0.0'});}
+export function GET(){const env=process.env;return json({mapsKeyId:env.NAVER_MAPS_JS_KEY_ID||env.NAVER_MAPS_CLIENT_ID||'',directionsReady:ready(env),geocodeReady:ready(env),supabaseUrl: env.SUPABASE_URL && /^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(env.SUPABASE_URL)?env.SUPABASE_URL:'',supabaseAnonKey:env.SUPABASE_ANON_KEY||env.SUPABASE_PUBLISHABLE_KEY||'',supabaseReady:Boolean(env.SUPABASE_URL&&(env.SUPABASE_ANON_KEY||env.SUPABASE_PUBLISHABLE_KEY)),version:'4.9.0'});}
