@@ -5,6 +5,9 @@
   "functions": {
     "api/route.js": {
       "maxDuration": 60
+    },
+    "api/transit.js": {
+      "maxDuration": 60
     }
   },
   "headers": [

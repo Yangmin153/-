@@ -22,8 +22,8 @@ test('지도/추천 UI와 체류시간 UI 제거 정적 회귀',async()=>{
  const html=await readFile(new URL('index.html',root),'utf8'),app=await readFile(new URL('static/app.js',root),'utf8'),map=await readFile(new URL('static/map-workspace.js',root),'utf8');
  assert.doesNotMatch(html,/(?:id="input-stay"|id="stay-field"|data-modal-tab="coordinate"|위도\s*\(|경도\s*\()/);
  assert.doesNotMatch(app,/(?:체류\s*\$\{|체류시간은|\.stayMinutes\s*=)/);
- for(const id of ['map-return','btn-export-route','map-sheet','stops-list'])assert.ok(html.includes('id="'+id+'"'));
- assert.match(map,/visibleSheetPixels/);assert.match(map,/fitPadding/);assert.match(app,/data-stop-pin/);assert.match(app,/data-cycle-category/);assert.match(app,/data-gap-index/);
+ for(const id of ['map-sheet','stops-list','map-place-preview'])assert.ok(html.includes('id="'+id+'"'));assert.ok(!html.includes('id="btn-export-route"'));
+ assert.match(map,/visibleSheetPixels/);assert.match(map,/fitPadding/);assert.match(app,/data-stop-pin/);assert.match(app,/data-cycle-category/);assert.doesNotMatch(app,/data-gap-index/);
 });
 test('경로 도식 내보내기는 실제 leg.path 기반',async()=>{
  await import('../public/static/route-export.js');const p=plan(1);const r=await buildPlan(p,{});const days=[{...p,result:r}];

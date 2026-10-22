@@ -17,31 +17,23 @@ function render(){const d=current();if(!d)return;
  $('map-sheet-toggle').setAttribute('aria-expanded',String(sheetOpen));$('map-sheet').classList.toggle('is-open',sheetOpen);
 }
 function resize(){requestAnimationFrame(()=>{app()?.resizeMap();});}
-function fit(){app()?.fitMap(fitPadding());$('map-return').classList.add('hidden');}
-function checkDeparted(){const map=app()?.getMap();if(!map||!window.naver?.maps)return;
- clearTimeout(fitTimeout);fitTimeout=setTimeout(()=>{const bounds=map.getBounds();if(!bounds)return;const d=current(),places=[d.origin,...d.stops,d.destination].filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lng));const hits=places.filter(x=>bounds.hasLatLng?.(new naver.maps.LatLng(x.lat,x.lng))).length;
- $('map-return').classList.toggle('hidden',!places.length||hits>0);},110);
-}
+function fit(){app()?.fitMap(fitPadding());}
 function lock(next){window.__tripMapLocked=next;app()?.setMapLocked(next);render();}
 function expanded(next){fullscreen=next;document.body.classList.toggle('map-immersive',next);$('map-full-close').hidden=!next;if(next)sheetOpen=false;render();resize();setTimeout(fit,120);}
 function mapPlace(id){sheetOpen=false;render();app()?.focusPlace(id);}
-async function exportRoute(scope='day'){const btn=$(scope==='all'?'btn-export-all':'btn-export-route');btn.disabled=true;const label=btn.textContent;btn.textContent='이미지 만드는 중…';try{await window.TripExport.save(app().getDays(),scope,app().getActive());app().toast('경로 도식 PNG를 저장했습니다. (지도 배경 없음)');}catch(e){app().toast('이미지 저장 실패: '+e.message)}finally{btn.disabled=false;btn.textContent=label;}}
 function init(){if(!app())return;
  window.__tripMapLocked=media.matches;app().setMapLocked(media.matches);
- $('map-fit-overlay').addEventListener('click',fit);$('map-return').addEventListener('click',fit);
+
  $('map-lock').addEventListener('click',()=>lock(!window.__tripMapLocked));
  $('map-maximize').addEventListener('click',()=>expanded(!fullscreen));$('map-full-close').addEventListener('click',()=>expanded(false));
- $('btn-export-route').addEventListener('click',()=>exportRoute('day'));$('btn-export-all').addEventListener('click',()=>exportRoute('all'));
+
  $('btn-sidebar-toggle').addEventListener('click',()=>{const collapsed=document.body.classList.toggle('sidebar-collapsed');$('btn-sidebar-toggle').textContent=collapsed?'목록 열기':'목록 접기';$('btn-sidebar-toggle').setAttribute('aria-pressed',String(collapsed));resize();});
  $('map-day-select').addEventListener('change',e=>app().setActive(Number(e.target.value)));
  $('map-sheet-toggle').addEventListener('click',()=>{sheetOpen=!sheetOpen;render();resize();setTimeout(fit,95);});
  $('map-sheet-list').addEventListener('click',e=>{const btn=e.target.closest('[data-map-place]');if(btn)mapPlace(btn.dataset.mapPlace);});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&fullscreen)expanded(false)});
  media.addEventListener?.('change',()=>{if(!fullscreen)lock(media.matches);resize()});
- const map=app().getMap();if(map&&window.naver?.maps){naver.maps.Event.addListener(map,'idle',checkDeparted);}
- // map created asynchronously, attach once after first map initialization using polling-free event below.
- document.addEventListener('trip-map-ready',()=>{const map=app().getMap();if(map)naver.maps.Event.addListener(map,'idle',checkDeparted)},{once:true});
- window.MapWorkspace={refresh:render,fitPadding,visibleSheetPixels,checkDeparted};render();
+ window.MapWorkspace={refresh:render,fitPadding,visibleSheetPixels};render();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
