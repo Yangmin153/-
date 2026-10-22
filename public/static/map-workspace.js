@@ -5,15 +5,15 @@ function days(){return app()?.getDays()||[];}
 function current(){return app()?.getDay();}
 function visibleSheetPixels(){const sheet=$('map-sheet'),map=$('map-region');if(!sheet||!map||getComputedStyle(sheet).display==='none')return 0;
  const a=sheet.getBoundingClientRect(),b=map.getBoundingClientRect();return Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));}
-function fitPadding(){const small=media.matches,height=$('map-region')?.clientHeight||300;return {top:small?Math.min(54,Math.round(height*.22)):92,left:small?16:66,right:small?16:66,bottom:small?Math.min(48,Math.round(height*.18)):Math.max(95,visibleSheetPixels()+30)};}
+function fitPadding(){const small=media.matches,height=$('map-region')?.clientHeight||300;return {top:small?18:34,left:small?16:42,right:small?16:42,bottom:small?24:Math.max(40,visibleSheetPixels()+24)};}
 function escaped(t){return String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function render(){const d=current();if(!d)return;
  $('map-day-select').innerHTML=days().map((day,i)=>`<option value="${i}" ${i===app().getActive()?'selected':''}>${i+1}일 차</option>`).join('');
  const ordered=d.result?.orderIds?.length?d.result.orderIds.map(id=>d.stops.find(x=>x.id===id)).filter(Boolean):d.stops;
  const places=[d.origin,...ordered,d.destination];
  $('map-sheet-list').innerHTML=places.map((p,i)=>`<button class="map-sheet-place" type="button" data-map-place="${escaped(p.id)}"><span class="map-sheet-order">${i===0?'S':i===places.length-1?'E':i}</span><span class="map-sheet-place-name">${escaped(p.name)}</span><span class="map-sheet-category">${i===0?'출발':i===places.length-1?'도착':window.TripMeta.meta(p).label}</span></button>`).join('');
- const locked=Boolean(window.__tripMapLocked);$('map-lock').textContent=locked?'잠금 해제':'지도 잠금';$('map-lock').setAttribute('aria-pressed',String(locked));
- $('map-maximize').textContent=fullscreen?'축소 보기':'전체 화면';$('map-maximize').setAttribute('aria-pressed',String(fullscreen));
+ const locked=Boolean(window.__tripMapLocked);$('map-lock').textContent=locked?'움직임 허용':'지도 잠그기';$('map-lock').setAttribute('aria-pressed',String(locked));
+ $('map-maximize').textContent=fullscreen?'작게 보기':'지도 크게';$('map-maximize').setAttribute('aria-pressed',String(fullscreen));
  $('map-sheet-toggle').setAttribute('aria-expanded',String(sheetOpen));$('map-sheet').classList.toggle('is-open',sheetOpen);
 }
 function resize(){requestAnimationFrame(()=>{app()?.resizeMap();});}
@@ -24,6 +24,14 @@ function mapPlace(id){sheetOpen=false;render();app()?.focusPlace(id);}
 function init(){if(!app())return;
  window.__tripMapLocked=media.matches;app().setMapLocked(media.matches);
 
+ const changeZoom=step=>{
+  const map=app()?.getMap?.();
+  if(!map)return app()?.toast?.('지도가 나타난 다음 눌러주세요.');
+  const next=Math.max(6,Math.min(19,map.getZoom()+step));
+  if(next!==map.getZoom())map.setZoom(next);
+ };
+ $('map-zoom-out').addEventListener('click',()=>changeZoom(-1));
+ $('map-zoom-in').addEventListener('click',()=>changeZoom(1));
  $('map-lock').addEventListener('click',()=>lock(!window.__tripMapLocked));
  $('map-maximize').addEventListener('click',()=>expanded(!fullscreen));$('map-full-close').addEventListener('click',()=>expanded(false));
 

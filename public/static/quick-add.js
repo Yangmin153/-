@@ -6,7 +6,7 @@ let selectedPreview=null,timer=null,abort=null,sequence=0,items=[],lastKey='',la
 const cache=new Map(),TTL=25000,LIMIT=24,metrics={requests:0,cacheHits:0,aborts:0,latencies:[],renderCount:0};
 function setMessage(text,retry=false){results.replaceChildren();const node=document.createElement('div');node.className='quick-result-message';node.textContent=text;if(retry){const b=document.createElement('button');b.textContent='다시 검색';b.type='button';b.addEventListener('click',()=>search(true));node.append(document.createElement('br'),b);}results.append(node);results.hidden=false;}
 function syncRegion(){const v=app.getRegion();region.value=v;$('quick-region-label').textContent=v;}
-function sync(){syncRegion();const disabled=$('btn-route').disabled;$('mobile-route').disabled=disabled;$('mobile-route').textContent=disabled?'동선 계산 중…':app.getDay().mode==='manual'?'이 순서로 계산하고 지도 보기':'동선 자동 정리하고 지도 보기';}
+function sync(){syncRegion();const disabled=$('btn-route').disabled;$('mobile-route').disabled=disabled;$('mobile-route').textContent=disabled?'빠른 길을 찾고 있어요…':app.getDay().mode==='manual'?'내 순서대로 길 찾기':'가장 빠른 길 찾기';}
 function setDirty(value){dirty=Boolean(value);document.body.classList.toggle('trip-route-dirty',dirty);}
 function adjustViewport(){const viewport=window.visualViewport;if(!viewport)return;const rise=Math.max(0,innerHeight-viewport.height-viewport.offsetTop);document.documentElement.style.setProperty('--keyboard-rise',Math.max(0,rise>110?rise:0)+'px');if(rise>110)document.body.classList.add('quick-search-active');else if(input.value==='')document.body.classList.remove('quick-search-active');}
 function setSearchActive(on){document.body.classList.toggle('quick-search-active',on);if(!on){results.hidden=true;results.replaceChildren();}adjustViewport();}
@@ -25,8 +25,8 @@ function render(next){
   const category=document.createElement('span');category.className='quick-result-category';category.textContent=String(item.category||'장소').split('>').at(-1).trim();
   const address=document.createElement('small');address.textContent=item.address||'주소 정보 없음';
   heading.append(title,category);info.append(heading,address);preview.append(info);
-  preview.addEventListener('click',()=>{if(window.YeoSearch?.isOpen?.()){add(item);return;}selectedPreview=item;app.previewPlace(item);input.blur();setSearchActive(false);document.getElementById('map-region').scrollIntoView({behavior:'smooth',block:'start'});});
-  const addButton=document.createElement('button');addButton.type='button';addButton.className='quick-direct-add';addButton.textContent='추가';addButton.setAttribute('aria-label',item.name+' 바로 추가');addButton.addEventListener('click',()=>add(item));
+  preview.addEventListener('click',()=>{if(window.YeoSearch?.isOpen?.()){add(item,preview);return;}selectedPreview=item;app.previewPlace(item);input.blur();setSearchActive(false);document.getElementById('map-region').scrollIntoView({behavior:'smooth',block:'start'});});
+  const addButton=document.createElement('button');addButton.type='button';addButton.className='quick-direct-add';addButton.textContent='추가';addButton.setAttribute('aria-label',item.name+' 바로 추가');addButton.addEventListener('click',()=>add(item,addButton));
   row.append(preview,addButton);results.append(row);
  }
  if(!next.length){setMessage('검색 결과가 없어요. 다른 장소를 검색해 주세요.',true);return;}
@@ -37,21 +37,26 @@ function render(next){
 }
 async function search(force=false){const text=cleanQuery(input.value);if(text.length<2){cancel();if(text)setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;return;}const key=app.getRegion()+'::'+text;if(!force&&key===lastKey&&lastItems.length){render(lastItems);return;}cancel();const current=sequence;abort=new AbortController();const signal=abort.signal;setMessage('장소를 찾고 있어요…');setSearchActive(true);try{let found=[];for(const q of searchTerms(text,app.getRegion())){const result=await request(q,signal);if(current!==sequence)return;found=result.items||[];if(found.length)break;}if(current!==sequence)return;lastKey=key;lastItems=rankResults(found,app.getRegion());render(lastItems);}catch(e){if(signal.aborted||current!==sequence)return;setMessage('검색에 실패했어요: '+e.message,true);}finally{if(current===sequence)abort=null;}}
 function feedback(msg){const el=$('quick-feedback');el.hidden=false;el.textContent=msg;clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.hidden=true,2300);app.toast(msg);}
-function add(item){
+function add(item,button=null){
  const duplicate=app.getDay().stops.some(x=>samePlace(x,item));
- if(duplicate&&!confirm('이미 목록에 있는 장소예요. 다시 추가할까요?'))return;
+ if(duplicate&&!confirm('이미 담은 장소예요. 한 번 더 담을까요?'))return;
  const result=app.addQuickStop(item,duplicate);
- if(!result.ok){feedback(result.error||'장소를 추가할 수 없습니다.');return;}
+ if(!result.ok){feedback(result.error||'장소를 담지 못했어요. 다시 해보세요.');return;}
  const total=app.getDay().stops.length;
  const isFullSearch=Boolean(window.YeoSearch?.isOpen?.());
- lastKey='';lastItems=[];input.value='';cancel();setSearchActive(false);
+ if(button){button.textContent='✓ 담았어요';button.classList.add('is-added');button.disabled=true;}
+ document.dispatchEvent(new CustomEvent('trip:stop-added',{detail:{count:total,id:result.stop?.id,name:item.name}}));
+ lastKey='';lastItems=[];input.value='';cancel();
  const message=item.name+' 추가 완료 · 총 '+total+'곳';
- feedback(message);
- selectedPreview=null;app.clearPlacePreview();
+ feedback(message);selectedPreview=null;app.clearPlacePreview();
  if(isFullSearch){
-  window.YeoSearch?.addSuccess?.(message);
+  window.YeoSearch?.addSuccess?.(item.name+' 여행에 담았어요! · 총 '+total+'곳');
+  // Leave the pressed result visibly confirmed for 450ms, without blocking the next input.
+  const completed=sequence;
+  setTimeout(()=>{if(sequence===completed&&!input.value.trim()){results.hidden=true;results.replaceChildren();}},450);
   requestAnimationFrame(()=>input.focus({preventScroll:true}));
  }else{
+  setSearchActive(false);
   input.focus({preventScroll:true});
  }
 }

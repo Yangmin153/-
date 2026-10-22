@@ -28,7 +28,7 @@ function render() {
   const guide=$('quick-add-guide');if(guide)guide.hidden=day.stops.length>0;
   document.body.classList.toggle('has-places',hasPlaces);
   $('mobile-route').disabled=document.querySelector('#btn-route')?.disabled||false;
-  $('mobile-route').textContent=day.mode==='manual'?'이 순서로 계산하고 지도 보기':'동선 자동 정리하고 지도 보기';
+  $('mobile-route').textContent=day.mode==='manual'?'내 순서대로 길 찾기':'가장 빠른 길 찾기';
   $('btn-inherit-origin').hidden=app.getActive()===0;
   // Navigation buttons are rendered within each travel leg, not on destination cards.
 
