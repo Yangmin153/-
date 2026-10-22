@@ -6,7 +6,7 @@ let selectedPreview=null,timer=null,abort=null,sequence=0,items=[],lastKey='',la
 const cache=new Map(),TTL=25000,LIMIT=24,metrics={requests:0,cacheHits:0,aborts:0,latencies:[],renderCount:0};
 function setMessage(text,retry=false){results.replaceChildren();const node=document.createElement('div');node.className='quick-result-message';node.textContent=text;if(retry){const b=document.createElement('button');b.textContent='다시 검색';b.type='button';b.addEventListener('click',()=>search(true));node.append(document.createElement('br'),b);}results.append(node);results.hidden=false;}
 function syncRegion(){const v=app.getRegion();region.value=v;$('quick-region-label').textContent=v;}
-function sync(){syncRegion();const disabled=$('btn-route').disabled;$('mobile-route').disabled=disabled;$('mobile-route').textContent=disabled?'동선 계산 중…':app.getDay().mode==='manual'?'이 순서로 계산하고 지도 보기':'동선 자동 정리하고 지도 보기';}
+function sync(){syncRegion();}
 function setDirty(value){dirty=Boolean(value);document.body.classList.toggle('trip-route-dirty',dirty);}
 function adjustViewport(){const viewport=window.visualViewport;if(!viewport)return;const rise=Math.max(0,innerHeight-viewport.height-viewport.offsetTop);document.documentElement.style.setProperty('--keyboard-rise',Math.max(0,rise>110?rise:0)+'px');if(rise>110)document.body.classList.add('quick-search-active');else if(input.value==='')document.body.classList.remove('quick-search-active');}
 function setSearchActive(on){document.body.classList.toggle('quick-search-active',on);if(!on){results.hidden=true;results.replaceChildren();}adjustViewport();}
@@ -18,7 +18,7 @@ function render(next){
  metrics.renderCount++;items=next;results.replaceChildren();
  for(const item of next.slice(0,8)){
   const row=document.createElement('div');row.className='quick-result-row';
-  const preview=document.createElement('button');preview.className='quick-result';preview.type='button';preview.setAttribute('aria-label',item.name+' 지도에서 확인');
+  const preview=document.createElement('button');preview.className='quick-result';preview.type='button';preview.setAttribute('aria-label',item.name+(window.YeoSearch?.isOpen?.()?' 바로 추가':' 지도에서 확인'));
   const info=document.createElement('span');info.className='quick-result-info';
   const heading=document.createElement('span');heading.className='quick-result-heading';
   const title=document.createElement('strong');title.textContent=item.name;
@@ -58,4 +58,4 @@ function add(item){
 function init(){if(!app||!form)return;sync();
  $('map-preview-cancel').addEventListener('click',()=>{selectedPreview=null;app.clearPlacePreview();});
  $('map-preview-add').addEventListener('click',()=>{if(selectedPreview)add(selectedPreview);});region.addEventListener('change',()=>{if(app.setRegion(region.value)){lastKey='';lastItems=[];cancel();if(input.value.trim().length>=2)search();else sync();}});form.addEventListener('submit',e=>{e.preventDefault();search(true);});input.addEventListener('focus',()=>{setSearchActive(true);if(input.value.trim().length>=2)search();});input.addEventListener('input',()=>{cancel();lastKey='';lastItems=[];setSearchActive(true);if(input.value.trim().length>=2)timer=setTimeout(()=>search(),250);else if(input.value.trim())setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;});input.addEventListener('paste',e=>{const lines=splitPaste(e.clipboardData?.getData('text/plain')||'');if(lines.length<=1)return;e.preventDefault();input.value=lines[0];feedback(lines.length+'개 줄을 찾았어요. 각 장소를 확인해 추가해 주세요.');search();});input.addEventListener('keydown',e=>{if(e.key==='Escape'){setSearchActive(false);input.blur();}if(e.key==='Enter'){e.preventDefault();search(true);}});document.addEventListener('pointerdown',e=>{if(window.YeoSearch?.isOpen?.())return;if(!e.target.closest('#mobile-bottom-actions')&&!e.target.closest('#trip-region'))setSearchActive(false);});window.visualViewport?.addEventListener('resize',adjustViewport);window.visualViewport?.addEventListener('scroll',adjustViewport);window.addEventListener('resize',adjustViewport);$('mobile-route').addEventListener('click',()=>setDirty(false));adjustViewport();}
-window.TripQuickAdd={sync,syncRegion,syncView,setDirty,getMetrics:()=>({...metrics,cacheSize:cache.size,map:app?.getMapDiagnostics?.()})};init();
+window.TripQuickAdd={closeSearch:()=>{cancel();setSearchActive(false);document.body.classList.remove('quick-search-active');},sync,syncRegion,syncView,setDirty,getMetrics:()=>({...metrics,cacheSize:cache.size,map:app?.getMapDiagnostics?.()})};init();

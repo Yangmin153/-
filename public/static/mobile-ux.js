@@ -17,6 +17,7 @@ function switchView(next) {
   if(next==='map')app.clearPlacePreview?.();
   requestAnimationFrame(()=>setTimeout(()=>{app.refreshMap?.();app.resizeMap();if(next==='map'&&app.getDay()?.result)app.fitMap();},110));
   window.TripQuickAdd?.syncView?.(next);
+  render();
 }
 
 function render() {
@@ -28,7 +29,7 @@ function render() {
   const guide=$('quick-add-guide');if(guide)guide.hidden=day.stops.length>0;
   document.body.classList.toggle('has-places',hasPlaces);
   $('mobile-route').disabled=document.querySelector('#btn-route')?.disabled||false;
-  $('mobile-route').textContent=day.mode==='manual'?'이 순서로 계산하고 지도 보기':'동선 자동 정리하고 지도 보기';
+  $('mobile-route').textContent=$('mobile-route').disabled?'동선 계산 중…':activeView==='map'&&day.result?'일정 수정하기':day.mode==='manual'?'이 순서로 동선 계산':'동선 자동 정리하기';
   $('btn-inherit-origin').hidden=app.getActive()===0;
   // Navigation buttons are rendered within each travel leg, not on destination cards.
 
@@ -92,7 +93,7 @@ function init(){
   document.body.dataset.mobileView='edit';
   document.addEventListener('click',onClick);
   $('mobile-add-place').addEventListener('click',()=>{if(window.YeoSearch&&media.matches)window.YeoSearch.show();else app.openModal('stop');});
-  $('mobile-route').addEventListener('click',()=>app.calculateRoute());
+  $('mobile-route').addEventListener('click',()=>{if(activeView==='map'&&app.getDay().result){switchView('edit');$('mobile-view-tabs').scrollIntoView({block:'start'});}else app.calculateRoute();});
   $('quick-add-guide-action')?.addEventListener('click',()=>{if(window.YeoSearch&&media.matches)window.YeoSearch.show();else $('quick-input').focus()});
   $('btn-share').addEventListener('click',shareTrip);
   $('btn-inherit-origin').addEventListener('click',()=>{

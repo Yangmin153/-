@@ -11,13 +11,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <link rel="stylesheet" href="/static/foundation-v49.css?v=4.9.0">
-  <link rel="stylesheet" href="/static/mobile-v49.css?v=4.9.1">
+  <link rel="stylesheet" href="/static/mobile-v49.css?v=4.9.2">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
-  <script defer src="/static/app.js?v=4.9.1"></script>
-  <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
-  <script type="module" src="/static/quick-add.js?v=4.9.1"></script>
-  <script type="module" src="/static/search-screen.js?v=4.9.1"></script>
+  <script defer src="/static/app.js?v=4.9.2"></script>
+  <script type="module" src="/static/mobile-ux.js?v=4.9.2"></script>
+  <script type="module" src="/static/quick-add.js?v=4.9.2"></script>
+  <script type="module" src="/static/search-screen.js?v=4.9.2"></script>
   <script defer src="/static/map-workspace.js?v=4.3.0"></script>
   <script type="module" src="/static/accounts.js?v=4.9.0"></script>
 </head>
@@ -28,12 +28,12 @@
         <span class="brand-symbol" aria-hidden="true">↗</span>
         <div><strong>여행길</strong><small>나만의 여행 플래너</small></div>
       </div>
-      <div class="header-right"><span class="api-indicator" id="api-indicator"><i></i>지도 연결 확인 중</span><button class="header-action" id="btn-export" title="일정 JSON 백업">일정 저장 <span>↓</span></button><button class="header-icon" id="btn-import" title="백업된 일정 불러오기" aria-label="일정 불러오기">↥</button><button class="header-share" id="btn-share" type="button">일정 공유</button><button class="account-header-button" id="cloud-save" type="button" hidden>클라우드 저장</button><button class="account-header-button" id="account-button" type="button">로그인</button></div>
+      <div class="header-right"><span class="api-indicator" id="api-indicator"><i></i>지도 연결 확인 중</span><button class="header-action" id="btn-export" title="일정 JSON 백업">파일 저장 <span>↓</span></button><button class="header-icon" id="btn-import" title="백업된 일정 불러오기" aria-label="일정 불러오기">↥</button><button class="header-share" id="btn-share" type="button">일정 공유</button><button class="account-header-button" id="cloud-save" type="button" hidden>클라우드 저장</button><button class="account-header-button" id="account-button" type="button">로그인</button></div>
     </header>
 
     <nav class="mobile-view-tabs" id="mobile-view-tabs" aria-label="여행 계획 화면 선택">
-      <button type="button" data-view="edit" aria-selected="true">장소 검색 · 일정 편집</button>
-      <button type="button" data-view="map" aria-selected="false">동선 결과 · 타임라인</button>
+      <button type="button" data-view="edit" aria-selected="true">일정 만들기</button>
+      <button type="button" data-view="map" aria-selected="false">동선 보기</button>
     </nav>
     <section class="intro" id="intro-hero">
       <div><div class="eyebrow">PLAN SMARTER, TRAVEL BETTER</div><h1>여행의 순간은 길게,<br><em>이동 시간은 짧게.</em></h1><p>가고 싶은 장소만 담아주세요. 여행길이 이동 순서를 정리해 드려요.</p></div>
@@ -55,11 +55,12 @@
           <button class="inherit-origin" id="btn-inherit-origin" type="button" hidden>전날 도착지를 오늘 출발지로 사용</button>
           <div class="location-group end-group"><label class="field-label">이날의 마지막 도착지 <span>FINISH</span></label><button class="location-select" data-action="pick-destination"><span class="location-symbol finish">⌂</span><span class="location-body"><strong id="destination-name">도착지를 선택하세요</strong><small id="destination-coord">다른 숙소나 공항도 선택 가능</small></span><span class="location-right">변경 ↗</span></button></div>
           <div class="section-between"><div><h3>방문할 장소 <span class="count" id="place-count">0</span></h3><p>방문지는 순서대로 담고, 마지막에 한 번에 동선을 정리하세요.</p></div><button class="add-place" id="btn-add-place">+ 장소 추가</button></div>
-          <div id="quick-add-guide" class="quick-add-guide"><div class="quick-add-guide-icon" aria-hidden="true">＋</div><div><strong>가고 싶은 장소를 담아보세요</strong><p>아래 <b>장소 검색창</b>을 누르고, 결과에서 <b>추가</b>를 누르세요.</p></div><button type="button" id="quick-add-guide-action">검색하기</button></div>\n          <div id="stops-list" class="stops-list" aria-live="polite"></div>
+          <div id="quick-add-guide" class="quick-add-guide"><div class="quick-add-guide-icon" aria-hidden="true">＋</div><div><strong>가고 싶은 장소를 담아보세요</strong><p>아래 <b>장소 검색창</b>을 누르고, 결과에서 <b>추가</b>를 누르세요.</p></div><button type="button" id="quick-add-guide-action">검색하기</button></div>
+          <div id="stops-list" class="stops-list" aria-live="polite"></div>
           <div class="empty-list hidden" id="stops-empty"><span>◈</span><strong>아직 추가한 장소가 없어요</strong><p>가고 싶은 곳을 하나씩 담아보세요.</p></div>
           <div class="route-mode"><span>경로 계산 방식</span><div class="segmented" role="group" aria-label="경로 모드"><button id="mode-auto" class="is-selected">자동 최적화</button><button id="mode-manual">내 순서 유지</button></div></div>
           <p id="route-loading-status" class="route-loading-status" role="status" aria-live="polite" hidden>여행 동선을 계산하고 있어요</p><button class="cta" id="btn-route"><span>최적 동선 계산하기</span><span class="cta-arrow">↗</span></button>
-          <label class="auto-recalc"><input id="auto-recalc" type="checkbox"> 일정 변경 시 동선 자동 업데이트</label><div class="mini-hint">자동 업데이트를 켜면 변경된 경로를 바로 다시 계산합니다.</div><div class="mini-hint">자동 최적화는 장소 순서를 바꿀 수 있습니다. 내가 정한 순서를 지키려면 <strong>내 순서 유지</strong>를 선택하세요.</div>
+          <div hidden><label class="auto-recalc"><input id="auto-recalc" type="checkbox"> 일정 변경 시 동선 자동 업데이트</label><div class="mini-hint">자동 업데이트를 켜면 변경된 경로를 바로 다시 계산합니다.</div></div><div class="mini-hint">자동 최적화는 장소 순서를 바꿀 수 있습니다. 내가 정한 순서를 지키려면 <strong>내 순서 유지</strong>를 선택하세요.</div>
         </div>
       </main>
 
@@ -69,7 +70,7 @@
           <div class="result-title"><div><div class="section-kicker">YOUR ROUTE</div><h2>오늘의 이동 요약</h2></div><span class="result-status" id="result-status">계산 전</span></div>
           <div class="metrics"><div class="metric"><span>방문 장소</span><strong id="metric-places">—</strong><small>곳</small></div><div class="metric"><span id="metric-mode-label">자동차 이동</span><strong id="metric-drive">—</strong><small>분</small></div><div class="metric"><span>이동 거리</span><strong id="metric-distance">—</strong><small>km</small></div></div>
           <p id="route-savings" class="route-savings hidden" aria-live="polite"></p><div id="result-alert" class="result-alert hidden" role="status"></div>
-          <div class="result-head"><h3>방문 타임라인</h3><span id="timeline-note">경로 계산 후 표시됩니다</span></div>
+          <p class="movement-note">이동시간만 표시 · 체류시간 제외</p><div class="result-head"><h3>방문 타임라인</h3><span id="timeline-note">경로 계산 후 표시됩니다</span></div>
           <div id="timeline" class="timeline"><div class="blank-timeline">방문 장소를 추가하고<br><strong>동선 계산하기</strong>를 눌러보세요.</div></div>
         </div>
       </section>
@@ -116,10 +117,11 @@
  <div class="search-screen-top">
   <button type="button" id="search-screen-back" aria-label="검색 닫고 일정으로 돌아가기">←</button>
   <span id="search-screen-region">제주 · 장소 검색</span>
-  <span id="search-screen-count" aria-live="polite"></span>
+  <button type="button" id="search-screen-count" aria-label="장소 담기 완료, 일정으로 돌아가기"></button>
  </div>
  <div id="search-screen-form-mount" class="search-screen-form-mount"></div>
  <p id="search-screen-feedback" role="status" aria-live="polite" hidden></p>
+ <p id="search-screen-help">장소를 검색하고 추가하세요. 여러 곳을 연속으로 담을 수 있어요.</p>
  <div id="search-screen-results-mount" class="search-screen-results-mount"></div>
 </div>
 <div id="account-panel" class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-panel-title" hidden>

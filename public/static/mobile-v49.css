@@ -442,3 +442,51 @@ body.search-open,body.account-open{overflow:hidden;overscroll-behavior:none}
  overflow:visible!important;
 }
 .search-screen-results-mount .quick-results[hidden]{display:none!important}
+
+/* v4.9.2: readable cards, explicit search completion, and consistent tap targets. */
+.movement-note{font-size:13px;font-weight:800;color:#36597d;background:#edf4fd;padding:10px 12px;border-radius:10px}
+#search-screen-help{font-size:13px;line-height:1.5;color:#526781;margin:8px 16px 12px}
+.search-screen #search-screen-count{font-size:13px;min-height:44px;min-width:88px;border:1px solid #cddff7;cursor:pointer}
+.stop-card.compact-stop{grid-template-columns:24px 36px minmax(0,1fr) 44px 44px!important;gap:6px!important;padding:10px!important}
+.stop-card .stop-category-icon{width:36px;min-height:44px}
+.stop-card .stop-focus{min-height:44px}
+.stop-card .stop-focus strong{white-space:normal;overflow-wrap:anywhere;font-size:14px;line-height:1.45}
+.stop-card .stop-pin,.stop-card .stop-expand{width:44px!important;min-width:44px!important;min-height:44px}
+.stop-card .stop-order-controls{grid-row:2;grid-column:3/-1;justify-self:end;width:96px;min-width:96px;max-width:96px;gap:8px}
+.stop-order-controls button{min-width:44px;min-height:44px}
+.stop-card .stop-details{grid-row:3}
+.search-screen-results-mount .quick-result-row{height:auto;min-height:76px}
+.search-screen-results-mount .quick-result{height:auto;min-height:60px}
+.search-screen-results-mount .quick-result-heading{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.search-screen-results-mount .quick-result-heading strong,.search-screen-results-mount .quick-result-info small{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+.search-screen-results-mount .quick-direct-add{flex-shrink:0;min-width:52px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #84b3ff;outline-offset:2px}
+@media(max-width:768px){
+ body.search-open .mobile-bottom-actions{display:none!important}
+ .trip-date-field input,.time-field input,.trip-region-row input{font-size:16px!important;min-height:44px}
+ .mobile-view-tabs [data-view],.day-tab,.day-add,.icon-btn,.header-share,.header-action,.header-icon{min-height:44px!important}
+ .site-header{flex-wrap:wrap;gap:6px}
+ .header-right{flex-wrap:wrap;justify-content:flex-end;max-width:100%}
+ .timeline-entry .timeline-info strong{white-space:normal!important;overflow-wrap:anywhere;line-height:1.45!important;font-size:14px!important}
+ .trip-leg-divider .timeline-nav{min-height:44px!important;font-size:12px!important}
+ .timeline-entry{padding-block:6px!important}
+}
+
+/* Readable route markers: stable 44px hit area, explicit endpoints and numbered stops. */
+.route-marker-target{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;background:transparent;cursor:pointer;touch-action:manipulation;overflow:visible}
+.map-region .route-marker,.map-region.map-zoomed-out .route-marker{
+ position:relative;display:grid!important;place-items:center!important;
+ width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important;
+ border:2px solid #fff!important;outline:1px solid #6683a5;border-radius:50%!important;
+ background:var(--marker-bg,#fff)!important;color:var(--marker-ink,#173b64)!important;
+ box-shadow:0 2px 6px #132a4c55!important;overflow:visible
+}
+.map-region .route-marker .marker-order,.map-region.map-zoomed-out .route-marker .marker-order{font-size:14px!important;font-weight:900!important;line-height:1!important}
+.map-region .route-marker.origin,.map-region .route-marker.destination{width:44px!important;min-width:44px!important;border-radius:10px!important;outline:1px solid #fff}
+.map-region .route-marker.origin .marker-order,.map-region .route-marker.destination .marker-order{font-size:12px!important}
+.map-region .route-marker.active{outline:3px solid #f1a900;box-shadow:0 0 0 5px #fff,0 3px 9px #132a4c55!important}
+.marker-category{position:absolute;right:-6px;bottom:-5px;display:grid;place-items:center;width:18px;height:18px;border:1px solid #cdd8e5;border-radius:6px;background:white;color:var(--category-color,#235c9c)}
+.marker-category svg{width:12px;height:12px}
+.map-region.map-zoomed-out .marker-category{display:none}
+.map-region.map-zoomed-out .route-marker.stop{width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important}
+.route-marker-target:focus-visible{outline:3px solid #f1a900;outline-offset:2px;border-radius:12px}
