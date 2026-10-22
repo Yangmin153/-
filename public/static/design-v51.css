@@ -1,0 +1,66 @@
+/* v5.1: Region before map, explicit onboarding and fast place-collection experience. */
+.region-onboarding{position:relative;margin:12px 0 12px;padding:14px 17px;background:linear-gradient(110deg,#EDF5FF,#F8FAFF 80%);
+ border:1px solid #D8E8FF;border-radius:18px;box-shadow:0 3px 16px rgba(32,96,205,.055)}
+.region-onboarding .onboarding-step{padding-bottom:8px}
+.region-onboarding .trip-region-row{gap:9px;padding:4px 0 8px!important}
+.region-onboarding .trip-region-row label{font-size:13px!important;font-weight:800!important;color:#375176}
+.region-onboarding #trip-region{min-height:46px;max-width:none!important;flex:1;font-size:16px!important;background:#fff}
+.region-onboarding .region-shortcuts{flex-wrap:wrap;gap:7px;padding-bottom:9px}
+.region-onboarding .region-shortcuts button{min-height:40px;padding:7px 13px}
+.region-confirm-row{display:flex;align-items:center;gap:10px;margin-top:4px}
+.region-confirm{min-height:44px;padding:10px 14px;border:0;border-radius:12px;background:#286CF4;color:#fff;
+ font-size:13px;font-weight:800;white-space:nowrap;box-shadow:0 3px 12px #1b68d822}
+.region-confirm span{margin-left:4px}
+#region-selection-state{color:#4E6F9D;font-size:12px;font-weight:700;line-height:1.45}
+.region-onboarding.is-confirmed{background:linear-gradient(115deg,#F1F7FF,#F8FCFF)}
+.region-onboarding.is-confirmed .region-confirm{background:#E5EFFF;color:#215CC0;box-shadow:none}
+.region-onboarding.is-confirmed #region-selection-state{color:#236BB5}
+.region-onboarding.region-attention{animation:region-attention .35s ease 1}
+@keyframes region-attention{0%,100%{box-shadow:0 0 0 0 #286cf400}50%{box-shadow:0 0 0 5px #286cf433}}
+/* The collection card uses the Yeohaenggil identity blue instead of charcoal. */
+.selected-places-card{background:linear-gradient(145deg,#164FAF 0%,#2268DF 57%,#387CF5 100%)!important;
+ color:#fff;box-shadow:0 12px 28px rgba(29,93,204,.18)}
+.selected-places-head em{color:#D7E9FF}
+.selected-places-head .bag-clear{color:#DCEBFF}
+.bag-chip{background:rgba(6,46,132,.44);border:1px solid rgba(183,215,255,.3);color:#fff}
+.bag-chip button{color:#DFEBFF}
+.bag-chip button:focus-visible,.bag-chip button:hover{background:#0C3E98;color:#fff}
+.bag-note{color:#E1ECFF}
+.bag-apply{background:#FFFFFF;color:#2054B5;box-shadow:0 3px 12px #0A42972D}
+.bag-search-trigger{display:flex;align-items:center;gap:9px;width:100%;min-height:52px;border:1px solid #B2CDFA;
+ border-radius:14px;background:#F6FAFF;color:#245BB8;padding:10px 13px;margin:1px 0 15px;
+ text-align:left;box-shadow:0 2px 7px #0B3C8B12;font-size:14px;font-weight:800}
+.bag-search-trigger>span:nth-child(2){flex:1;min-width:0}
+.bag-search-trigger>span:last-child{font-size:21px}
+.bag-search-symbol{font-size:24px;line-height:1}
+.bag-search-trigger:active{background:#DEEAFF}
+/* A single visible search destination in bag mode, with zero extra configuration. */
+body[data-stop-view="bag"] .stop-view-help{color:#3E638F;font-weight:700}
+body[data-stop-view="bag"] .quick-form #quick-input{background:transparent}
+.region-needs-choice .quick-add-guide{border-color:#CFE1FF}
+.region-needs-choice #quick-input{color:#425576}
+@media(max-width:768px){
+ .app-shell>.region-onboarding{margin:7px 8px 10px;padding:11px 11px;border-radius:14px}
+ .region-onboarding .onboarding-step strong{font-size:16px}
+ .region-onboarding .onboarding-step small{font-size:11px}
+ .region-onboarding .trip-region-row{gap:6px!important}
+ .region-onboarding .trip-region-row label{font-size:12px!important}
+ .region-onboarding #trip-region{width:auto;min-width:120px!important}
+ .region-onboarding .region-shortcuts{gap:6px;max-height:42px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+ .region-onboarding .region-shortcuts::-webkit-scrollbar{display:none}
+ .region-onboarding .region-shortcuts button{flex:0 0 auto;min-height:40px}
+ .region-onboarding .region-shortcuts>span{white-space:nowrap;flex:0 0 auto}
+ .region-confirm-row{flex-wrap:wrap;gap:5px}
+ .region-confirm{flex:1 0 auto;min-height:44px}
+ #region-selection-state{flex:1 1 100%;font-size:11px}
+ .bag-search-trigger{min-height:52px;padding:11px}
+}
+@media(max-width:340px){
+ .region-onboarding .trip-region-row label{width:100%}
+ .region-onboarding #trip-region{width:100%;min-width:0!important}
+ .bag-search-trigger{font-size:12px}
+ .region-confirm{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){.region-onboarding.region-attention{animation:none}}
+

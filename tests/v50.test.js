@@ -39,11 +39,11 @@ test('v5: selected chips remove by existing stop-id handler without new persiste
  assert.match(app,/if\(confirm\('이 방문지를 일정에서 삭제할까요\?'\)\)removeStop\(id\)/);
 });
 test('v5: big region onboarding and instant destination chips',async()=>{
- const html=await read('public/index.html'),ui=await read('public/static/design-v50.js');
+ const html=await read('public/index.html'),ui=await read('public/static/design-v51.js');
  assert.match(html,/어디로 떠나시나요\?/);
- assert.match(html,/제주도, 부산처럼 가고 싶은 곳/);
+ assert.match(html,/제주, 부산, 인천처럼 직접 입력하세요/);
  for(const region of ['제주','부산','강릉','경주','서울','여수'])assert.ok(html.includes('data-region-choice="'+region+'"'),region);
- assert.match(ui,/app\(\)\?\.setRegion\(choice\)/);
+ assert.match(ui,/app\(\)\?\.setRegion\(v\)/);
  assert.match(ui,/aria-pressed/);
 });
 test('v5: instant place added acknowledgement and count badge bounce',async()=>{

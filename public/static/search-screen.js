@@ -13,6 +13,7 @@ function updateSize(){
 }
 function show(){
  if(opened||!mobile())return;
+ if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  opened=true;historyEntry=true;previousFocus=document.activeElement===input?$('mobile-route'):document.activeElement;
  feedback.hidden=true;feedback.textContent='';
  count.textContent=String(window.TripApp?.getDay?.()?.stops?.length||0)+'곳 담음';
