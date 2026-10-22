@@ -15,4 +15,12 @@ createServer(async(req,res)=>{try{
   if(url.pathname.startsWith('/api/')){
     const op=url.pathname.split('/')[2],handler=api[op]?.[req.method];
     if(!handler){res.writeHead(404);res.end('Not found');return;}
-    const chunks=[];for¶»§q«^
+    const chunks=[];for await(const chunk of req){chunks.push(chunk);if(Buffer.concat(chunks).length>32768){res.writeHead(413);res.end('Too large');return;}}
+    response=await handler(new Request(url,{method:req.method,headers:req.headers,body:req.method==='GET'||req.method==='HEAD'?undefined:Buffer.concat(chunks),duplex:req.method==='GET'||req.method==='HEAD'?undefined:'half'}));
+  } else {
+    const file=resolve(base,'public',`.${url.pathname==='/'?'/index.html':url.pathname}`);
+    if(!file.startsWith(resolve(base,'public')+'/')){res.writeHead(403);res.end('Forbidden');return;}
+    const bytes=await readFile(file);res.writeHead(200,{'content-type':MIME[extname(file)]||'application/octet-stream'});res.end(bytes);return;
+  }
+  res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
+}catch(e){res.writeHead(500);res.end('Local dev server error');console.error(e.message);}}).listen(port,host,()=>console.log(`ì—¬í–‰ê¸¸ ê°œë°œ ì„œë²„: http://${host}:${port}`));
