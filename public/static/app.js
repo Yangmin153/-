@@ -70,7 +70,7 @@ function renderEditor(){const d=day();$('day-heading').textContent=`${state.acti
     </div>`;
   }).join('');
 }
-function renderResult(){const d=day(),r=d.result,transit=transportMode()==='transit';$('metric-places').textContent=d.stops.length;
+function renderResult(){const d=day(),r=d.result,transit=transportMode()==='transit';document.body.classList.toggle('has-route-result',Boolean(r));$('metric-places').textContent=d.stops.length;
  $('metric-mode-label').textContent=transit?'대중교통 이동':'자동차 이동';$('result-alert').classList.add('hidden');$('route-savings').classList.add('hidden');
  $('map-caption').textContent=(state.active+1)+'일 차 · '+d.origin.name+' → '+d.destination.name;
  if(!r){$('metric-drive').textContent='—';$('metric-distance').textContent='—';$('result-status').textContent='계산 전';$('result-status').className='result-status';$('timeline-note').textContent='방문지를 추가한 후 동선을 계산하세요';$('timeline').innerHTML='<div class="blank-timeline">방문지를 추가하고<br><strong>동선 계산하기</strong>를 눌러 주세요.</div>';return;}
