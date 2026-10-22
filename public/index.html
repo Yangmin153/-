@@ -15,11 +15,12 @@
   <link rel="stylesheet" href="/static/map-workspace.css?v=4.3.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
-  <script defer src="/static/app.js?v=4.7.0"></script>
-  <script type="module" src="/static/mobile-ux.js?v=4.6.0"></script>
-  <script type="module" src="/static/quick-add.js?v=4.7.0"></script>
+  <script defer src="/static/app.js?v=4.8.0"></script>
+  <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
+  <script type="module" src="/static/quick-add.js?v=4.8.0"></script>
   <link rel="stylesheet" href="/static/quick-add.css?v=4.5.0">
 <link rel="stylesheet" href="/static/map-first-v46.css?v=4.6.0"><link rel="stylesheet" href="/static/native-v47.css?v=4.7.0">
+  <link rel="stylesheet" href="/static/tabs-v48.css?v=4.8.0">
   <script defer src="/static/map-workspace.js?v=4.3.0"></script>
   <link rel="stylesheet" href="/static/map-v44.css?v=4.4.0">
   
@@ -34,18 +35,16 @@
       <div class="header-right"><span class="api-indicator" id="api-indicator"><i></i>지도 연결 확인 중</span><button class="header-action" id="btn-export" title="일정 JSON 백업">일정 저장 <span>↓</span></button><button class="header-icon" id="btn-import" title="백업된 일정 불러오기" aria-label="일정 불러오기">↥</button><button class="header-share" id="btn-share" type="button">일정 공유</button></div>
     </header>
 
-    <nav class="mobile-view-tabs" id="mobile-view-tabs" aria-label="모바일 화면 선택">
-      <button type="button" data-view="edit" aria-selected="true">일정 편집</button>
-      <button type="button" data-view="map" aria-selected="false">지도 · 타임라인</button>
+    <nav class="mobile-view-tabs" id="mobile-view-tabs" aria-label="여행 계획 화면 선택">
+      <button type="button" data-view="edit" aria-selected="true">장소 검색 · 일정 편집</button>
+      <button type="button" data-view="map" aria-selected="false">동선 결과 · 타임라인</button>
     </nav>
     <section class="intro" id="intro-hero">
       <div><div class="eyebrow">PLAN SMARTER, TRAVEL BETTER</div><h1>여행의 순간은 길게,<br><em>이동 시간은 짧게.</em></h1><p>가고 싶은 장소만 담아주세요. 여행길이 이동 순서를 정리해 드려요.</p></div>
       <div class="trip-meta"><div class="hero-orbit" aria-hidden="true"><span>1</span><i></i><span>2</span><i></i><span>3</span></div><span class="hero-orbit-caption">어디든, 가장 좋은 순서로</span></div>
     </section>
 
-    <div class="workspace" id="trip-workspace"><div id="quick-search-dock" class="quick-search-dock" aria-label="장소 검색">    <div id="quick-results" class="quick-results" role="listbox" aria-label="장소 검색 결과" hidden></div>
-    <form id="quick-form" class="quick-form" role="search" autocomplete="off"><span id="quick-region-label" class="quick-region-label">제주</span><input id="quick-input" type="search" enterkeyhint="search" autocomplete="off" placeholder="장소 이름 붙여넣기" aria-label="여행지 빠른 검색"><button id="quick-submit" type="submit" aria-label="장소 검색">검색</button></form>
-</div>
+    <div class="workspace" id="trip-workspace">
       <main class="editor">
         <div class="panel-heading"><div><div class="section-kicker">MY ITINERARY</div><h2>나의 여행 일정</h2></div><button class="small-quiet" id="btn-reset">예시로 초기화</button></div>
         <div class="trip-region-row"><label for="trip-region">여행 지역</label><input id="trip-region" list="trip-region-options" type="text" maxlength="28" value="제주" autocomplete="off" aria-label="여행 지역 선택" placeholder="지역 입력"><datalist id="trip-region-options"><option value="제주"><option value="서울"><option value="부산"><option value="인천"><option value="대전"><option value="대구"><option value="광주"><option value="울산"><option value="세종"><option value="수원"><option value="용인"><option value="고양"><option value="성남"><option value="춘천"><option value="원주"><option value="강릉"><option value="경주"><option value="속초"><option value="여수"><option value="전주"><option value="동해"><option value="양양"><option value="평창"><option value="청주"><option value="충주"><option value="단양"><option value="제천"><option value="천안"><option value="아산"><option value="보령"><option value="태안"><option value="공주"><option value="군산"><option value="익산"><option value="남원"><option value="무주"><option value="순천"><option value="광양"><option value="목포"><option value="담양"><option value="해남"><option value="완도"><option value="포항"><option value="안동"><option value="구미"><option value="영주"><option value="문경"><option value="울진"><option value="창원"><option value="김해"><option value="진주"><option value="통영"><option value="거제"><option value="남해"><option value="밀양"><option value="제주시"><option value="서귀포"><option value="강화"><option value="가평"><option value="양평"><option value="파주"><option value="의정부"><option value="화성"><option value="안산"><option value="김포"><option value="평택"><option value="이천"><option value="양산"><option value="울릉"></datalist><small>여행 중 언제든 변경 가능</small></div>
@@ -83,6 +82,8 @@
   </div>
 
   <div class="mobile-bottom-actions" id="mobile-bottom-actions" aria-label="일정 빠른 실행">
+        <div id="quick-results" class="quick-results" role="listbox" aria-label="장소 검색 결과" hidden></div>
+    <form id="quick-form" class="quick-form" role="search" autocomplete="off"><span id="quick-region-label" class="quick-region-label">제주</span><input id="quick-input" type="search" enterkeyhint="search" autocomplete="off" placeholder="장소 이름 붙여넣기" aria-label="여행지 빠른 검색"><button id="quick-submit" type="submit" aria-label="장소 검색">검색</button></form>
     <div id="quick-feedback" role="status" aria-live="polite" class="quick-feedback" hidden></div>
     <button type="button" id="mobile-add-place" class="mobile-add" hidden>+ 장소 추가</button>
     <button type="button" id="mobile-route" class="mobile-calculate">동선 계산하고 지도 보기</button><p id="mobile-route-status" class="mobile-route-status" role="status" aria-live="polite" hidden>여행 동선을 계산하고 있어요</p>

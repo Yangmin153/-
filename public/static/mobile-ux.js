@@ -14,7 +14,8 @@ function switchView(next) {
   activeView=next;
   document.body.dataset.mobileView=activeView;
   document.querySelectorAll('[data-view]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.view===activeView)));
-  if(media.matches&&next==='map')requestAnimationFrame(()=>setTimeout(()=>app.resizeMap(),90));
+  if(next==='map')app.clearPlacePreview?.();
+  requestAnimationFrame(()=>setTimeout(()=>{app.refreshMap?.();app.resizeMap();if(next==='map'&&app.getDay()?.result)app.fitMap();},110));
   window.TripQuickAdd?.syncView?.(next);
 }
 
@@ -28,21 +29,8 @@ function render() {
   $('mobile-route').disabled=document.querySelector('#btn-route')?.disabled||false;
   $('mobile-route').textContent=day.mode==='manual'?'이 순서로 계산하고 지도 보기':'동선 자동 정리하고 지도 보기';
   $('btn-inherit-origin').hidden=app.getActive()===0;
-  // These controls are intentionally separate from the original editor render path.
-  document.querySelectorAll('.stop-card').forEach(card=>{
-    if(card.querySelector('.stop-nav'))return;
-    const id=card.dataset.stopId;
-    const actions=card.querySelector('.stop-actions');
-    if(!actions)return;
-    const btn=document.createElement('button');btn.type='button';btn.className='stop-nav';btn.dataset.navigateStop=id;btn.textContent='길안내';btn.setAttribute('aria-label','이 장소까지 네이버 지도 길안내');
-    actions.prepend(btn);
-  });
-  document.querySelectorAll('.timeline-entry').forEach((card,i)=>{
-    const entries=day.result?.entries;
-    if(!entries?.[i]||i===0||card.querySelector('.timeline-nav'))return;
-    const action=document.createElement('button');action.type='button';action.className='timeline-nav';action.dataset.navigateIndex=String(i);action.textContent='네이버 지도 길안내 ↗';
-    card.querySelector('.timeline-info')?.append(action);
-  });
+  // Navigation buttons are rendered within each travel leg, not on destination cards.
+
 }
 
 function beforeModal(){modalFocus=document.activeElement;lastModalOpen=true;document.body.classList.add('modal-visible');}
@@ -67,7 +55,6 @@ function navigate(from,to){
   routeLaunchTimer=setTimeout(fallback,1700);
   try{location.href=urls.app;}catch{fallback();}
 }
-function navigateStop(id){const d=app.getDay(),index=d.stops.findIndex(x=>x.id===id);if(index<0)return;const prev=index===0?d.origin:d.stops[index-1];navigate(prev,d.stops[index]);}
 function navigateTimeline(index){const entries=app.getDay().result?.entries;if(!entries||index<=0||index>=entries.length)return; navigate(entries[index-1].place,entries[index].place);}
 
 async function shareTrip(){
@@ -97,7 +84,6 @@ function loadSharedTrip(){
 }
 function onClick(event){
   const viewButton=event.target.closest('[data-view]');if(viewButton){switchView(viewButton.dataset.view);return;}
-  const navStop=event.target.closest('[data-navigate-stop]');if(navStop){event.stopPropagation();navigateStop(navStop.dataset.navigateStop);return;}
   const navIndex=event.target.closest('[data-navigate-index]');if(navIndex){navigateTimeline(Number(navIndex.dataset.navigateIndex));return;}
 }
 function init(){

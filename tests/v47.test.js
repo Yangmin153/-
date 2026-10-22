@@ -11,11 +11,11 @@ test('네이버 지도 SDK 준비 후 초기화 및 인증 오류 처리',async(
  const code=await read('public/static/app.js');
  for(const term of ['ncpKeyId','callback=__ygNaverMapsLoaded','navermap_authFailure','ResizeObserver','autoResize','mapHasArea()','Dynamic Map'])assert.ok(code.includes(term),term);
 });
-test('컴팩트 결과, 상단 스티키, 모바일 안전 영역과 터치',async()=>{
+test('컴팩트 결과, 하단 고정 검색창, 모바일 안전 영역과 터치',async()=>{
  const html=await read('public/index.html'),js=await read('public/static/quick-add.js'),css=await read('public/static/native-v47.css');
- assert.ok(html.includes('id="quick-search-dock"'));
+ assert.ok(html.includes('id="mobile-bottom-actions"'));assert.ok(html.indexOf('id="mobile-bottom-actions"')<html.indexOf('id="quick-form"'));
  for(const t of ['quick-result-heading','quick-result-category','quick-result-info','quick-direct-add'])assert.ok(js.includes(t),t);
- for(const t of ['55px','position:sticky','overflow-y:auto','100dvh','safe-area-inset-bottom','font-size:16px!important','transform:scale(.98)','-webkit-tap-highlight-color:transparent'])assert.ok(css.includes(t),t);
+ for(const t of ['100dvh','safe-area-inset-bottom','font-size:16px!important','transform:scale(.98)','-webkit-tap-highlight-color:transparent'])assert.ok(css.includes(t),t);const v48=await read('public/static/tabs-v48.css');for(const t of ['51px','position:fixed','bottom:calc(100%','overflow-y:auto'])assert.ok(v48.includes(t),t);
 });
 test('네이버 자동차 및 카카오 장소 검색 엔드포인트 유지',async()=>{
  assert.match(await read('api/route.js'),/buildPlan/);assert.match(await read('api/places.js'),/searchPlaces/);

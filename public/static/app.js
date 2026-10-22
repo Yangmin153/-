@@ -80,8 +80,8 @@ function renderResult(){const d=day(),r=d.result;document.body.classList.toggle(
  if(r.warnings?.length){$('result-alert').classList.remove('hidden');$('result-alert').textContent=r.warnings.join(' ');}
  $('timeline').innerHTML=r.entries.map((entry,i)=>{
   const leg=entry.leg,mode='자동차';
-  const segment=leg?'<div class="trip-leg-divider"><strong>↓ '+mode+' · '+readableMinutes(leg.durationMinutes)+' 이동</strong>'+(leg.source==='estimate'?'<span class="leg-estimated">추정</span>':'')+'</div>':'';
-  return segment+'<div class="timeline-entry"><div class="timeline-rail"><span class="timeline-dot">'+(entry.kind==='origin'?'S':entry.kind==='destination'?'E':i)+'</span></div><div class="timeline-info"><strong>'+esc(entry.place.name)+'</strong><p>'+(entry.kind==='origin'?'출발지':entry.kind==='destination'?'최종 도착지':i+'번째 방문지')+'</p></div></div>';
+  const segment=leg?'<div class="trip-leg-divider"><span class="trip-leg-summary">↓ '+mode+' · '+readableMinutes(leg.durationMinutes)+' 이동</span>'+(leg.source==='estimate'?'<span class="leg-estimated">추정</span>':'')+'<button type="button" class="timeline-nav" data-navigate-index="'+i+'" aria-label="이전 장소에서 '+esc(entry.place.name)+'까지 네이버 길안내">길안내 ↗</button></div>':'';
+  return segment+'<div class="timeline-entry"><div class="timeline-rail"><span class="timeline-dot">'+(entry.kind==='origin'?'S':entry.kind==='destination'?'E':i)+'</span></div><div class="timeline-info"><strong>'+esc(entry.place.name)+'</strong><span class="timeline-kind">'+(entry.kind==='origin'?'출발':entry.kind==='destination'?'도착':i+'번째')+'</span></div></div>';
  }).join('');
 }
 function markDirty(shouldRecalculate=true){const d=day();const had=!!d.result;d.result=null;recommendationOpen.clear();recommendationCache.clear();refresh();if(had)window.TripQuickAdd?.setDirty?.(true)}
@@ -212,7 +212,7 @@ function createMapIfVisible(){
   mapCreateCount++;markerInfo=new naver.maps.InfoWindow({backgroundColor:'#fff',borderColor:'#e5ecf6',borderWidth:1,maxWidth:260});
   setMapLocked(window.matchMedia('(max-width: 768px)').matches);$('map-placeholder').classList.add('hidden');
   naver.maps.Event.addListener(map,'click',evt=>{if(!state.mapPicking||!state.modal)return;setModalCoords(evt.coord.lat(),evt.coord.lng());state.mapPicking=false;$('map-select-notice').classList.add('hidden');selectModalTab('place');$('place-modal').classList.remove('hidden');$('place-modal').setAttribute('aria-hidden','false');toast('위치를 선택했습니다. 이름을 확인하고 적용하세요.');});
-  renderMap();if(previewSelected)previewPlace(previewSelected);naver.maps.Event.addListener(map,'zoom_changed',()=>{$('map-region').classList.toggle('map-zoomed-out',map.getZoom()<=11)});document.dispatchEvent(new Event('trip-map-ready'));
+  renderMap();if(previewSelected)previewPlace(previewSelected);naver.maps.Event.addListener(map,'zoom_changed',()=>{$('map-region').classList.toggle('map-zoomed-out',map.getZoom()<=12)});document.dispatchEvent(new Event('trip-map-ready'));
  }catch(error){map=null;console.warn('네이버 지도 초기화 오류',error);mapStatus('지도를 초기화하지 못했어요','페이지를 새로고침하거나 네이버 지도 설정을 확인해 주세요.',true);}
 }
 function bootNaverMap(key){
@@ -260,17 +260,17 @@ function previewPlace(place){if(!validMapPlace(place))return false;previewSelect
 function clearPlacePreview(){previewSelected=null;$('map-place-preview').hidden=true;if(previewMarker){previewMarker.setMap(null);previewMarker=null;}}
 function focusPlace(id){if(!map)return;const item=routePlaces().find(p=>p.id===id);if(!item)return;selectedMapStop=id;renderMap();const point=new naver.maps.LatLng(item.lat,item.lng);if(!map.getBounds()?.hasLatLng?.(point))map.panTo(point);const marker=markers.find(x=>x.__placeId===id);if(marker&&markerInfo){const idx=routePlaces().findIndex(x=>x.id===id);markerInfo.setContent(selectedStopDetails(item,idx,idx===0?'origin':idx===routePlaces().length-1?'destination':'stop'));markerInfo.open(map,marker);}}
 function setMapLocked(next){mapLocked=Boolean(next);if(map)map.setOptions({draggable:!mapLocked,pinchZoom:!mapLocked,scrollWheel:!mapLocked,keyboardShortcuts:!mapLocked,disableDoubleTapZoom:mapLocked,disableDoubleClickZoom:mapLocked,disableTwoFingerTapZoom:mapLocked});}
-function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d.result;const signature=JSON.stringify([d.id,...places.map(x=>[x.id,x.name,x.lat,x.lng,x.category])]);if(signature===sceneSignature&&r===sceneResult){if(mapFitQueued)resizeMapStable();return;}sceneSignature=signature;sceneResult=r;overlayRenderCount++;clearMap();if(!places.length)return;
+function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d.result;const routePanelVisible=!matchMedia('(max-width:768px)').matches||document.body.dataset.mobileView==='map';const signature=JSON.stringify([d.id,routePanelVisible,...places.map(x=>[x.id,x.name,x.lat,x.lng,x.category])]);if(signature===sceneSignature&&r===sceneResult){if(mapFitQueued)resizeMapStable();return;}sceneSignature=signature;sceneResult=r;overlayRenderCount++;clearMap();if(!places.length)return;
  places.forEach((place,i)=>{
   const start=i===0,end=i===places.length-1,kind=start?'origin':end?'destination':'stop',active=selectedMapStop===place.id,meta=TripMeta.meta(place);
   const bg=start?'#1762c2':end?'#293449':'#ffffff',color=start||end?'#fff':meta.color;
-  const content=`<div class="route-marker ${kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-icon">${start?'S':end?'E':TripMeta.icon(place,17)}</span><span class="marker-order">${start?'출발':end?'도착':i}</span></div>`;
-  const marker=new naver.maps.Marker({position:new naver.maps.LatLng(place.lat,place.lng),map,title:place.name,zIndex:active?900:start||end?500:100+i,icon:{content,anchor:new naver.maps.Point(14,30)}});
+  const content=`<div class="route-marker ${kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-order">${start?'S':end?'E':i}</span></div>`;
+  const marker=new naver.maps.Marker({position:new naver.maps.LatLng(place.lat,place.lng),map,title:place.name,zIndex:active?900:start||end?500:100+i,icon:{content,anchor:new naver.maps.Point(10,10)}});
   marker.__placeId=place.id;markers.push(marker);
   naver.maps.Event.addListener(marker,'click',()=>{selectedMapStop=place.id;renderMap();const node=markers.find(x=>x.__placeId===place.id);if(node&&markerInfo){markerInfo.setContent(selectedStopDetails(place,i,kind));markerInfo.open(map,node);}document.querySelectorAll('.stop-card').forEach(x=>x.classList.toggle('map-selected',x.dataset.stopId===place.id));});
  });
- if(r?.entries){r.entries.slice(1).forEach(entry=>{const leg=entry.leg;if(!leg||!Array.isArray(leg.path)||!leg.path.length)return;const coords=leg.path.filter(pair=>Array.isArray(pair)&&pair.length>=2&&Number.isFinite(pair[0])&&Number.isFinite(pair[1])).map(pair=>new naver.maps.LatLng(pair[1],pair[0]));if(coords.length<2)return;paths.push(new naver.maps.Polyline({map,path:coords,strokeColor:leg.source==='estimate'?'#e59b59':'#2475e7',strokeWeight:5,strokeOpacity:.78,strokeStyle:leg.source==='estimate'?'shortdash':'solid',zIndex:20}));});}
- else if(places.length>1)paths.push(new naver.maps.Polyline({map,path:places.map(p=>new naver.maps.LatLng(p.lat,p.lng)),strokeColor:'#86aedb',strokeOpacity:.78,strokeWeight:3,strokeStyle:'shortdash',zIndex:10}));
+ if(routePanelVisible&&r?.entries){r.entries.slice(1).forEach(entry=>{const leg=entry.leg;if(!leg||!Array.isArray(leg.path)||!leg.path.length)return;const coords=leg.path.filter(pair=>Array.isArray(pair)&&pair.length>=2&&Number.isFinite(pair[0])&&Number.isFinite(pair[1])).map(pair=>new naver.maps.LatLng(pair[1],pair[0]));if(coords.length<2)return;paths.push(new naver.maps.Polyline({map,path:coords,strokeColor:leg.source==='estimate'?'#e59b59':'#2475e7',strokeWeight:5,strokeOpacity:.78,strokeStyle:leg.source==='estimate'?'shortdash':'solid',zIndex:20}));});}
+ else if(routePanelVisible&&places.length>1)paths.push(new naver.maps.Polyline({map,path:places.map(p=>new naver.maps.LatLng(p.lat,p.lng)),strokeColor:'#86aedb',strokeOpacity:.78,strokeWeight:3,strokeStyle:'shortdash',zIndex:10}));
  if(mapFitQueued){mapFitQueued=false;fitMap();}
  window.MapWorkspace?.refresh?.();
 }
@@ -328,7 +328,7 @@ window.TripApp = Object.freeze({
  setActive(index){if(!Number.isInteger(index)||index<0||index>=state.days.length)return;clearTimeout(pendingCalc);state.active=index;mapFitQueued=true;selectedMapStop=null;refresh()},
  importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);state.days=normalizeDays(days);state.active=0;refresh();return true},
  refresh, calculateRoute, openModal, toast, markDirty,
- resizeMap:()=>resizeMapStable({fit:mapFitQueued}),getMap:()=>map,fitMap,focusPlace,setMapLocked,
+ resizeMap:()=>resizeMapStable({fit:mapFitQueued}),refreshMap:renderMap,getMap:()=>map,fitMap,focusPlace,setMapLocked,
  getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,previewPlace,clearPlacePreview,
 });
 boot();
