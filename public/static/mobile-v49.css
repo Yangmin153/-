@@ -434,3 +434,11 @@ body.search-open,body.account-open{overflow:hidden;overscroll-behavior:none}
  .quick-add-guide button{margin-left:40px}
 }
 @media(prefers-reduced-motion:reduce){.search-screen #search-screen-feedback.search-success-pop{animation:none}}
+
+/* v4.9.1 regression: legacy compact dropdown max-height must not cap fullscreen search. */
+.search-screen-results-mount .quick-results{
+ position:static!important;
+ max-height:none!important;
+ overflow:visible!important;
+}
+.search-screen-results-mount .quick-results[hidden]{display:none!important}

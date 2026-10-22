@@ -18,6 +18,7 @@ test('added place shows an accessible success confirmation and updated place cou
  assert.match(ui,/count\.textContent=String\(window\.TripApp\?\.getDay/);
  assert.match(quick,/item\.name\+' 추가 완료 · 총 '\+total/);
  assert.match(css,/search-success-pop/);
+ assert.match(css,/\.search-screen-results-mount \.quick-results\{\s*position:static!important;\s*max-height:none!important;/);
  assert.match(quick,/const isFullSearch=Boolean\(window\.YeoSearch\?\.isOpen\?\.\(\)\)/);
 });
 
