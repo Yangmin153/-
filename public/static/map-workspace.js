@@ -5,7 +5,7 @@ function days(){return app()?.getDays()||[];}
 function current(){return app()?.getDay();}
 function visibleSheetPixels(){const sheet=$('map-sheet'),map=$('map-region');if(!sheet||!map||getComputedStyle(sheet).display==='none')return 0;
  const a=sheet.getBoundingClientRect(),b=map.getBoundingClientRect();return Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));}
-function fitPadding(){return {top:92,left:media.matches?24:66,right:media.matches?24:66,bottom:Math.max(95,visibleSheetPixels()+30)};}
+function fitPadding(){const small=media.matches,height=$('map-region')?.clientHeight||300;return {top:small?Math.min(54,Math.round(height*.22)):92,left:small?16:66,right:small?16:66,bottom:small?Math.min(48,Math.round(height*.18)):Math.max(95,visibleSheetPixels()+30)};}
 function escaped(t){return String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function render(){const d=current();if(!d)return;
  $('map-day-select').innerHTML=days().map((day,i)=>`<option value="${i}" ${i===app().getActive()?'selected':''}>${i+1}일 차</option>`).join('');
