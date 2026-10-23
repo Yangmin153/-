@@ -80,8 +80,10 @@ input.addEventListener('keydown',e=>{
 document.addEventListener('trip:days-updated',setStep);
 document.addEventListener('trip:stop-added',event=>{const badge=$('place-count');if(badge){badge.classList.remove('yg-count-bounce');void badge.offsetWidth;badge.classList.add('yg-count-bounce');}if(event.detail?.count!=null&&$('search-screen-count'))$('search-screen-count').textContent=event.detail.count+'곳 담음';});
 const restore=(()=>{try{return localStorage.getItem(choiceKey)}catch{return null}})();
+const activeRegion=normalize(app()?.getRegion());
+if(activeRegion)input.value=activeRegion;
 // Example stops are not proof that the user intentionally chose a region.
-if(restore&&restore===normalize(app()?.getRegion()))chosen=normalize(app()?.getRegion());
+if(restore&&restore===activeRegion)chosen=activeRegion;
 setStep();
 window.YeoRegion={ensureSelected,isReady:()=>setStep(),accept};
 })();
