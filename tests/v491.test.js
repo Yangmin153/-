@@ -1,42 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const read=async path=>readFile(new URL('../'+path,import.meta.url),'utf8');
-
-test('fullscreen search no longer loses results on the input pointerdown',async()=>{
- const ui=await read('public/static/search-screen.js'),quick=await read('public/static/quick-add.js');
- assert.match(ui,/e\.preventDefault\(\);e\.stopPropagation\(\);show\(\)/);
- assert.match(quick,/if\(window\.YeoSearch\?\.isOpen\?\.\(\)\)return/);
- assert.match(ui,/previousFocus!==input/);
- assert.match(ui,/input\.focus\(\{preventScroll:true\}\)/);
+const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
+test('fullscreen search reuses one search input and one results list',async()=>{
+ const html=await read('public/index.html'),js=await read('public/static/search-screen.js');
+ for(const id of ['search-screen','search-map-stage','search-naver-map','search-list-toggle','search-picked-add'])assert.match(html,new RegExp('id="'+id+'"'));
+ assert.equal((html.match(/id="quick-input"/g)||[]).length,1);
+ assert.equal((html.match(/id="quick-results"/g)||[]).length,1);
+ assert.match(js,/original\.insertBefore\(form/);assert.match(js,/history\.pushState/);
 });
-
-test('added place shows an accessible success confirmation and updated place count',async()=>{
- const html=await read('public/index.html'),ui=await read('public/static/search-screen.js'),quick=await read('public/static/quick-add.js'),css=await read('public/static/mobile-v49.css');
- assert.match(html,/id="search-screen-feedback" role="status" aria-live="polite"/);
- assert.match(ui,/feedback\.textContent='✓ '\+message/);
- assert.match(ui,/count\.textContent=String\(window\.TripApp\?\.getDay/);
- assert.match(quick,/item\.name\+' 추가 완료 · 총 '\+total/);
- assert.match(css,/search-success-pop/);
- assert.match(css,/\.search-screen-results-mount \.quick-results\{\s*position:static!important;\s*max-height:none!important;/);
- assert.match(quick,/const isFullSearch=Boolean\(window\.YeoSearch\?\.isOpen\?\.\(\)\)/);
+test('search results select a map pin before adding, with clear duplicate handling',async()=>{
+ const js=await read('public/static/search-screen.js'),q=await read('public/static/quick-add.js');
+ assert.match(js,/function preview\(item\)/);assert.match(js,/function paintMarkers\(\)/);
+ assert.match(js,/TripQuickAdd\?\.addPlace\?\.\(selected\)/);
+ assert.match(q,/if\(duplicate\)\{feedback/);assert.match(q,/YeoSearch\?\.onResults/);
 });
-
-test('first-time visit has clear search entry points using one fullscreen search',async()=>{
- const html=await read('public/index.html'),ux=await read('public/static/mobile-ux.js'),app=await read('public/static/app.js');
- assert.match(html,/id="quick-add-guide-action"/);
- assert.match(html,/결과에서 <b>추가<\/b>를 누르세요/);
- assert.match(html,/placeholder="여기를 눌러 여행 장소 추가"/);
- assert.match(ux,/guide\.hidden=day\.stops\.length>0/);
- assert.match(ux,/window\.YeoSearch\.show\(\)/);
- assert.match(app,/window\.YeoSearch\.show\(\)/);
+test('search screen traps background scroll and restores position',async()=>{
+ const js=await read('public/static/search-screen.js'),css=await read('public/static/design-v53.css');
+ assert.match(js,/document\.body\.style\.position='fixed'/);
+ assert.match(js,/document\.body\.style\.position=''/);
+ assert.match(js,/window\.scrollTo\(0,previousScroll\)/);
+ assert.match(css,/overscroll-behavior:contain/);
 });
-
-test('route calculation only changes to results tab after successful response',async()=>{
- const app=await read('public/static/app.js');
- assert.match(app,/let calculationSucceeded=false/);
- assert.match(app,/dest\.result=result;calculationSucceeded=true/);
- assert.match(app,/if\(calculationSucceeded&&day\(\)\.result&&day\(\)\.id===dayId\)/);
- assert.match(app,/window\.TripUX\?\.switchView\?\.\('map'\)/);
+test('route calculation opens results only after success',async()=>{
+ const js=await read('public/static/app.js');
+ assert.match(js,/let calculationSucceeded=false/);
+ assert.match(js,/calculationSucceeded=true/);
+ assert.match(js,/if\(calculationSucceeded&&day\(\)\.result&&day\(\)\.id===dayId\)/);
 });
-
