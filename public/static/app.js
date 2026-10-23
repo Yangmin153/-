@@ -8,6 +8,7 @@ const STORAGE_KEY = 'yeohaenggil.v2.days';
 const RECALC_KEY = 'yeohaenggil.vercel.recalc';
 const DEFAULT_REGION = '제주';
 const readableMinutes=value=>{const n=Math.max(0,Math.round(Number(value)||0)),h=Math.floor(n/60),m=n%60;return h?`${h}시간${m?' '+m+'분':''}`:`${m}분`;};
+const routeNumber=i=>i>=0&&i<20?String.fromCharCode(0x2460+i):String(i+1);
 const p = (name,lat,lng) => ({id:uid(),name,lat,lng,locked:false});
 function freshDays(){
  return [{id:uid(),origin:p('출발지 미설정',33.489,126.498),destination:p('도착지 미설정',33.489,126.498),departure:'09:00',mode:'auto',stops:[],result:null}];
@@ -65,7 +66,7 @@ function renderResult(){const d=day(),r=d.result;document.body.classList.toggle(
  $('timeline').innerHTML=r.entries.map((entry,i)=>{
   const leg=entry.leg,mode='자동차',meta=TripMeta.meta(entry.place);
   const segment=leg?'<div class="trip-leg-divider"><span class="trip-leg-summary">↓ '+mode+' · '+readableMinutes(leg.durationMinutes)+'</span>'+(leg.source==='estimate'?'<span class="leg-estimated">추정</span>':'')+'</div>':'';
-  return segment+'<div class="timeline-entry"><div class="timeline-rail"><span class="timeline-dot">'+(i+1)+'</span></div><div class="timeline-info"><span class="timeline-category" title="'+esc(meta.label)+'" style="color:'+esc(meta.color)+'">'+TripMeta.icon(entry.place,18)+'</span><strong>'+esc(entry.place.name)+'</strong><span class="timeline-kind">'+(entry.kind==='origin'?'출발':entry.kind==='destination'?'도착':'방문지')+'</span></div></div>';
+  return segment+'<div class="timeline-entry"><div class="timeline-rail"><span class="timeline-dot">'+routeNumber(i)+'</span></div><div class="timeline-info"><span class="timeline-category" title="'+esc(meta.label)+'" style="color:'+esc(meta.color)+'">'+TripMeta.icon(entry.place,18)+'</span><strong>'+esc(entry.place.name)+'</strong><span class="timeline-kind">'+(entry.kind==='origin'?'출발':entry.kind==='destination'?'도착':'방문지')+'</span></div></div>';
  }).join('');
 }
 function markDirty(shouldRecalculate=true){const d=day(),had=!!d.result;state.lastDirty=state.lastDirty||had;d.result=null;recommendationOpen.clear();recommendationCache.clear();refresh();if(had){window.TripQuickAdd?.setDirty?.(true);$('timeline-note').textContent='방문지가 바뀌었어요. 다시 계산해 주세요.';}document.dispatchEvent(new Event('trip:stops-changed'));}
@@ -267,7 +268,7 @@ function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d
  places.forEach((place,i)=>{
   const start=i===0,end=i===places.length-1,kind=start?'origin':end?'destination':'stop',active=selectedMapStop===place.id,meta=TripMeta.meta(place);
   const bg=start?'#1762c2':end?'#293449':'#ffffff',color=start||end?'#fff':meta.color;
-  const label=r?.entries?String(i+1):'•';const content=`<div class="route-marker ${kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-order">${label}</span></div>`;
+  const label=r?.entries?routeNumber(i):'•';const content=`<div class="route-marker ${kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-order">${label}</span></div>`;
   const marker=new naver.maps.Marker({position:new naver.maps.LatLng(place.lat,place.lng),map,title:place.name,zIndex:active?900:start||end?500:100+i,icon:{content,anchor:new naver.maps.Point(10,10)}});
   marker.__placeId=place.id;markers.push(marker);
   naver.maps.Event.addListener(marker,'click',()=>{selectedMapStop=place.id;renderMap();const node=markers.find(x=>x.__placeId===place.id);if(node&&markerInfo){markerInfo.setContent(selectedStopDetails(place,i,kind));markerInfo.open(map,node);}document.querySelectorAll('.stop-card').forEach(x=>x.classList.toggle('map-selected',x.dataset.stopId===place.id));});
