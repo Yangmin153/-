@@ -1,0 +1,113 @@
+/* 여행길 v5.3 – region-first, uncluttered collection and full-screen Naver place search */
+[hidden]{display:none!important}
+body.region-needs-choice #trip-workspace,
+body.region-needs-choice .mobile-view-tabs,
+body.region-needs-choice #mobile-bottom-actions,
+body.region-needs-choice #intro-hero,
+body.region-needs-choice .footer{display:none!important}
+body.region-needs-choice .app-shell{max-width:760px;min-height:100dvh}
+body.region-needs-choice .region-onboarding{margin:clamp(25px,10vh,95px) auto 20px;padding:clamp(18px,5vw,38px);border-radius:24px}
+body.region-needs-choice .region-onboarding .onboarding-step strong{font-size:clamp(23px,5vw,32px);letter-spacing:-.8px}
+body.region-needs-choice .region-onboarding .onboarding-step small{font-size:13px;line-height:1.6}
+body.region-ready .region-onboarding{display:none!important}
+body.region-ready #trip-workspace{display:grid}
+body.region-ready .region-back-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.region-back-actions .small-quiet{min-height:42px;padding:7px 10px}
+body[data-mobile-view="map"] .region-onboarding{display:none!important}
+.trip-date-field,.time-field,.stop-view-switch,.route-mode,.auto-recalc,
+#editor-inner>.mini-hint{display:none!important}
+body[data-single-day="true"] #day-tabs{display:none!important}
+.stop-view-help{margin:4px 12px 10px!important}
+.stop-num,.stop-order-controls,.stop-pin,.stop-expand,.stop-nav,.timeline-nav{display:none!important}
+.stops-list{display:flex;flex-direction:column;gap:7px;padding:4px 12px}
+.stops-list .v53-stop{display:flex!important;align-items:center!important;gap:10px!important;grid-template-columns:none!important;
+ padding:10px 10px!important;background:white!important;border:1px solid #e6ebf3;border-radius:12px}
+.v53-stop .stop-category-icon{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;min-width:36px;
+ border-radius:10px;background:#f1f6ff;border:0;pointer-events:none}
+.v53-stop-info{min-width:0;display:grid;gap:4px;flex:1}
+.v53-stop-info strong{display:block;font-size:14px;color:#243750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v53-stop-info small{display:block;font-size:11px;color:#8392a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v53-stop .remove-stop{flex:0 0 44px;min-height:44px;border:0;border-radius:10px;background:#f5f7fb;color:#657994;font-size:23px}
+.transport-options{display:flex;align-items:center;gap:8px;margin:14px 0 8px;flex-wrap:wrap;font-size:12px}
+.transport-selected{background:#286cf4;color:#fff;border-radius:9px;padding:8px 13px;font-weight:800}
+.transport-unavailable{color:#7c8da5;background:#f1f4f9;border-radius:9px;padding:8px 12px}
+body.region-needs-choice .transport-options{display:none!important}
+.search-screen{position:fixed!important;left:0!important;right:0!important;top:var(--search-top,0px)!important;
+ width:100vw!important;max-width:none!important;height:var(--search-height,100dvh)!important;
+ transform:none!important;border-radius:0!important;background:#fff;box-shadow:none!important;z-index:1100!important;
+ display:flex!important;flex-direction:column!important;overflow:hidden!important}
+.search-screen[hidden]{display:none!important}
+body.search-open::before{display:none!important}
+body.search-open{overscroll-behavior:none;touch-action:auto}
+.search-screen-top{flex:0 0 auto;padding:8px 12px;min-height:54px;gap:8px}
+.search-screen-top button{min-width:44px;min-height:44px;font-size:20px}
+.search-screen-form-mount{flex:0 0 auto;padding:7px 12px!important;border-bottom:1px solid #edf1f7}
+.search-screen-form-mount .quick-form{display:flex!important;min-height:48px!important}
+.search-list-toggle{position:absolute;top:120px;right:13px;z-index:10;min-height:44px;
+ border:1px solid #d4e2f7;border-radius:12px;padding:8px 14px;background:white;color:#265fc5;
+ font-weight:800;font-size:13px;box-shadow:0 3px 15px #15395f23}
+.search-screen[data-search-mode="list"] .search-list-toggle{top:119px}
+.search-map-stage{position:relative;display:block;flex:1;min-height:0;overflow:hidden;background:#eff5fd}
+.search-map-stage[hidden]{display:none!important}
+#search-naver-map{width:100%;height:100%;touch-action:pan-x pan-y}
+.search-map-message{position:absolute;top:50%;left:20px;right:20px;transform:translateY(-50%);
+ text-align:center;background:#ffffffec;color:#526986;border:1px solid #dae6f6;border-radius:14px;
+ padding:16px;font-size:12px;pointer-events:none}
+.search-map-hint{position:absolute;left:12px;right:12px;top:10px;text-align:center;font-size:11px;
+ padding:7px 9px;background:#ffffffd9;border-radius:9px;color:#5d728e;pointer-events:none}
+.search-picked{flex:0 0 auto;padding:12px 13px calc(12px + env(safe-area-inset-bottom,0px));
+ display:flex;align-items:center;gap:9px;border-top:1px solid #e2e9f4;background:white;
+ box-shadow:0 -4px 22px #173c6214;z-index:20}
+.search-picked[hidden]{display:none!important}
+.search-picked-text{display:grid;gap:5px;min-width:0;flex:1}
+.search-picked-text strong{font-size:14px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.search-picked-text small{font-size:11px;color:#73859a;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.search-picked button{min-height:48px;border:0;border-radius:12px;background:#286cf4;color:#fff;font-weight:900;font-size:13px;padding:8px 13px;white-space:nowrap}
+.search-screen-results-mount{flex:1!important;min-height:0!important;overflow:auto!important;overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;padding:52px 11px 15px!important;background:white}
+.search-screen-results-mount[hidden]{display:none!important}
+.search-screen-results-mount .quick-results{display:block!important;position:static!important;max-height:none!important;
+ overflow:visible!important;border:0!important;box-shadow:none!important;padding:0!important}
+.search-screen-results-mount .quick-results[hidden]{display:none!important}
+.search-screen-results-mount .quick-result-row{min-height:65px;border-bottom:1px solid #eef2f8}
+.search-screen-results-mount .quick-direct-add{font-size:12px!important;min-width:55px;border-radius:10px}
+#search-screen-feedback:not([hidden]){flex:0 0 auto;background:#e9f8ee;color:#18744e;text-align:center;padding:10px;
+ font-size:12px;font-weight:800}
+.search-screen[data-search-mode="list"] .search-picked{display:none!important}
+.search-screen[data-search-mode="map"] .search-screen-results-mount{display:none!important}
+body.trip-route-dirty #timeline-note{color:#bf6d35;font-weight:850}
+.result-section .timeline-nav{display:none!important}
+@media(max-width:768px){
+ body.region-needs-choice .app-shell{padding:0 13px!important;min-height:100dvh}
+ body.region-needs-choice .region-onboarding{margin-top:clamp(28px,8vh,72px);padding:18px 15px;border-radius:17px}
+ body.region-needs-choice .region-shortcuts{max-height:none;overflow:visible;flex-wrap:wrap}
+ body.region-needs-choice .region-shortcuts button{min-height:45px}
+ .region-back-actions .small-quiet{font-size:11px;min-height:42px;padding:6px 8px}
+ .search-screen-top{padding:5px 10px 5px;min-height:50px}
+ .search-screen-form-mount{padding:5px 10px!important}
+ .search-list-toggle{top:110px;right:10px}
+ .search-screen[data-search-mode="list"] .search-list-toggle{top:109px}
+ .search-picked{padding:9px 10px calc(10px + env(safe-area-inset-bottom,0px))}
+ .search-picked button{min-height:46px}
+ .search-screen-results-mount{padding-top:48px!important}
+ .stop-view-help{margin:3px 10px 9px!important}
+ .stops-list{gap:6px;padding:3px 9px}
+}
+@media(max-width:360px){.search-picked button{font-size:12px;padding:8px 9px}.search-screen-top{gap:3px}}
+
+/* Result editing and selected route marks */
+.result-edit-actions{display:flex;gap:9px;flex-wrap:wrap;margin:11px 0 16px}
+.result-edit-actions button{border:1px solid #cddcf3;background:#f3f7ff;color:#285bbb;
+ border-radius:11px;min-height:46px;padding:9px 13px;font-weight:850;font-size:12px}
+.result-edit-actions #btn-result-recalc{background:#286cf4;border-color:#286cf4;color:#fff}
+.route-marker{width:24px!important;height:27px!important;min-width:24px!important;font-size:11px!important;
+ border:2px solid #fff;box-shadow:0 2px 8px #1a355c39!important;display:grid;place-items:center}
+.route-marker .marker-order{font-size:11px!important;font-weight:850}
+body.search-open #mobile-bottom-actions{display:none!important}
+body.search-open .region-onboarding{pointer-events:none}
+body.region-ready .editor .quick-add-guide{display:none!important}
+body[data-mobile-view="map"] .result-edit-actions{display:flex!important}
+
+/* Keep the primary add action visible despite the old mobile tab overrides. */
+.section-between .add-place{display:inline-flex!important;align-items:center;justify-content:center;min-height:46px!important;padding:9px 15px!important;flex-shrink:0}
+@media(max-width:768px){.section-between .add-place{display:inline-flex!important;min-height:46px!important}}

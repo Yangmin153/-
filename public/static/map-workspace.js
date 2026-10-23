@@ -11,7 +11,7 @@ function render(){const d=current();if(!d)return;
  $('map-day-select').innerHTML=days().map((day,i)=>`<option value="${i}" ${i===app().getActive()?'selected':''}>${i+1}일 차</option>`).join('');
  const ordered=d.result?.orderIds?.length?d.result.orderIds.map(id=>d.stops.find(x=>x.id===id)).filter(Boolean):d.stops;
  const places=[d.origin,...ordered,d.destination];
- $('map-sheet-list').innerHTML=places.map((p,i)=>`<button class="map-sheet-place" type="button" data-map-place="${escaped(p.id)}"><span class="map-sheet-order">${i===0?'S':i===places.length-1?'E':i}</span><span class="map-sheet-place-name">${escaped(p.name)}</span><span class="map-sheet-category">${i===0?'출발':i===places.length-1?'도착':window.TripMeta.meta(p).label}</span></button>`).join('');
+ $('map-sheet-list').innerHTML=places.map((p,i)=>`<button class="map-sheet-place" type="button" data-map-place="${escaped(p.id)}"><span class="map-sheet-order">${d.result?(i<20?String.fromCharCode(0x2460+i):i+1):'•'}</span><span class="map-sheet-place-name">${escaped(p.name)}</span><span class="map-sheet-category">${i===0?'출발':i===places.length-1?'도착':window.TripMeta.meta(p).label}</span></button>`).join('');
  const locked=Boolean(window.__tripMapLocked);$('map-lock').textContent=locked?'움직임 허용':'지도 잠그기';$('map-lock').setAttribute('aria-pressed',String(locked));
  $('map-maximize').textContent=fullscreen?'작게 보기':'지도 크게';$('map-maximize').setAttribute('aria-pressed',String(fullscreen));
  $('map-sheet-toggle').setAttribute('aria-expanded',String(sheetOpen));$('map-sheet').classList.toggle('is-open',sheetOpen);

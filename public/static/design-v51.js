@@ -20,6 +20,7 @@ function setStep(){
  const ready=Boolean(current&&chosen===current);
  panel.classList.toggle('is-confirmed',ready);
  document.body.classList.toggle('region-needs-choice',!ready);
+ document.body.classList.toggle('region-ready',ready);
  state.textContent=ready?'✓ '+current+' 선택 완료 · 이제 장소를 담아보세요':'① 지역을 선택하고 아래 버튼을 눌러주세요.';
  continueBtn.textContent=ready?'이 지역 다시 지도에서 보기':'이 지역으로 여행 시작하기';
  document.querySelectorAll('[data-region-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.regionChoice===current)));
@@ -63,6 +64,8 @@ function accept(value){
  try{localStorage.setItem(choiceKey,v)}catch{}
  input.dispatchEvent(new Event('change',{bubbles:true}));
  setStep();
+ document.dispatchEvent(new CustomEvent('trip:region-chosen',{detail:{region:v}}));
+ window.scrollTo({top:0,behavior:'instant'});
  void focusMap(v).then(ok=>{if(ok&&normalize(input.value)===v)state.textContent='✓ '+v+' 선택 완료 · 지도에서 확인해 보세요.';});
  app()?.toast?.(v+' 여행 준비가 됐어요. 이제 장소를 담아보세요.');
  return true;
@@ -81,10 +84,12 @@ document.addEventListener('trip:days-updated',setStep);
 document.addEventListener('trip:stop-added',event=>{const badge=$('place-count');if(badge){badge.classList.remove('yg-count-bounce');void badge.offsetWidth;badge.classList.add('yg-count-bounce');}if(event.detail?.count!=null&&$('search-screen-count'))$('search-screen-count').textContent=event.detail.count+'곳 담음';});
 const restore=(()=>{try{return localStorage.getItem(choiceKey)}catch{return null}})();
 const activeRegion=normalize(app()?.getRegion());
-if(activeRegion)input.value=activeRegion;
-// Example stops are not proof that the user intentionally chose a region.
-if(restore&&restore===activeRegion)chosen=activeRegion;
+// An unconfirmed legacy default is not a chosen destination.
+if(restore&&restore===activeRegion){chosen=activeRegion;input.value=activeRegion;}
+else{chosen='';input.value='';}
 setStep();
-window.YeoRegion={ensureSelected,isReady:()=>setStep(),accept};
+function rechoose(){chosen='';input.value='';setStep();requestAnimationFrame(()=>{window.scrollTo({top:0,behavior:'instant'});input.focus({preventScroll:true});});}
+$('btn-change-region')?.addEventListener('click',rechoose);
+window.YeoRegion={ensureSelected,isReady:()=>setStep(),accept,rechoose};
 })();
 
