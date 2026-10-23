@@ -101,6 +101,7 @@ function showMode(next){
  screen.dataset.searchMode=mode;
  if(mode==='map'){requestAnimationFrame(()=>{maybeMap();updateSize();});}
 }
+function searchStarted(){if(!opened)return;showMode('list');}
 function onResults(next){
  items=Array.isArray(next)?next:[];
  paintMarkers();
@@ -176,4 +177,4 @@ document.addEventListener('trip-map-ready',()=>{if(opened)maybeMap()});
 document.addEventListener('trip:stops-changed',()=>{if(opened){savedSignature='';refreshSavedMarkers();}});
 document.addEventListener('trip:day-changed',()=>{if(opened){selected=null;picked.hidden=true;isSavedSelection=false;savedSignature='';refreshSavedMarkers();$('search-screen-count').textContent=savedPlaces().length+'곳 담음';}});
 window.addEventListener('resize',()=>{if(opened)refreshSavedMarkers();});
-window.YeoSearch={show,hide,isOpen:()=>opened,preview,onResults,addSuccess,refreshSavedMarkers};
+window.YeoSearch={show,hide,isOpen:()=>opened,preview,searchStarted,onResults,addSuccess,refreshSavedMarkers};
