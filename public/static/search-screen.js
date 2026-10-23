@@ -12,7 +12,7 @@ function updateSize(){
  screen.style.setProperty('--search-top',Math.round(viewport?.offsetTop||0)+'px');
 }
 function show(){
- if(opened||!mobile())return;
+ if(opened)return; // Reuse the same streamlined search for desktop bag mode, too.
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  opened=true;historyEntry=true;previousFocus=document.activeElement===input?$('mobile-route'):document.activeElement;
  feedback.hidden=true;feedback.textContent='';
