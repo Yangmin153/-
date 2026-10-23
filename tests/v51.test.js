@@ -54,7 +54,7 @@ test('v5.1 collection mode has a prominent fast search action and brand colors',
 });
 test('v5.1 requires an explicit region selection even when example stops exist',async()=>{
  const js=await read('public/static/design-v51.js');
- assert.match(js,/if\(restore&&restore===normalize\(app\(\)\?\.getRegion\(\)\)\)/);
+ assert.match(js,/if\(restore&&restore===activeRegion\)chosen=activeRegion/);
  assert.doesNotMatch(js,/some\(d=>d\.stops\?\.length\)/);
 });
 
