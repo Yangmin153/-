@@ -9,13 +9,6 @@ const RECALC_KEY = 'yeohaenggil.vercel.recalc';
 const DEFAULT_REGION = '제주';
 const readableMinutes=value=>{const n=Math.max(0,Math.round(Number(value)||0)),h=Math.floor(n/60),m=n%60;return h?`${h}시간${m?' '+m+'분':''}`:`${m}분`;};
 const p = (name,lat,lng) => ({id:uid(),name,lat,lng,locked:false});
-const EXAMPLES = [
-  ['제주국제공항',33.5104,126.4913],['서귀포 예시 숙소',33.2539,126.5594],
-  ['성산일출봉 부근',33.4581,126.9424],['섭지코지 부근',33.4236,126.9303],
-  ['협재해수욕장 부근',33.3940,126.2396],['오설록 부근',33.3059,126.2895],
-  ['애월 부근',33.4628,126.3092],['비자림 부근',33.4890,126.8096],
-  ['함덕해수욕장 부근',33.5431,126.6697]
-];
 function freshDays(){
  return [{id:uid(),origin:p('출발지 미설정',33.489,126.498),destination:p('도착지 미설정',33.489,126.498),departure:'09:00',mode:'auto',stops:[],result:null}];
 }
@@ -25,10 +18,6 @@ function normalizeDays(days){return days.map(d=>{const {transport,...data}=d;ret
 function omitStay(place){const {stayMinutes,...rest}=place;return rest;}
 function loadDays(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));if(validDays(saved))return normalizeDays(saved)}catch{}return freshDays()}
 const state={days:loadDays(),active:0,loading:false,modal:null,mapPicking:false,hadResult:{},lastDirty:false};
-const STOP_VIEW_KEY='yeohaenggil.stopView.v1';
-let stopView='list';
-// v5.3 uses a single unordered collection view.
-
 let map=null, markers=[],paths=[],geocoderResults=[],pendingCalc=null,toastTimer=null,previewMarker=null,previewSelected=null,pendingRegionFocus=null;
 let sdkReady=false, mapSetupDone=false, mapObserver=null, resizeFrame=0, sceneSignature='', sceneResult=null;
 let mapCreateCount=0, mapResizeCount=0, overlayRenderCount=0;
@@ -47,7 +36,6 @@ function save(){const snapshot=state.days.map(({result,...rest})=>rest);try{if(!
 function refresh({mapView=true}={}){renderTabs();renderEditor();renderResult();if(mapView)renderMap();save();window.TripUX?.render?.();window.MapWorkspace?.refresh?.()}
 function renderTabs(){document.body.dataset.singleDay=String(state.days.length===1);const el=$('day-tabs');el.innerHTML=state.days.map((d,i)=>`<button class="day-tab ${i===state.active?'active':''}" role="tab" aria-selected="${i===state.active}" data-day="${i}">DAY ${i+1}</button>`).join('')+(state.days.length<10?'<button class="day-add" id="day-add" title="날짜 추가" aria-label="여행 날짜 추가">+</button>':'');}
 function renderEditor(){const d=day();document.body.dataset.stopView='list';
-  document.querySelectorAll('[data-stop-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.stopView===stopView)));
   $('stop-view-help').textContent='장소를 먼저 담으세요. 방문 순서는 동선을 계산한 후에 정해져요.';
   $('day-heading').textContent=`${state.active+1}일 차 일정`;$('day-caption').textContent='출발하는 곳과 마지막으로 갈 곳을 정해주세요.';
   $('btn-delete-day').disabled=state.days.length===1;$('origin-name').textContent=d.origin.name;$('origin-coord').textContent=d.origin.address||'오늘의 출발 장소';$('destination-name').textContent=d.destination.name;$('destination-coord').textContent=d.destination.address||'오늘의 마지막 장소';
@@ -83,7 +71,6 @@ function renderResult(){const d=day(),r=d.result;document.body.classList.toggle(
 function markDirty(shouldRecalculate=true){const d=day(),had=!!d.result;state.lastDirty=state.lastDirty||had;d.result=null;recommendationOpen.clear();recommendationCache.clear();refresh();if(had){window.TripQuickAdd?.setDirty?.(true);$('timeline-note').textContent='방문지가 바뀌었어요. 다시 계산해 주세요.';}document.dispatchEvent(new Event('trip:stops-changed'));}
 function addDay(){if(state.days.length>=10)return toast('최대 10일까지 설정할 수 있습니다.');clearTimeout(pendingCalc);const prev=state.days[state.days.length-1];const origin=clone(prev.destination);origin.id=uid();const dest=clone(prev.destination);dest.id=uid();let nextDate='';if(prev.date){const t=new Date(prev.date+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+1);nextDate=t.toISOString().slice(0,10);}state.days.push({id:uid(),origin,destination:dest,date:nextDate,departure:'09:00',mode:'auto',stops:[],result:null});state.active=state.days.length-1;refresh();toast('새로운 날짜를 추가했습니다. 전날 도착지를 출발지로 사용합니다.')}
 function deleteDay(){if(state.days.length<=1)return;if(!confirm(`${state.active+1}일 차 일정을 삭제하시겠습니까?`))return;clearTimeout(pendingCalc);state.days.splice(state.active,1);state.active=Math.min(state.active,state.days.length-1);refresh()}
-function moveStop(id,delta){const d=day();const ix=d.stops.findIndex(s=>s.id===id),to=ix+delta;if(ix<0||to<0||to>=d.stops.length)return;const had=Boolean(d.result);[d.stops[ix],d.stops[to]]=[d.stops[to],d.stops[ix]];d.mode='manual';markDirty(false);if(had)calculateRoute(false);else toast('순서를 변경했습니다. 계산 버튼으로 이동시간을 확인하세요.')}
 function removeStop(id){const d=day();d.stops=d.stops.filter(s=>s.id!==id);markDirty();toast('장소를 일정에서 삭제했습니다.')}
 async function calculateRoute(explicit=true){
  const d=day();if(state.loading){if(explicit)toast('이미 여행 동선을 계산하고 있어요.');return;}
@@ -300,20 +287,10 @@ $('editor-inner').addEventListener('click',e=>{const select=e.target.closest('[d
 $('btn-result-add')?.addEventListener('click',()=>window.YeoSearch?.show?.());
 $('btn-result-recalc')?.addEventListener('click',()=>calculateRoute());
 $('btn-add-place').addEventListener('click',()=>{if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;if(window.YeoSearch)window.YeoSearch.show();else openModal('stop');});
-$('stop-view-switch').addEventListener('click',e=>{
- const button=e.target.closest('[data-stop-view]');if(!button)return;
- const next=button.dataset.stopView;if(next!=='list'&&next!=='bag'||next===stopView)return;
- stopView=next;try{localStorage.setItem(STOP_VIEW_KEY,next);}catch{}
- renderEditor();window.TripUX?.render?.();
-});
 $('stops-list').addEventListener('click',e=>{
- const categoryButton=e.target.closest('[data-cycle-category]');if(categoryButton){const item=day().stops.find(x=>x.id===categoryButton.dataset.cycleCategory);if(!item)return;const kinds=Object.keys(TripMeta.categories),index=kinds.indexOf(TripMeta.infer(item));item.category=kinds[(index+1)%kinds.length];save();renderEditor();renderResult();renderMap();window.MapWorkspace?.refresh?.();return;}
- const bagSearch=e.target.closest('[data-bag-search]');if(bagSearch){if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;if(window.YeoSearch)window.YeoSearch.show();else openModal('stop');return;}
- const bagApply=e.target.closest('[data-bag-apply]');if(bagApply){day().mode='auto';calculateRoute();return;}
- const bagClear=e.target.closest('[data-bag-clear]');if(bagClear){if(!day().stops.length)return;if(!confirm('담은 장소를 모두 지울까요? 다시 되돌릴 수 없어요.'))return;day().stops=[];markDirty(false);toast('담은 장소를 모두 지웠어요.');return;}
- const pin=e.target.closest('[data-stop-pin]');if(pin){const item=day().stops.find(x=>x.id===pin.dataset.stopPin);if(!item)return;item.locked=!item.locked;markDirty(false);toast(item.locked?'이 방문지의 순서를 고정했어요.':'순서 고정을 해제했어요.');return;}
- const exp=e.target.closest('[data-stop-expand]');if(exp){const id=exp.dataset.stopExpand;if(expandedStops.has(id))expandedStops.delete(id);else expandedStops.add(id);renderEditor();window.TripUX?.render?.();return;}const focus=e.target.closest('[data-stop-focus]');if(focus){window.TripUX?.switchView?.('map');setTimeout(()=>{window.TripApp?.resizeMap?.();focusPlace(focus.dataset.stopFocus)},90);return;}const btn=e.target.closest('button[data-stop-id]');if(!btn)return;const id=btn.dataset.stopId;if(btn.classList.contains('remove-stop')){removeStop(id)}else if(btn.classList.contains('stop-up'))moveStop(id,-1);else if(btn.classList.contains('stop-down'))moveStop(id,1);else if(btn.classList.contains('stop-edit'))openModal('stop',id)});
-$('stops-list').addEventListener('change',e=>{const id=e.target.dataset.stopId,d=day(),item=d.stops.find(s=>s.id===id);if(!item)return;if(e.target.classList.contains('stop-category')){item.category=e.target.value;save();renderEditor();renderResult();renderMap();window.MapWorkspace?.refresh?.();return;}if(e.target.classList.contains('stop-transfer')){if(e.target.value==='')return;const target=state.days[Number(e.target.value)];if(!target||target===d)return;if(target.stops.length>=30)return toast('이동할 날짜에는 최대 30곳까지 등록할 수 있습니다.');d.stops=d.stops.filter(x=>x.id!==id);item.locked=false;target.stops.push(item);target.result=null;markDirty(false);toast(`DAY ${Number(e.target.value)+1}로 이동했습니다.`);return;}markDirty()});
+ const button=e.target.closest('.remove-stop[data-stop-id]');
+ if(button)removeStop(button.dataset.stopId);
+});
 $('mode-auto').addEventListener('click',()=>{day().mode='auto';markDirty(false)});
 $('mode-manual').addEventListener('click',()=>{day().mode='manual';markDirty(false)});
 
