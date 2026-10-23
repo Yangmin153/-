@@ -16,9 +16,10 @@
   <link rel="stylesheet" href="/static/mobile-v49.css?v=4.9.1">
   <link rel="stylesheet" href="/static/design-v50.css?v=5.0.0">
   <link rel="stylesheet" href="/static/design-v51.css?v=5.1.0">
+  <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
-  <script defer src="/static/app.js?v=5.1.0"></script>
+  <script defer src="/static/app.js?v=5.2.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
   <script type="module" src="/static/quick-add.js?v=5.1.0"></script>
   <script type="module" src="/static/search-screen.js?v=5.1.0"></script>
@@ -103,13 +104,12 @@
 
   <div class="modal-backdrop hidden" id="place-modal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading" tabindex="-1"><div class="sheet-grabber" aria-hidden="true"></div><div class="modal-top"><div><div class="section-kicker">FIND A PLACE</div><h2 id="modal-heading">장소 선택</h2></div><button class="icon-btn" id="modal-close" aria-label="창 닫기">✕</button></div>
-      <div class="modal-tabs" role="tablist" aria-label="장소 찾기 방식"><button class="active" data-modal-tab="place">장소 · 주소 통합 검색</button><button class="legacy-address-tab" data-modal-tab="address" hidden>주소 검색</button><button data-modal-tab="example">추천 장소</button></div>
+      <div class="modal-tabs" role="tablist" aria-label="장소 찾기 방식"><button class="active" data-modal-tab="place">장소 · 주소 통합 검색</button></div>
       <div class="modal-body">
         <div id="modal-place" class="modal-tab">
           <label class="field-label" for="place-query">장소 이름 또는 도로명·지번 주소</label>
           <div class="address-search unified-search-field"><span class="search-leading" aria-hidden="true">⌕</span><input id="place-query" enterkeyhint="search" autocomplete="off" maxlength="80" placeholder="어디로 가시나요? 장소·주소 검색" aria-describedby="place-search-status"><button id="btn-search-place" type="button">검색</button></div>
-          <div class="search-suggestions" id="search-suggestions" aria-label="빠른 검색"><span>많이 찾는 장소</span><button type="button" data-search-suggest="성산일출봉">성산일출봉</button><button type="button" data-search-suggest="제주국제공항">제주공항</button><button type="button" data-search-suggest="서울시청">서울시청</button></div>
-          <div class="place-search-options"><label for="place-scope">검색 범위</label><select id="place-scope"><option value="all">전국 검색</option><option value="nearby">오늘 출발지 주변 20km</option></select><small>검색 결과에서 주소와 지점을 비교해 선택할 수 있어요.</small></div>
+          <div class="place-search-options"><label for="place-scope">검색 범위</label><select id="place-scope"><option value="all">전국 검색</option><option value="nearby">오늘 출발지 주변 20km</option></select><button type="button" class="map-pick-shortcut" id="btn-pick-map-primary">지도에서 위치 선택 ↗</button></div>
           <div id="place-search-status" class="place-search-status" role="status" aria-live="polite">여행지 이름이나 주소를 입력하면 함께 찾아드려요.</div>
           <div id="place-results" class="place-results" aria-live="polite"></div>
           <button id="place-address-fallback" class="place-more hidden" type="button">검색어 수정하기</button>
@@ -119,9 +119,10 @@
         </div>
         <div id="modal-address" class="modal-tab hidden" aria-label="이전 주소 검색 방식"><label class="field-label" for="address-query">도로명·지번 주소 검색</label><div class="address-search"><input id="address-query" placeholder="예: 제주특별자치도 제주시 공항로 2"><button id="btn-search-address">검색</button></div><p class="modal-explain">네이버 Maps 주소 검색입니다. 관광지 이름 검색이 아니라 <strong>주소 검색</strong>이며, 결과를 선택한 뒤 이름을 바꿀 수 있습니다.</p><div id="address-results" class="address-results"></div><button class="linkish" id="btn-pick-map">⌖ 지도에서 직접 위치 찍기 ↗</button></div>
         <div id="modal-coordinate" hidden aria-hidden="true"><input id="input-lat" type="hidden"><input id="input-lng" type="hidden"></div>
-        <div id="modal-example" class="modal-tab hidden"><p class="modal-explain">아래는 탐색용 예시 장소입니다. 방문 전 정확한 위치를 검색해 확인해 주세요.</p><div id="preset-list" class="preset-list"></div></div>
-        <div class="modal-divider"></div><label class="field-label" for="input-name">표시할 장소 이름</label><input id="input-name" maxlength="100" placeholder="예: 협재해수욕장">
-        <div id="category-field"><label class="field-label" for="input-category">장소 종류</label><select id="input-category" class="category-select" aria-label="장소 종류"></select></div>
+        <details id="modal-name-details" class="modal-name-details"><summary>표시 이름 수정 (선택)</summary>
+          <div class="modal-name-fields"><label class="field-label" for="input-name">표시할 장소 이름</label><input id="input-name" maxlength="100" placeholder="예: 협재해수욕장">
+          <div id="category-field"><label class="field-label" for="input-category">장소 종류</label><select id="input-category" class="category-select" aria-label="장소 종류"></select></div></div>
+        </details>
         <p id="selected-coord" class="selected-coord hidden" aria-hidden="true"></p>
       </div><div class="modal-actions"><button class="quiet-btn" id="btn-modal-cancel">취소</button><button class="confirm-btn" id="btn-modal-save">장소 적용하기 ↗</button></div>
     </div>
