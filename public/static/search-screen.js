@@ -63,13 +63,17 @@ function refreshSavedMarkers(){
  if(!searchMap||!window.naver?.maps?.Marker)return;
  const grouped=new Map();
  for(const place of savedPlaces()){
-  const key=Number(place.lat).toFixed(3)+':'+Number(place.lng).toFixed(3);
-  const n=grouped.get(key)||0;grouped.set(key,n+1);
-  const offset=[[0,0],[-14,9],[14,9],[-14,-9],[14,-9],[0,-16]][n%6];
-  const content='<div class="search-saved-pin" title="담은 장소"><span>✓</span></div>';
+  const key=Number(place.lat).toFixed(4)+':'+Number(place.lng).toFixed(4);
+  if(!grouped.has(key))grouped.set(key,[]);
+  grouped.get(key).push(place);
+ }
+ for(const group of grouped.values()){
+  const place=group[0],count=group.length;
+  const content='<div class="search-saved-pin" title="담은 장소"><span>'+(count>1?String(count):'✓')+'</span></div>';
+  // Anchor to the actual GPS point: grouping prevents overlap without moving the icon offshore.
   const marker=new window.naver.maps.Marker({map:searchMap,position:new window.naver.maps.LatLng(place.lat,place.lng),
-   title:place.name,zIndex:600+n,icon:{content,anchor:new window.naver.maps.Point(20+offset[0],22+offset[1])}});
-  window.naver.maps.Event.addListener(marker,'click',()=>showSaved(place));
+   title:group.map(p=>p.name).join(', '),zIndex:600,icon:{content,anchor:new window.naver.maps.Point(20,42)}});
+  window.naver.maps.Event.addListener(marker,'click',()=>{if(count>1){window.YeoNext?.openSheet?.();}else showSaved(place)});
   savedMarkers.push(marker);
  }
 }
