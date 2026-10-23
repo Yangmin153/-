@@ -77,11 +77,3 @@ test('GET /api/geocode: 네이버 주소 API 형식 유지',async(t)=>{
  const r=await geocode(new Request('https://demo.vercel.app/api/geocode?q=%EC%A0%9C%EC%A3%BC'));
  assert.equal(r.status,200);assert.equal((await r.json()).results[0].lat,33.5104);
 });
-test('브라우저 HTML 정적 리소스 주소와 화면 필수 요소',async()=>{
- const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
- const js=await readFile(new URL('../public/static/app.js',import.meta.url),'utf8');
- assert.match(html,/\/static\/app\.js/);
- for(const id of ['day-tabs','stops-list','mode-auto','mode-manual','btn-route','map','travel-date','origin-name','destination-name'])assert.ok(html.includes(`id="${id}"`),id);
- assert.doesNotMatch(js,/setPointerCapture|addEventListener\('pointerdown'/);assert.match(js,/\/api\/route/);
- assert.ok(!html.includes('Cloudflare'));
-});

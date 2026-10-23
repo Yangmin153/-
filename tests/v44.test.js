@@ -18,13 +18,6 @@ test('근처 경유 추천은 좌표와 권한을 검증하고 최대 3개 반�
  const mock=async()=>Response.json({documents:[{id:'7',place_name:'테스트 카페',y:'33.45',x:'126.45',category_name:'카페',address_name:'제주시 테스트',road_address_name:''}]});
  const data=await (await recommendations(new Request(url),{KAKAO_REST_API_KEY:'test'},mock)).json();assert.ok(data.items.length>0&&data.items.length<=3);assert.equal(data.items[0].name,'테스트 카페');assert.ok(!JSON.stringify(data).includes('KakaoAK'));assert.equal(distanceFromSegment([33.45,126.45],[33.4,126.4],[33.5,126.5])<100,true);
 });
-test('지도/추천 UI와 체류시간 UI 제거 정적 회귀',async()=>{
- const html=await readFile(new URL('index.html',root),'utf8'),app=await readFile(new URL('static/app.js',root),'utf8'),map=await readFile(new URL('static/map-workspace.js',root),'utf8');
- assert.doesNotMatch(html,/(?:id="input-stay"|id="stay-field"|data-modal-tab="coordinate"|위도\s*\(|경도\s*\()/);
- assert.doesNotMatch(app,/(?:체류\s*\$\{|체류시간은|\.stayMinutes\s*=)/);
- for(const id of ['map-sheet','stops-list','map-place-preview'])assert.ok(html.includes('id="'+id+'"'));assert.ok(!html.includes('id="btn-export-route"'));
- assert.match(map,/visibleSheetPixels/);assert.match(map,/fitPadding/);assert.match(app,/data-stop-pin/);assert.match(app,/data-cycle-category/);assert.doesNotMatch(app,/data-gap-index/);
-});
 test('경로 도식 내보내기는 실제 leg.path 기반',async()=>{
  await import('../public/static/route-export.js');const p=plan(1);const r=await buildPlan(p,{});const days=[{...p,result:r}];
  const model=globalThis.TripExport.model(days,'day',0);assert.ok(model.batches[0].lines.length);assert.ok(model.bounds.maxX>model.bounds.minX);

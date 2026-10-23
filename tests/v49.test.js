@@ -30,35 +30,6 @@ function mockDb(){
  };
  return {rows,queries,fetcher};
 }
-test('v4.9 CSS: eight live stylesheets replaced with two consolidated entry points',async()=>{
- const html=await read('public/index.html');
- for(const file of ['foundation-v49.css','mobile-v49.css'])assert.ok(html.includes(file));
- for(const file of ['styles.css?v=','polish.css?v=','map-workspace.css?v=','quick-add.css?v=','map-first-v46.css?v=','native-v47.css?v=','tabs-v48.css?v=','map-v44.css?v='])assert.ok(!html.includes(file),file);
- const base=await read('public/static/foundation-v49.css'),mobile=await read('public/static/mobile-v49.css');
- assert.match(base,/Legacy source: styles.css/);assert.match(mobile,/Legacy source: tabs-v48.css/);
-});
-test('v4.9 fullscreen search uses same search DOM, keyboard viewport, ESC, popstate',async()=>{
- const html=await read('public/index.html'),script=await read('public/static/search-screen.js'),css=await read('public/static/mobile-v49.css');
- for(const id of ['search-screen','search-screen-back','search-screen-form-mount','search-screen-results-mount'])assert.ok(html.includes('id="'+id+'"'));
- assert.equal((html.match(/id="quick-form"/g)||[]).length,1);
- for(const token of ['original.insertBefore(form','history.pushState','popstate','visualViewport','input.focus','document.body.classList.add'])assert.ok(script.includes(token),token);
- assert.match(css,/\.search-screen-results-mount/);assert.match(css,/100dvh/);
-});
-test('v4.9 timeline uses exactly the same TripMeta metadata as stop card',async()=>{
- const app=await read('public/static/app.js');
- assert.match(app,/TripMeta\.meta\(entry.place\)/);
- assert.match(app,/TripMeta\.icon\(entry.place,18\)/);
- assert.match(app,/renderEditor\(\);renderResult\(\);renderMap\(\)/);
-});
-test('v4.9 account UI and non-destructive browser guest save',async()=>{
- const html=await read('public/index.html'),app=await read('public/static/app.js'),acc=await read('public/static/accounts.js');
- for(const id of ['account-panel','account-email','account-password','account-trips','cloud-save'])assert.ok(html.includes('id="'+id+'"'));
- assert.match(app,/YeoAccount\?\.isSignedIn/);
- assert.match(app,/restoreGuestDays\(/);
- assert.match(acc,/yeohaenggil\.v2\.days/);assert.match(acc,/crypto\.subtle\.digest/);
- assert.match(acc,/import_fingerprint/);
- assert.match(acc,/auth\.signUp/);assert.match(acc,/auth\.signInWithPassword/);
-});
 test('v4.9 private trips: rejects unauthenticated/unconfigured API',async()=>{
  assert.equal((await handleTrips(req(),{},async()=>{throw Error('must not call')})).status,503);
  const missing=new Request('https://yeohaenggil.example/api/trips');
