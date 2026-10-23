@@ -5,7 +5,7 @@ const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 
 test('v5.3 onboarding is first and can reselect a region without deleting stops',async()=>{
  const [html,ui,app,css]=await Promise.all(['public/index.html','public/static/design-v51.js','public/static/app.js','public/static/design-v53.css'].map(read));
- assert.match(html,/<body data-mobile-view="edit" class="region-needs-choice">/);
+ assert.match(html,/<body data-mobile-view="edit" data-trip-step="1" class="region-needs-choice">/);
  assert.match(css,/body\.region-needs-choice #trip-workspace/);
  assert.match(ui,/function rechoose\(\)/);
  assert.match(ui,/function accept\(value\)/);
