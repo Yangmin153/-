@@ -20,6 +20,8 @@ function loadSDK() {
           "지도 연결 설정을 확인해야 해요. 목록에서 장소를 선택해 주세요.",
         );
       window.__travelMapReady = () => {
+        // The provider callback may run before its global namespace is assigned.
+        if (typeof window.naver?.maps?.Map !== "function") return;
         clearTimeout(timeout);
         resolve(window.naver.maps);
       };
@@ -28,6 +30,7 @@ function loadSDK() {
         "https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=" +
         encodeURIComponent(config.mapsKeyId) +
         "&callback=__travelMapReady";
+      script.onload = () => window.__travelMapReady();
       script.onerror = () =>
         fail("지도를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.");
       timeout = setTimeout(
