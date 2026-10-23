@@ -144,7 +144,7 @@ function closeModal(){if(state.mapPicking)return;window.TripUX?.onModalClosed?.(
 function selectModalTab(t){document.querySelectorAll('[data-modal-tab]').forEach(el=>el.classList.toggle('active',el.dataset.modalTab===t));['place','address','example'].forEach(k=>$(`modal-${k}`).classList.toggle('hidden',k!==t));}
 function updateCoordLabel(){$('selected-coord').textContent='';}
 function setModalCoords(lat,lng,name){if(!state.modal)return;state.modal.lat=Number(lat);state.modal.lng=Number(lng);$('input-lat').value=lat;$('input-lng').value=lng;if(name)$('input-name').value=name;updateCoordLabel()}
-function saveModal(){if(!state.modal)return;const {kind,id}=state.modal;const name=$('input-name').value.trim();let lat=Number($('input-lat').value),lng=Number($('input-lng').value);if($('input-lat').value.trim()===''||$('input-lng').value.trim()===''){lat=state.modal.lat;lng=state.modal.lng}
+function saveModal(){if(!state.modal)return;const {kind,id}=state.modal;if(kind==='stop'&&!id&&window.YeoRegion&&!window.YeoRegion.ensureSelected())return;const name=$('input-name').value.trim();let lat=Number($('input-lat').value),lng=Number($('input-lng').value);if($('input-lat').value.trim()===''||$('input-lng').value.trim()===''){lat=state.modal.lat;lng=state.modal.lng}
  if(!name||!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return toast('장소 이름과 올바른 위도·경도를 입력해 주세요.');
  const d=day();const oldDestination=clone(d.destination);const place={id:id||uid(),name,lat,lng,locked:false,category:kind==='stop'?$('input-category').value:TripMeta.infer({name})};
  if(state.modal.selectedAddress)place.address=state.modal.selectedAddress;
