@@ -62,7 +62,7 @@ test('v5.3 result can add places and recalculate while maintaining dirty indicat
  const [html,app]=await Promise.all(['public/index.html','public/static/app.js'].map(read));
  assert.match(html,/id="btn-result-add"/);
  assert.match(html,/id="btn-result-recalc"/);
- assert.match(app,/state\.lastDirty=state\.lastDirty\|\|had/);
+ assert.match(app,/state\.dirtyDayIds\.add\(d\.id\)/);
  assert.match(app,/if\(calculationSucceeded&&day\(\)\.result&&day\(\)\.id===dayId\)/);
  assert.match(app,/\$\('btn-result-recalc'\)/);
 });
