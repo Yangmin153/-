@@ -94,3 +94,16 @@ body.trip-route-dirty #timeline-note{color:#bf6d35;font-weight:850}
  .stops-list{gap:6px;padding:3px 9px}
 }
 @media(max-width:360px){.search-picked button{font-size:12px;padding:8px 9px}.search-screen-top{gap:3px}}
+
+/* Result editing and selected route marks */
+.result-edit-actions{display:flex;gap:9px;flex-wrap:wrap;margin:11px 0 16px}
+.result-edit-actions button{border:1px solid #cddcf3;background:#f3f7ff;color:#285bbb;
+ border-radius:11px;min-height:46px;padding:9px 13px;font-weight:850;font-size:12px}
+.result-edit-actions #btn-result-recalc{background:#286cf4;border-color:#286cf4;color:#fff}
+.route-marker{width:24px!important;height:27px!important;min-width:24px!important;font-size:11px!important;
+ border:2px solid #fff;box-shadow:0 2px 8px #1a355c39!important;display:grid;place-items:center}
+.route-marker .marker-order{font-size:11px!important;font-weight:850}
+body.search-open #mobile-bottom-actions{display:none!important}
+body.search-open .region-onboarding{pointer-events:none}
+body.region-ready .editor .quick-add-guide{display:none!important}
+body[data-mobile-view="map"] .result-edit-actions{display:flex!important}
