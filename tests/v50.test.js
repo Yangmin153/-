@@ -9,7 +9,7 @@ test('지도 조작 버튼은 지도 외부에 있고 기존 네이버 지도 �
 });
 test('장소만 담기 화면은 제거되고 장소 수집 목록 하나로 통합',async()=>{
  const html=await read('public/index.html'),app=await read('public/static/app.js'),css=await read('public/static/design-v53.css');
- assert.match(html,/id="stop-view-switch"[^>]+hidden/);
+ assert.doesNotMatch(html,/id="stop-view-switch"/);
  assert.doesNotMatch(app,/data-bag-search|data-bag-apply|data-bag-clear/);
  assert.match(app,/v53-stop/);assert.match(app,/d\.stops\.map\(stop=>/);
  assert.match(css,/\.stop-view-switch/);
