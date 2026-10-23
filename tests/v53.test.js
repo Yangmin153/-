@@ -51,7 +51,7 @@ test('v5.3 fullscreen dialog blocks background scroll and restores its state',as
 test('v5.3 route numbers and durations are only shown after calculation, no live transit claims',async()=>{
  const [app,html,css]=await Promise.all(['public/static/app.js','public/index.html','public/static/design-v53.css'].map(read));
  assert.match(app,/const routeNumber=i=>/);
- assert.match(app,/const label=r\?\.entries\?routeNumber\(i\):'•'/);
+ assert.match(app,/const label=multi\?String\(group\.length\):r\?\.entries\?routeNumber\(index\):'•'/);
  assert.match(app,/readableMinutes\(leg\.durationMinutes\)/);
  assert.doesNotMatch(app,/data-navigate-index/);
  assert.match(html,/대중교통 · 지원 준비 중/);
