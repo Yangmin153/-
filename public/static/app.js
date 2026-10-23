@@ -297,7 +297,7 @@ $('mode-manual').addEventListener('click',()=>{day().mode='manual';markDirty(fal
 
 $('btn-route').addEventListener('click',()=>calculateRoute());
 
-$('btn-reset').addEventListener('click',()=>{if(!confirm('현재 일정 전체를 예시 일정으로 바꾸시겠습니까?'))return;clearTimeout(pendingCalc);state.days=freshDays();state.active=0;refresh();toast('예시 일정을 불러왔습니다.')});
+$('btn-reset').addEventListener('click',()=>{if(!confirm('현재 여행의 방문지와 출발·도착지를 초기화할까요?'))return;const region=currentRegion();clearTimeout(pendingCalc);state.days=freshDays();state.days[0].region=region;state.active=0;state.lastDirty=false;window.TripQuickAdd?.setDirty?.(false);refresh();toast('방문지를 비웠습니다. 여행 지역은 유지됩니다.')});
 $('btn-export').addEventListener('click',()=>{const snapshot=state.days.map(({result,...rest})=>rest);const blob=new Blob([JSON.stringify({app:'yeohaenggil-v2',days:snapshot},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='여행길-일정백업.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('일정 JSON 파일을 저장했습니다.')});
 $('btn-import').addEventListener('click',()=>$('import-file').click());
 $('import-file').addEventListener('change',async(e)=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>1024*200)throw Error('파일 크기가 너무 큽니다.');const obj=JSON.parse(await file.text());if(!validDays(obj.days))throw Error('여행길 일정 형식이 아닙니다.');if(!confirm('현재 일정을 백업 파일로 교체할까요?'))return;state.days=normalizeDays(obj.days);state.active=0;refresh();toast('일정 백업을 불러왔습니다.')}catch(err){toast('불러오기 실패: '+err.message)}finally{e.target.value=''}});
