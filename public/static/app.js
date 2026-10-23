@@ -14,7 +14,7 @@ function freshDays(){
  return [{id:uid(),origin:p('출발지 미설정',33.489,126.498),destination:p('도착지 미설정',33.489,126.498),departure:'09:00',mode:'auto',stops:[],result:null}];
 }
 function validPlace(q){return q&&typeof q.name==='string'&&q.name.length<=100&&Number.isFinite(Number(q.lat))&&Number.isFinite(Number(q.lng))&&Math.abs(Number(q.lat))<=90&&Math.abs(Number(q.lng))<=180}
-function validDays(d){return Array.isArray(d)&&d.length>0&&d.length<=10&&d.every(day=>day&&validPlace(day.origin)&&validPlace(day.destination)&&Array.isArray(day.stops)&&day.stops.length<=30&&day.stops.every(validPlace)&&/^\d{2}:\d{2}$/.test(day.departure)&&['auto','manual'].includes(day.mode))}
+function validDays(d){return Array.isArray(d)&&d.length>0&&d.length<=10&&d.every(day=>day&&validPlace(day.origin)&&validPlace(day.destination)&&Array.isArray(day.stops)&&day.stops.length<=300&&day.stops.every(validPlace)&&/^\d{2}:\d{2}$/.test(day.departure)&&['auto','manual'].includes(day.mode))}
 function normalizeDays(days){return days.map(d=>{const {transport,...data}=d;return {...data,origin:omitStay(data.origin),destination:omitStay(data.destination),stops:data.stops.map(omitStay),result:null};});}
 function omitStay(place){const {stayMinutes,...rest}=place;return rest;}
 function loadDays(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));if(validDays(saved))return normalizeDays(saved)}catch{}return freshDays()}
@@ -172,6 +172,9 @@ function setTravelDates(start,end){
   }
   next.push(d);
  }
+ // Restore archived dates without duplicating stops previously moved to a surviving date.
+ const duplicated=new Set();
+ for(const d of next)d.stops=d.stops.filter(p=>{if(duplicated.has(p.id))return false;duplicated.add(p.id);return true;});
  const seen=new Set(next.flatMap(d=>d.stops.map(p=>p.id)));
  for(const d of original)for(const p of d.stops)if(!seen.has(p.id)){next[0].stops.push(p);seen.add(p.id);}
  // Keep trimmed daily endpoint settings for when the user restores their original travel dates.
@@ -394,7 +397,8 @@ function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d
   const bg=multi?'#286cf4':start?'#1762c2':end?'#293449':'#ffffff',
    color=multi||start||end?'#fff':meta.color;
   const label=multi?String(group.length):r?.entries?routeNumber(index):'•';
-  const content=`<div class="route-marker ${multi?'cluster':kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-order">${label}</span></div>`;
+  const categoryIcon=multi?'':TripMeta.icon(place,12);
+  const content=`<div class="route-marker ${multi?'cluster':kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-order">${label}</span>${categoryIcon?'<span class="marker-category-mini">'+categoryIcon+'</span>':''}</div>`;
   const marker=new naver.maps.Marker({position:new naver.maps.LatLng(place.lat,place.lng),map,
    title:multi?group.map(g=>g.place.name).join(', '):place.name,zIndex:active?900:multi?700:start||end?500:100+index,
    icon:{content,anchor:new naver.maps.Point(20,42)}});
