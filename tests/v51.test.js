@@ -65,3 +65,8 @@ test('v5.1 desktop bag mode opens the same fast collection search',async()=>{
  assert.match(quick,/function add\(item,button=null\)\{\s*if\(window\.YeoRegion&&!window\.YeoRegion\.ensureSelected\(\)\)return;/);
  assert.match(css,/@media\(min-width:769px\)/);
 });
+test('v5.1 restores the selected region into the input and guards modal additions',async()=>{
+ const ui=await read('public/static/design-v51.js'),app=await read('public/static/app.js');
+ assert.match(ui,/if\(activeRegion\)input\.value=activeRegion/);
+ assert.match(app,/if\(kind==='stop'&&!id&&window\.YeoRegion&&!window\.YeoRegion\.ensureSelected\(\)\)return/);
+});
