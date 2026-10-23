@@ -55,6 +55,13 @@ body[data-mobile-view="map"] .region-onboarding{display:none!important}
 .modal-actions .confirm-btn{flex:1}
 .modal-actions button{min-height:44px}
 .modal-actions button:disabled{opacity:.48;cursor:not-allowed}
+/* During mobile typing keep the list tall; selecting a result closes the keyboard. */
+body.place-keyboard-open .modal-tabs{display:none}
+body.place-keyboard-open .modal-top{padding:6px 14px}
+body.place-keyboard-open .modal-name-details{display:none}
+body.place-keyboard-open .place-search-options{display:none}
+body.place-keyboard-open .modal-actions{display:none}
+body.place-keyboard-open .place-search-status{margin:1px 0 3px}
 @media(max-width:768px){
  .modal-backdrop:not(.hidden){align-items:flex-end}
  .modal{width:100%;height:calc(var(--yg-place-viewport-height,100dvh) - 4px);
