@@ -241,9 +241,12 @@ function createMapIfVisible(){
   map=new naver.maps.Map('map',{center:new naver.maps.LatLng(33.39,126.55),zoom:10,minZoom:6,zoomControl:false,scrollWheel:false});
   mapCreateCount++;markerInfo=new naver.maps.InfoWindow({backgroundColor:'#fff',borderColor:'#e5ecf6',borderWidth:1,maxWidth:260});
   setMapLocked(window.matchMedia('(max-width: 768px)').matches);$('map-placeholder').classList.add('hidden');
+  let lastZoomGroup='';
   naver.maps.Event.addListener(map,'zoom_changed',()=>{
-   const zoom=map.getZoom();document.body.dataset.mapZoom=zoom<11?'far':zoom>=15?'near':'middle';
-   sceneSignature='';renderMap();
+   const zoom=map.getZoom(),group=zoom<11?'far':zoom>=15?'near':'middle';
+   document.body.dataset.mapZoom=group;
+   const precisionGroup=zoom>=15?'4':zoom>=12?'3':'2';
+   if(lastZoomGroup!==precisionGroup){lastZoomGroup=precisionGroup;sceneSignature='';requestAnimationFrame(renderMap);}
   });
   naver.maps.Event.addListener(map,'click',evt=>{if(!state.mapPicking||!state.modal)return;setModalCoords(evt.coord.lat(),evt.coord.lng());state.modal.selectedAddress=null;state.modal.searchPendingSelection=false;$('btn-modal-save').disabled=false;$('place-query').value='';$('input-name').value='';$('modal-name-details').open=true;state.mapPicking=false;$('map-select-notice').classList.add('hidden');selectModalTab('place');$('place-modal').classList.remove('hidden');$('place-modal').setAttribute('aria-hidden','false');syncModalViewport();$('input-name').focus({preventScroll:true});toast('지도에서 위치를 골랐어요. 장소 이름을 입력해 주세요.');});
   renderMap();
@@ -313,7 +316,7 @@ function setMapLocked(next){mapLocked=Boolean(next);if(map)map.setOptions({dragg
 function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d.result;const routePanelVisible=!matchMedia('(max-width:768px)').matches||document.body.dataset.mobileView==='map';const signature=JSON.stringify([d.id,routePanelVisible,map.getZoom(),...places.map(x=>[x.id,x.name,x.lat,x.lng,x.category])]);if(signature===sceneSignature&&r===sceneResult){if(mapFitQueued)resizeMapStable();return;}sceneSignature=signature;sceneResult=r;overlayRenderCount++;clearMap();if(!places.length)return;
  const stackedMarkers=new Map();
  places.forEach((place,i)=>{
-  const start=i===0,end=i===places.length-1,kind=start?'origin':end?'destination':'stop',active=selectedMapStop===place.id,meta=TripMeta.meta(place);
+  const start=place.id===d.origin.id,end=place.id===d.destination.id,kind=start?'origin':end?'destination':'stop',active=selectedMapStop===place.id,meta=TripMeta.meta(place);
   const bg=start?'#1762c2':end?'#293449':'#ffffff',color=start||end?'#fff':meta.color;
   const label=r?.entries?routeNumber(i):'•';const content=`<div class="route-marker ${kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-order">${label}</span></div>`;
   const precision=map.getZoom()>=15?4:map.getZoom()>=12?3:2;
