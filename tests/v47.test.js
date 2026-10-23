@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,access} from 'node:fs/promises';
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 test('대중교통 UI, 경로 API 및 파일 제거',async()=>{
- for(const path of ['public/index.html','public/static/app.js','api/config.js','vercel.json','dev-server.js'])assert.doesNotMatch(await read(path),/ODSAY|transitReady|\/api\/transit|transport-transit|대중교통/);
+ for(const path of ['public/static/app.js','api/config.js','vercel.json','dev-server.js'])assert.doesNotMatch(await read(path),/ODSAY|transitReady|\/api\/transit|transport-transit/);assert.match(await read('public/index.html'),/대중교통 · 지원 준비 중/);
  for(const path of ['api/transit.js','lib/transit.js'])await assert.rejects(access(new URL('../'+path,import.meta.url)));
  assert.match(await read('public/static/app.js'),/const \{transport,\.\.\.data\}=d/);
 });
