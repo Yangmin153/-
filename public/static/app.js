@@ -325,7 +325,7 @@ $('stop-view-switch').addEventListener('click',e=>{
 });
 $('stops-list').addEventListener('click',e=>{
  const categoryButton=e.target.closest('[data-cycle-category]');if(categoryButton){const item=day().stops.find(x=>x.id===categoryButton.dataset.cycleCategory);if(!item)return;const kinds=Object.keys(TripMeta.categories),index=kinds.indexOf(TripMeta.infer(item));item.category=kinds[(index+1)%kinds.length];save();renderEditor();renderResult();renderMap();window.MapWorkspace?.refresh?.();return;}
- const bagSearch=e.target.closest('[data-bag-search]');if(bagSearch){if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;if(matchMedia('(max-width:768px)').matches&&window.YeoSearch)window.YeoSearch.show();else openModal('stop');return;}
+ const bagSearch=e.target.closest('[data-bag-search]');if(bagSearch){if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;if(window.YeoSearch)window.YeoSearch.show();else openModal('stop');return;}
  const bagApply=e.target.closest('[data-bag-apply]');if(bagApply){day().mode='auto';calculateRoute();return;}
  const bagClear=e.target.closest('[data-bag-clear]');if(bagClear){if(!day().stops.length)return;if(!confirm('담은 장소를 모두 지울까요? 다시 되돌릴 수 없어요.'))return;day().stops=[];markDirty(false);toast('담은 장소를 모두 지웠어요.');return;}
  const pin=e.target.closest('[data-stop-pin]');if(pin){const item=day().stops.find(x=>x.id===pin.dataset.stopPin);if(!item)return;item.locked=!item.locked;markDirty(false);toast(item.locked?'이 방문지의 순서를 고정했어요.':'순서 고정을 해제했어요.');return;}
