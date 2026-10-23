@@ -58,9 +58,10 @@ body[data-mobile-view="map"] .region-onboarding{display:none!important}
 /* During mobile typing keep the list tall; selecting a result closes the keyboard. */
 body.place-keyboard-open .modal-tabs{display:none}
 body.place-keyboard-open .modal-top{padding:6px 14px}
-body.place-keyboard-open .modal-name-details{display:none}
+body.place-keyboard-open .modal-name-details:not([open]){display:none}
 body.place-keyboard-open .place-search-options{display:none}
 body.place-keyboard-open .modal-actions{display:none}
+body.place-keyboard-open .modal:has(.modal-name-details[open]) .modal-actions{display:flex}
 body.place-keyboard-open .place-search-status{margin:1px 0 3px}
 @media(max-width:768px){
  .modal-backdrop:not(.hidden){align-items:flex-end}
