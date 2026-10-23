@@ -35,7 +35,7 @@ test('마커 여백 축소와 저배율 축소',async()=>{
 });
 test('네이버 길안내는 도착지 카드가 아니라 장소 사이의 이동 구간에 제공',async()=>{
  const [a,ux,css]=await Promise.all(['public/static/app.js','public/static/mobile-ux.js','public/static/tabs-v48.css'].map(read));
- assert.match(a,/trip-leg-divider/);assert.match(a,/data-navigate-index/);
+ assert.match(a,/trip-leg-divider/);assert.doesNotMatch(a,/data-navigate-index/);
  assert.match(ux,/function navigateTimeline/);
  assert.doesNotMatch(ux,/function navigateStop/);
  assert.match(css,/\.trip-leg-divider \.timeline-nav/);
