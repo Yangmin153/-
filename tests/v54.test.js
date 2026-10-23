@@ -31,7 +31,7 @@ test('v5.4 accessible secondary actions are distinct from primary CTAs',async()=
 test('v5.4 destination map markers are readable and respond to map zoom',async()=>{
  const app=await read('public/static/app.js'),css=await read('public/static/design-v54.css');
  assert.match(app,/naver\.maps\.Event\.addListener\(map,'zoom_changed'/);
- assert.match(app,/precision=map\.getZoom\(\)>=15\?4/);
+ assert.match(app,/precision=map\.getZoom\(\)>=16\?5/);
  assert.match(app,/new naver\.maps\.InfoWindow/);
  assert.match(css,/body \.route-marker\{width:40px!important;height:44px!important/);
  assert.match(css,/body\[data-map-zoom="far"\]/);
