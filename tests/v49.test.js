@@ -48,7 +48,7 @@ test('v4.9 timeline uses exactly the same TripMeta metadata as stop card',async(
  const app=await read('public/static/app.js');
  assert.match(app,/TripMeta\.meta\(entry.place\)/);
  assert.match(app,/TripMeta\.icon\(entry.place,18\)/);
- assert.match(app,/renderEditor\(\);renderResult\(\);renderMap\(\)/);
+ assert.match(app,/renderEditor\(\);renderResult\(\);if\(mapView\)renderMap\(\)/);
 });
 test('v4.9 account UI and non-destructive browser guest save',async()=>{
  const html=await read('public/index.html'),app=await read('public/static/app.js'),acc=await read('public/static/accounts.js');
