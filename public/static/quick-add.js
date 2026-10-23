@@ -38,6 +38,7 @@ function render(next){
 async function search(force=false){const text=cleanQuery(input.value);if(text.length<2){cancel();if(text)setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;return;}const key=app.getRegion()+'::'+text;if(!force&&key===lastKey&&lastItems.length){render(lastItems);return;}cancel();const current=sequence;abort=new AbortController();const signal=abort.signal;setMessage('장소를 찾고 있어요…');setSearchActive(true);try{let found=[];for(const q of searchTerms(text,app.getRegion())){const result=await request(q,signal);if(current!==sequence)return;found=result.items||[];if(found.length)break;}if(current!==sequence)return;lastKey=key;lastItems=rankResults(found,app.getRegion());render(lastItems);}catch(e){if(signal.aborted||current!==sequence)return;setMessage('검색에 실패했어요: '+e.message,true);}finally{if(current===sequence)abort=null;}}
 function feedback(msg){const el=$('quick-feedback');el.hidden=false;el.textContent=msg;clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.hidden=true,2300);app.toast(msg);}
 function add(item,button=null){
+ if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  const duplicate=app.getDay().stops.some(x=>samePlace(x,item));
  if(duplicate&&!confirm('이미 담은 장소예요. 한 번 더 담을까요?'))return;
  const result=app.addQuickStop(item,duplicate);
