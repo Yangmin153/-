@@ -52,4 +52,16 @@ test('v5.1 collection mode has a prominent fast search action and brand colors',
  assert.match(css,/\.bag-search-trigger/);
  assert.match(css,/@media\(max-width:768px\)/);
 });
+test('v5.1 requires an explicit region selection even when example stops exist',async()=>{
+ const js=await read('public/static/design-v51.js');
+ assert.match(js,/if\(restore&&restore===normalize\(app\(\)\?\.getRegion\(\)\)\)/);
+ assert.doesNotMatch(js,/some\(d=>d\.stops\?\.length\)/);
+});
 
+test('v5.1 desktop bag mode opens the same fast collection search',async()=>{
+ const app=await read('public/static/app.js'),screen=await read('public/static/search-screen.js'),quick=await read('public/static/quick-add.js'),css=await read('public/static/design-v51.css');
+ assert.match(app,/if\(window\.YeoSearch\)window\.YeoSearch\.show\(\);else openModal\('stop'\)/);
+ assert.match(screen,/if\(opened\)return;/);
+ assert.match(quick,/function add\(item,button=null\)\{\s*if\(window\.YeoRegion&&!window\.YeoRegion\.ensureSelected\(\)\)return;/);
+ assert.match(css,/@media\(min-width:769px\)/);
+});
