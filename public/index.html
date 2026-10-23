@@ -17,17 +17,18 @@
   <link rel="stylesheet" href="/static/design-v50.css?v=5.0.0">
   <link rel="stylesheet" href="/static/design-v51.css?v=5.1.0">
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
+  <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
-  <script defer src="/static/app.js?v=5.2.0"></script>
+  <script defer src="/static/app.js?v=5.3.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
-  <script type="module" src="/static/quick-add.js?v=5.1.0"></script>
-  <script type="module" src="/static/search-screen.js?v=5.1.0"></script>
+  <script type="module" src="/static/quick-add.js?v=5.3.0"></script>
+  <script type="module" src="/static/search-screen.js?v=5.3.0"></script>
   <script defer src="/static/map-workspace.js?v=4.3.0"></script>
   <script type="module" src="/static/accounts.js?v=4.9.0"></script>
-  <script defer src="/static/design-v51.js?v=5.1.0"></script>
+  <script defer src="/static/design-v51.js?v=5.3.0"></script>
 </head>
-<body data-mobile-view="edit">
+<body data-mobile-view="edit" class="region-needs-choice">
   <div class="app-shell">
     <header class="site-header">
       <div class="brand" aria-label="여행길">
@@ -46,10 +47,10 @@
       <div class="trip-meta"><div class="hero-orbit" aria-hidden="true"><span>1</span><i></i><span>2</span><i></i><span>3</span></div><span class="hero-orbit-caption">어디든, 가장 좋은 순서로</span></div>
     </section>
 
-    <div class="region-onboarding" aria-label="여행 지역 고르기"><div class="onboarding-step"><span class="onboarding-step-number">1</span><div><strong>어디로 떠나시나요?</strong><small>먼저 지역을 선택하면 지도가 그곳으로 이동해요.</small></div></div><div class="trip-region-row"><label for="trip-region">직접 입력</label><input id="trip-region" list="trip-region-options" type="text" maxlength="28" value="제주" autocomplete="off" aria-label="여행 지역 선택" placeholder="제주, 부산, 인천처럼 직접 입력하세요"><datalist id="trip-region-options"><option value="제주"><option value="서울"><option value="부산"><option value="인천"><option value="대전"><option value="대구"><option value="광주"><option value="울산"><option value="세종"><option value="수원"><option value="용인"><option value="고양"><option value="성남"><option value="춘천"><option value="원주"><option value="강릉"><option value="경주"><option value="속초"><option value="여수"><option value="전주"><option value="동해"><option value="양양"><option value="평창"><option value="청주"><option value="충주"><option value="단양"><option value="제천"><option value="천안"><option value="아산"><option value="보령"><option value="태안"><option value="공주"><option value="군산"><option value="익산"><option value="남원"><option value="무주"><option value="순천"><option value="광양"><option value="목포"><option value="담양"><option value="해남"><option value="완도"><option value="포항"><option value="안동"><option value="구미"><option value="영주"><option value="문경"><option value="울진"><option value="창원"><option value="김해"><option value="진주"><option value="통영"><option value="거제"><option value="남해"><option value="밀양"><option value="제주시"><option value="서귀포"><option value="강화"><option value="가평"><option value="양평"><option value="파주"><option value="의정부"><option value="화성"><option value="안산"><option value="김포"><option value="평택"><option value="이천"><option value="양산"><option value="울릉"></datalist><small>나중에 바꿔도 괜찮아요</small></div><div class="region-shortcuts" id="region-shortcuts" aria-label="인기 여행 지역 바로 선택"><span>인기 여행지</span><button type="button" data-region-choice="제주">제주</button><button type="button" data-region-choice="부산">부산</button><button type="button" data-region-choice="강릉">강릉</button><button type="button" data-region-choice="경주">경주</button><button type="button" data-region-choice="서울">서울</button><button type="button" data-region-choice="여수">여수</button></div><div class="region-confirm-row"><button type="button" id="region-confirm" class="region-confirm">이 지역으로 여행 시작하기 <span aria-hidden="true">→</span></button><span id="region-selection-state" role="status" aria-live="polite">① 지역을 먼저 골라주세요.</span></div></div>
+    <div class="region-onboarding" aria-label="여행 지역 고르기"><div class="onboarding-step"><span class="onboarding-step-number">1</span><div><strong>어디로 떠나시나요?</strong><small>먼저 지역을 선택하면 지도가 그곳으로 이동해요.</small></div></div><div class="trip-region-row"><label for="trip-region">직접 입력</label><input id="trip-region" list="trip-region-options" type="text" maxlength="28" value="" autocomplete="off" aria-label="여행 지역 선택" placeholder="제주, 부산, 인천처럼 직접 입력하세요"><datalist id="trip-region-options"><option value="제주"><option value="서울"><option value="부산"><option value="인천"><option value="대전"><option value="대구"><option value="광주"><option value="울산"><option value="세종"><option value="수원"><option value="용인"><option value="고양"><option value="성남"><option value="춘천"><option value="원주"><option value="강릉"><option value="경주"><option value="속초"><option value="여수"><option value="전주"><option value="동해"><option value="양양"><option value="평창"><option value="청주"><option value="충주"><option value="단양"><option value="제천"><option value="천안"><option value="아산"><option value="보령"><option value="태안"><option value="공주"><option value="군산"><option value="익산"><option value="남원"><option value="무주"><option value="순천"><option value="광양"><option value="목포"><option value="담양"><option value="해남"><option value="완도"><option value="포항"><option value="안동"><option value="구미"><option value="영주"><option value="문경"><option value="울진"><option value="창원"><option value="김해"><option value="진주"><option value="통영"><option value="거제"><option value="남해"><option value="밀양"><option value="제주시"><option value="서귀포"><option value="강화"><option value="가평"><option value="양평"><option value="파주"><option value="의정부"><option value="화성"><option value="안산"><option value="김포"><option value="평택"><option value="이천"><option value="양산"><option value="울릉"></datalist><small>나중에 바꿔도 괜찮아요</small></div><div class="region-shortcuts" id="region-shortcuts" aria-label="인기 여행 지역 바로 선택"><span>인기 여행지</span><button type="button" data-region-choice="제주">제주</button><button type="button" data-region-choice="부산">부산</button><button type="button" data-region-choice="강릉">강릉</button><button type="button" data-region-choice="경주">경주</button><button type="button" data-region-choice="서울">서울</button><button type="button" data-region-choice="여수">여수</button></div><div class="region-confirm-row"><button type="button" id="region-confirm" class="region-confirm">이 지역으로 여행 시작하기 <span aria-hidden="true">→</span></button><span id="region-selection-state" role="status" aria-live="polite">① 지역을 먼저 골라주세요.</span></div></div>
     <div class="workspace" id="trip-workspace">
       <main class="editor">
-        <div class="panel-heading"><div><div class="section-kicker">MY TRIP</div><h2>나의 여행</h2></div><button class="small-quiet" id="btn-reset">처음부터 다시</button></div>
+        <div class="panel-heading"><div><div class="section-kicker">MY TRIP</div><h2>가고 싶은 곳 담기</h2></div><div class="region-back-actions"><button class="small-quiet" type="button" id="btn-change-region">지역 변경</button><button class="small-quiet" id="btn-reset">처음부터 다시</button></div></div>
         
         <div class="day-tabs" id="day-tabs" role="tablist" aria-label="날짜 선택"></div>
         <div class="editor-inner" id="editor-inner">
@@ -61,8 +62,8 @@
           </div>
           <button class="inherit-origin" id="btn-inherit-origin" type="button" hidden>전날 도착지를 오늘 출발지로 사용</button>
           <div class="location-group end-group"><label class="field-label">이날의 마지막 도착지 <span>FINISH</span></label><button class="location-select" data-action="pick-destination"><span class="location-symbol finish">⌂</span><span class="location-body"><strong id="destination-name">도착지를 선택하세요</strong><small id="destination-coord">다른 숙소나 공항도 선택 가능</small></span><span class="location-right">변경 ↗</span></button></div>
-          <div class="section-between"><div><h3><span class="onboarding-inline-step">2</span> 가고 싶은 곳 <span class="count" id="place-count">0</span></h3><p>장소를 담아두면 여행길이 빠른 순서로 정리해 드려요.</p></div><button class="add-place" id="btn-add-place">+ 장소 추가</button></div>
-          <div class="stop-view-switch" id="stop-view-switch" role="group" aria-label="장소 목록 보는 방법">
+          <div class="section-between"><div><h3><span class="onboarding-inline-step">2</span> 가고 싶은 곳 <span class="count" id="place-count">0</span></h3><p>장소를 담아두면 여행길이 빠른 순서로 정리해 드려요.</p></div><button class="add-place" id="btn-add-place">+ 방문지 추가</button></div>
+          <div class="stop-view-switch" id="stop-view-switch" role="group" aria-label="장소 목록 보는 방법" hidden>
              <button type="button" data-stop-view="list" aria-pressed="true"><span aria-hidden="true">☷</span> 세로 목록</button>
              <button type="button" data-stop-view="bag" aria-pressed="false"><span aria-hidden="true">▦</span> 장소만 담기</button>
            </div>
@@ -70,9 +71,9 @@
            <div id="quick-add-guide" class="quick-add-guide"><div class="quick-add-guide-icon" aria-hidden="true">＋</div><div><strong>가고 싶은 장소를 담아보세요</strong><p>아래 <b>장소 검색창</b>을 누르고, 결과에서 <b>추가</b>를 누르세요.</p></div><button type="button" id="quick-add-guide-action">검색하기</button></div>
           <div id="stops-list" class="stops-list" aria-live="polite"></div>
           <div class="empty-list hidden" id="stops-empty"><span>◈</span><strong>아직 추가한 장소가 없어요</strong><p>가고 싶은 곳을 하나씩 담아보세요.</p></div>
-          <div class="route-mode"><span>어떤 순서로 갈까요?</span><div class="segmented" role="group" aria-label="경로 모드"><button id="mode-auto" class="is-selected">가장 빠른 순서</button><button id="mode-manual">내가 담은 순서</button></div></div>
-          <p id="route-loading-status" class="route-loading-status" role="status" aria-live="polite" hidden>가장 빠른 길을 찾고 있어요</p><button class="cta" id="btn-route"><span>가장 빠른 길 찾아보기</span><span class="cta-arrow">↗</span></button>
-          <label class="auto-recalc"><input id="auto-recalc" type="checkbox"> 장소를 바꾸면 길도 다시 찾기</label><div class="mini-hint">켜두면 장소가 달라질 때마다 새 길을 찾아요.</div><div class="mini-hint">빠른 길을 선택하면 들르는 순서가 달라질 수 있어요. 순서를 바꾸고 싶지 않으면 <strong>내가 담은 순서</strong>를 눌러주세요.</div>
+          <div class="route-mode" hidden><span>어떤 순서로 갈까요?</span><div class="segmented" role="group" aria-label="경로 모드"><button id="mode-auto" class="is-selected">가장 빠른 순서</button><button id="mode-manual">내가 담은 순서</button></div></div>
+          <p id="route-loading-status" class="route-loading-status" role="status" aria-live="polite" hidden>최적 동선을 계산하고 있어요</p><button class="cta" id="btn-route"><span>최적 동선 만들기</span><span class="cta-arrow">↗</span></button>
+          <label class="auto-recalc" hidden><input id="auto-recalc" type="checkbox"> 장소를 바꾸면 길도 다시 찾기</label><div class="mini-hint">켜두면 장소가 달라질 때마다 새 길을 찾아요.</div><div class="mini-hint">빠른 길을 선택하면 들르는 순서가 달라질 수 있어요. 순서를 바꾸고 싶지 않으면 <strong>내가 담은 순서</strong>를 눌러주세요.</div>
         </div>
       </main>
 
@@ -131,13 +132,23 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div id="search-screen" class="search-screen" role="dialog" aria-modal="true" aria-label="장소 검색" hidden>
  <div class="search-screen-top">
-  <button type="button" id="search-screen-back" aria-label="검색 닫고 일정으로 돌아가기">←</button>
-  <span id="search-screen-region">제주 · 장소 검색</span>
+  <button type="button" id="search-screen-back" aria-label="검색 닫고 일정으로 돌아가기">✕</button>
+  <span id="search-screen-region">장소 검색</span>
   <span id="search-screen-count" aria-live="polite"></span>
  </div>
  <div id="search-screen-form-mount" class="search-screen-form-mount"></div>
  <p id="search-screen-feedback" role="status" aria-live="polite" hidden></p>
- <div id="search-screen-results-mount" class="search-screen-results-mount"></div>
+ <div class="search-map-stage" id="search-map-stage">
+   <div id="search-naver-map" aria-label="네이버 방문지 검색 지도"></div>
+   <div class="search-map-message" id="search-map-message" role="status">지도를 불러오는 중이에요.</div>
+   <button type="button" id="search-list-toggle" class="search-list-toggle">목록보기</button>
+   <div class="search-map-hint" id="search-map-hint">장소를 검색하거나 지도를 눌러 위치를 선택하세요.</div>
+ </div>
+ <div class="search-picked" id="search-picked" hidden>
+   <div class="search-picked-text"><strong id="search-picked-name"></strong><small id="search-picked-address"></small></div>
+   <button type="button" id="search-picked-add">+ 방문지 추가</button>
+ </div>
+ <div id="search-screen-results-mount" class="search-screen-results-mount" hidden></div>
 </div>
 <div id="account-panel" class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-panel-title" hidden>
  <section class="account-sheet">
