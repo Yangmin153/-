@@ -53,3 +53,22 @@ test('wizard screens and real calendar date picker are wired',async()=>{
  assert.match(wiz,/function calculate\(\)/);
  assert.match(wiz,/function renderSheet\(\)/);
 });
+
+test('POST /api/multi-route rejects forged origin, malformed payload and invalid fixed dates',async()=>{
+ const {POST}=await import('../api/multi-route.js');
+ const url='https://yeohaenggil.example/api/multi-route';
+ const make=(body,origin)=>new Request(url,{method:'POST',headers:{'content-type':'application/json',...(origin?{origin}:{})},body:JSON.stringify(body)});
+ assert.equal((await POST(make(trip(),'https://foreign.example'))).status,403);
+ const payload=trip();payload.stops[1].fixedDate='2026-11-09';
+ const invalid=await POST(make(payload));assert.equal(invalid.status,422);
+ assert.match((await invalid.json()).detail,/기간 밖/);
+});
+test('POST /api/multi-route includes every stop exactly once in route assignments',async()=>{
+ const {POST}=await import('../api/multi-route.js');
+ const url='https://yeohaenggil.example/api/multi-route',payload=trip();
+ const response=await POST(new Request(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)}));
+ assert.equal(response.status,200);
+ const data=await response.json(),ids=data.days.flatMap(d=>d.assignedStopIds);
+ assert.deepEqual(ids.sort(),payload.stops.map(s=>s.id).sort());
+ assert.equal(data.days[1].assignedStopIds.includes('island'),true);
+});
