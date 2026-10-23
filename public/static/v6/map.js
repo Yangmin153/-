@@ -63,6 +63,7 @@ export class TravelMap {
   }
   showError(text) {
     this.failed = true;
+    this.ready = false;
     this.message.hidden = false;
     this.message.textContent = text;
   }
@@ -71,6 +72,7 @@ export class TravelMap {
     this.promise = (async () => {
       try {
         this.api = await loadSDK();
+        if (this.failed) return;
         const n = this.api;
         this.map = new n.Map(this.container, {
           center: new n.LatLng(...this.center),
