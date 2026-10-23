@@ -107,3 +107,7 @@ body.search-open #mobile-bottom-actions{display:none!important}
 body.search-open .region-onboarding{pointer-events:none}
 body.region-ready .editor .quick-add-guide{display:none!important}
 body[data-mobile-view="map"] .result-edit-actions{display:flex!important}
+
+/* Keep the primary add action visible despite the old mobile tab overrides. */
+.section-between .add-place{display:inline-flex!important;align-items:center;justify-content:center;min-height:46px!important;padding:9px 15px!important;flex-shrink:0}
+@media(max-width:768px){.section-between .add-place{display:inline-flex!important;min-height:46px!important}}
