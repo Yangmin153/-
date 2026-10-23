@@ -42,6 +42,7 @@ test('v5.4 search indicates loading immediately and debounces Korean typing at 2
  assert.match(quick,/compositionstart/);assert.match(quick,/compositionend/);
  assert.match(quick,/setTimeout\(\(\)=>search\(\),280\)/);
  assert.match(quick,/setMessage\('장소를 검색하고 있어요…',false,true\)/);
+ assert.match(quick,/YeoSearch\?\.searchStarted\?\.\(\)/);
  assert.match(quick,/current!==sequence/);
  assert.match(css,/quick-result-message\.is-loading/);
 });
