@@ -63,4 +63,11 @@ body[data-stop-view="bag"] .quick-form #quick-input{background:transparent}
  .region-confirm{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.region-onboarding.region-attention{animation:none}}
-
+/* Desktop collection also uses the same fast search form, not the multi-step edit modal. */
+@media(min-width:769px){
+ .search-screen{left:50%;right:auto;top:5dvh;width:min(720px,calc(100% - 40px));height:90dvh;
+  transform:translateX(-50%);border-radius:22px;box-shadow:0 18px 80px rgba(10,30,70,.32)}
+ body.search-open::before{content:"";position:fixed;inset:0;background:rgba(9,32,70,.46);z-index:999}
+ .search-screen-form-mount{padding:15px 22px}
+ .search-screen-results-mount{padding-inline:18px}
+}
