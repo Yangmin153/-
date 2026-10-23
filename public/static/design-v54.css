@@ -1,0 +1,63 @@
+/* 여행길 v5.4 — day planning, accessible markers, responsive search */
+.day-planner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 6px;padding:12px 14px;
+ background:#f2f7ff;border:1px solid #dce8fb;border-radius:14px}
+.day-planner label{font-size:13px;font-weight:850;color:#1d427b;white-space:nowrap}
+.day-planner select{min-height:44px;border:1px solid #a9c4eb;border-radius:10px;padding:8px 32px 8px 12px;
+ font-size:14px;font-weight:850;color:#1b4584;background:#fff}
+.day-plan-hint{font-size:11px;color:#6480a2}
+#day-tabs{display:flex;gap:7px;overflow-x:auto;padding:8px 3px 12px;scrollbar-width:thin;overscroll-behavior-x:contain}
+#day-tabs .day-tab{flex:0 0 auto;min-height:43px;min-width:75px;border-radius:11px;font-weight:850}
+body[data-single-day="true"] #day-tabs{display:none!important}
+.region-back-actions{display:flex;gap:7px;justify-content:flex-end;align-items:center}
+#region-confirm,.region-back-actions button{transition:background-color .15s ease,border-color .15s ease}
+.region-back-actions #btn-change-region{background:#ebf3ff!important;border:1px solid #93baf6!important;color:#1558b3!important;
+ font-weight:850!important;box-shadow:0 1px 4px #1e67bb15}
+.region-back-actions #btn-reset{background:#fff3f0!important;border:1px solid #f0baa9!important;color:#ad4731!important;
+ font-weight:850!important;box-shadow:0 1px 4px #ad473111}
+.region-back-actions button:focus-visible{outline:3px solid #286cf4;outline-offset:2px}
+.v53-stop .stop-transfer{flex:0 0 auto;max-width:98px;min-height:40px;border:1px solid #d9e5f4;border-radius:9px;
+ background:#f7faff;font-size:11px;font-weight:700;color:#335a93;padding:4px 6px}
+.v53-stop .remove-stop{flex:0 0 43px}
+.day-planner~#day-tabs{scroll-snap-type:x proximity}
+.day-planner~#day-tabs .day-tab{scroll-snap-align:start}
+body .route-marker{width:40px!important;height:44px!important;min-width:40px!important;border:0!important;display:grid!important;
+ place-items:center!important;background:var(--marker-bg,#fff)!important;color:var(--marker-ink,#285fbb)!important;
+ border-radius:50% 50% 50% 12px!important;box-shadow:0 3px 12px #102f5b55,0 0 0 3px #fff!important;
+ position:relative!important;transform:rotate(-25deg);cursor:pointer}
+body .route-marker .marker-order{display:grid;place-items:center;transform:rotate(25deg);font-size:17px!important;
+ line-height:1!important;font-weight:950!important;color:inherit!important}
+body[data-map-zoom="far"] .route-marker{width:34px!important;height:37px!important;min-width:34px!important}
+body[data-map-zoom="far"] .route-marker .marker-order{font-size:15px!important}
+body[data-map-zoom="near"] .route-marker{width:44px!important;height:47px!important;min-width:44px!important}
+body[data-map-zoom="near"] .route-marker .marker-order{font-size:18px!important}
+body .route-marker.stop{border:2px solid var(--category-color,#2f75dd)!important}
+body .route-marker.origin,body .route-marker.destination{box-shadow:0 3px 12px #102f5b70,0 0 0 3px #fff!important}
+.search-saved-pin{width:40px;height:44px;min-width:40px;border-radius:50% 50% 50% 10px;
+ background:#0d9d74;border:3px solid white;box-shadow:0 3px 12px #1a634f66;display:grid;place-items:center;
+ color:white;font-size:18px;font-weight:900;transform:rotate(-20deg)}
+.search-saved-pin span{transform:rotate(20deg)}
+#search-picked-add:disabled{background:#dcece5;color:#227f60;cursor:default}
+.quick-result-message.is-loading{display:flex;gap:10px;align-items:center;justify-content:flex-start;
+ min-height:60px;padding:16px 12px;color:#426690;font-size:13px}
+.quick-result-message.is-loading::before{content:"";width:18px;height:18px;flex:0 0 18px;
+ border-radius:50%;border:2px solid #c9def8;border-top-color:#286cf4;animation:yg54spin .7s linear infinite}
+@keyframes yg54spin{to{transform:rotate(360deg)}}
+.search-screen[data-search-mode="list"] .quick-results .quick-result-row{min-height:63px}
+.search-screen[data-search-mode="list"] .quick-result-message{min-height:60px}
+@media(max-width:768px){
+ .day-planner{margin:10px 8px 6px;gap:8px;padding:10px 12px}
+ .day-plan-hint{flex-basis:100%}
+ .region-back-actions{gap:6px}
+ .region-back-actions button{padding:7px 9px!important;min-height:41px!important;font-size:11px!important;white-space:nowrap}
+ #day-tabs{padding:6px 9px 11px}
+ #day-tabs .day-tab{min-height:44px;min-width:73px}
+ .v53-stop .stop-transfer{max-width:84px;font-size:10px}
+ .v53-stop{gap:6px!important}
+ .v53-stop-info strong{font-size:13px}
+}
+@media(max-width:380px){
+ .region-back-actions{flex-wrap:wrap;gap:3px}
+ .region-back-actions button{min-height:38px!important}
+ .v53-stop .stop-transfer{max-width:72px}
+}
+@media(prefers-reduced-motion:reduce){.quick-result-message.is-loading::before{animation:none}}
