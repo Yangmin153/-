@@ -192,13 +192,12 @@ function setDayOriginMode(index,mode){
  return true;
 }
 function reorderStop(id,direction){
- const d=day(),index=d.stops.findIndex(p=>p.id===id),next=index+direction;
- if(index<0||next<0||next>=d.stops.length)return false;
- [d.stops[index],d.stops[next]]=[d.stops[next],d.stops[index]];
- d.mode='manual';
- if(d.result)state.dirtyDayIds.add(d.id);
- d.result=null;sceneSignature='';refresh();
- document.dispatchEvent(new Event('trip:stops-changed'));return true;
+ const owner=state.days.find(d=>d.stops.some(p=>p.id===id)),
+  list=owner?owner.stops:unassignedStops(),index=list.findIndex(p=>p.id===id),next=index+direction;
+ if(index<0||next<0||next>=list.length)return false;
+ [list[index],list[next]]=[list[next],list[index]];
+ if(owner)owner.mode='manual';
+ invalidateRoutes();refresh();document.dispatchEvent(new Event('trip:stops-changed'));return true;
 }
 function applyDailyRoutes(payload){
  if(!payload||!Array.isArray(payload.days)||payload.days.length!==state.days.length)return false;
