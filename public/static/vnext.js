@@ -224,6 +224,14 @@ document.addEventListener('trip:day-changed',()=>{renderDaily();renderWarnings()
 document.addEventListener('trip:stops-changed',()=>{renderDaily();renderWarnings();});
 document.addEventListener('trip:stop-added',()=>renderDaily());
 document.addEventListener('trip:route-mode-changed',()=>renderDaily());
+document.addEventListener('trip:days-imported',()=>{
+ const d=days(),valid=d.length&&d.every(x=>Number.isFinite(ms(x.date)));
+ $('yg-start-date').value=valid?d[0].date:'';
+ $('yg-end-date').value=valid?d.at(-1).date:'';
+ if(valid){$('yg-duration').textContent=d.length===1?'당일치기 여행':(d.length-1)+'박 '+d.length+'일 여행';error('');go(2);}
+ else{$('yg-duration').textContent='날짜를 선택해 주세요.';go(1);}
+ renderDaily();
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheetOpen)closeSheet();});
 function init(){
  document.body.classList.remove('region-needs-choice');document.body.classList.add('region-ready');
