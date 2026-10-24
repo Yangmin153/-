@@ -407,3 +407,9 @@ body[data-trip-step] .search-screen-results-mount .quick-direct-add{min-height:4
 body[data-trip-step="3"] #map-overlay-controls .map-control-buttons #yg-route-fit{
  min-width:86px!important;width:auto!important;white-space:nowrap!important;font-size:12px!important;padding:7px 10px!important
 }
+
+/* Explanatory route warnings stay outside the bottom action bar. */
+body[data-trip-step] #yg-assign-warning{display:none}
+body[data-trip-step="3"] #yg-assign-warning:not(:empty){display:block!important;max-width:950px;margin:14px auto 0;
+ padding:4px 5px;font-size:12px;line-height:1.7;color:#87603c}
+body[data-trip-step="3"] #yg-step-three-actions{flex-wrap:wrap}
