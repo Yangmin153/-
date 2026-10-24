@@ -128,6 +128,7 @@
       </div>
     </section>
     <div id="yg-step-two-actions" class="yg-step-actions"><button type="button" id="yg-back-dates" class="yg-secondary">← 날짜 수정</button><button type="button" id="yg-calculate" class="yg-primary">최적 동선 만들기 <span>→</span></button><p id="yg-calc-progress" role="status" hidden>여행 날짜별 동선을 계산하고 있어요…</p></div>
+    <div id="yg-assign-warning" role="status" aria-live="polite"></div>
     <div id="yg-step-three-actions" class="yg-step-actions yg-result-toolbar">
       <label class="yg-route-select-label">경로 방식 <select id="yg-route-mode" aria-label="경로 계산 방식"><option value="auto">자동 최적화</option><option value="manual">내 순서 유지</option></select></label>
       <button type="button" id="yg-back-places" class="yg-secondary">← 장소 수정</button>
@@ -137,7 +138,7 @@
         <button type="button" id="yg-three-list">방문지 목록</button>
         <button type="button" id="yg-delete-routes" class="yg-danger">동선 삭제</button>
       </div></details>
-      <div id="yg-assign-warning" role="status"></div>
+      
     </div>
     <footer class="footer"><span>여행길 · 더 편리한 여행 일정</span><span>실제 자동차 이동시간은 네이버 길찾기로 확인합니다.</span></footer>
   </div>
