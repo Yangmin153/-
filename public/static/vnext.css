@@ -269,3 +269,8 @@ body[data-trip-step="3"] #yg-step-one{display:none!important}
  .yg-place-row{gap:4px}
  .yg-place-sort button{width:28px}
 }
+
+/* The old region prefix is not an input in the date-specific place search. */
+body[data-trip-step] .quick-region-label,body[data-trip-step] #search-screen .quick-region-label{display:none!important}
+body[data-trip-step] .search-screen .quick-form{min-width:0;max-width:100%}
+body[data-trip-step] #search-screen #quick-input{min-width:0;flex:1}
