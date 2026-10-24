@@ -177,6 +177,7 @@ function reorderStop(id,direction){
  const d=day(),index=d.stops.findIndex(p=>p.id===id),next=index+direction;
  if(index<0||next<0||next>=d.stops.length)return false;
  [d.stops[index],d.stops[next]]=[d.stops[next],d.stops[index]];
+ d.mode='manual';
  if(d.result)state.dirtyDayIds.add(d.id);
  d.result=null;sceneSignature='';refresh();
  document.dispatchEvent(new Event('trip:stops-changed'));return true;
@@ -186,13 +187,14 @@ function applyDailyRoutes(payload){
  // Atomic validation: never move a visit to another travel date.
  for(let i=0;i<state.days.length;i++){
   const d=state.days[i],entry=payload.days[i],oldIds=d.stops.map(p=>p.id);
-  if(!entry||entry.date!==d.date||!entry.route||!Array.isArray(entry.route.orderIds)||
-     entry.route.orderIds.length!==oldIds.length||
+  if(!entry||entry.date!==d.date)return false;
+  if(!entry.route){if(oldIds.length>0)return false;continue;}
+  if(!Array.isArray(entry.route.orderIds)||entry.route.orderIds.length!==oldIds.length||
      !entry.route.orderIds.every(id=>oldIds.includes(id))||new Set(entry.route.orderIds).size!==oldIds.length)return false;
  }
  for(let i=0;i<state.days.length;i++){
   const d=state.days[i],route=payload.days[i].route;
-  if(d.mode==='auto'){
+  if(route&&d.mode==='auto'){
    const byId=new Map(d.stops.map(p=>[p.id,p]));d.stops=route.orderIds.map(id=>byId.get(id));
   }
   d.result=route;state.dirtyDayIds.delete(d.id);
