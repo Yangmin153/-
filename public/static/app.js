@@ -375,7 +375,7 @@ function createMapIfVisible(){
  try{
   map=new naver.maps.Map('map',{center:new naver.maps.LatLng(33.39,126.55),zoom:10,minZoom:6,zoomControl:false,scrollWheel:false});
   mapCreateCount++;markerInfo=new naver.maps.InfoWindow({backgroundColor:'#fff',borderColor:'#e5ecf6',borderWidth:1,maxWidth:260});
-  setMapLocked(window.matchMedia('(max-width: 768px)').matches);$('map-placeholder').classList.add('hidden');
+  setMapLocked(false);$('map-placeholder').classList.add('hidden');
   let lastZoomGroup='';
   naver.maps.Event.addListener(map,'zoom_changed',()=>{
    const zoom=map.getZoom(),group=zoom<11?'far':zoom>=15?'near':'middle';
