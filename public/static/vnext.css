@@ -399,3 +399,11 @@ body[data-trip-step="3"] .timeline-info{min-width:0}
 .yg-search-category-icon svg{width:20px;height:20px}
 body[data-trip-step] .search-screen-results-mount .quick-direct-add{min-height:44px!important;min-width:64px!important;
  padding:8px 10px!important;font-size:12px!important;background:#e8f2ff!important;color:#1e5dbc!important;font-weight:850}
+
+/* Keep the result actions in normal flow on desktops; sticky bars must not cover the mapped route. */
+@media(min-width:769px){
+ body[data-trip-step="3"] #yg-step-three-actions{position:static!important;bottom:auto!important;margin-top:16px!important}
+}
+body[data-trip-step="3"] #map-overlay-controls .map-control-buttons #yg-route-fit{
+ min-width:86px!important;width:auto!important;white-space:nowrap!important;font-size:12px!important;padding:7px 10px!important
+}
