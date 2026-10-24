@@ -83,7 +83,7 @@ function renderResult(){const d=day(),r=d.result;document.body.classList.toggle(
  $('timeline').innerHTML=r.entries.map((entry,i)=>{
   const leg=entry.leg,mode='자동차',meta=TripMeta.meta(entry.place);
   const segment=leg?'<div class="trip-leg-divider"><span class="trip-leg-summary">↓ '+mode+' · '+readableMinutes(leg.durationMinutes)+'</span>'+(leg.source==='estimate'?'<span class="leg-estimated">추정</span>':'')+'</div>':'';
-  return segment+'<div class="timeline-entry"><div class="timeline-rail"><span class="timeline-dot">'+routeNumber(i)+'</span></div><div class="timeline-info"><span class="timeline-category" title="'+esc(meta.label)+'" style="color:'+esc(meta.color)+'">'+TripMeta.icon(entry.place,18)+'</span><strong>'+esc(entry.place.name)+'</strong><span class="timeline-kind">'+(entry.kind==='origin'?'출발':entry.kind==='destination'?'도착':'방문지')+'</span></div></div>';
+  return segment+'<div class="timeline-entry"><div class="timeline-rail"><span class="timeline-dot">'+(i===0?'S':i===r.entries.length-1?'E':i)+'</span></div><div class="timeline-info"><span class="timeline-category" title="'+esc(meta.label)+'" style="color:'+esc(meta.color)+'">'+TripMeta.icon(entry.place,18)+'</span><strong>'+esc(entry.place.name)+'</strong><span class="timeline-kind">'+(entry.kind==='origin'?'출발':entry.kind==='destination'?'도착':'방문지')+'</span></div></div>';
  }).join('');
 }
 function markDirty(shouldRecalculate=true){const d=day(),had=!!d.result;if(had)state.dirtyDayIds.add(d.id);d.result=null;recommendationOpen.clear();recommendationCache.clear();refresh();if(had){window.TripQuickAdd?.setDirty?.(true);$('timeline-note').textContent='방문지가 바뀌었어요. 다시 계산해 주세요.';}document.dispatchEvent(new Event('trip:stops-changed',{bubbles:true}));}
@@ -433,7 +433,13 @@ function centerMapAtRegion(place){
  return true;
 }
 function validMapPlace(place){return place&&Number.isFinite(place.lat)&&Number.isFinite(place.lng)&&place.lat>=-90&&place.lat<=90&&place.lng>=-180&&place.lng<=180;}
-function routePlaces(){const d=day(),byId=new Map(d.stops.map(x=>[x.id,x]));const sorted=d.result?.orderIds?d.result.orderIds.map(id=>byId.get(id)).filter(Boolean):d.stops;return [d.origin,...sorted,d.destination].filter(x=>validMapPlace(x)&&!/미설정/.test(x.name));}
+function routePlaces(){
+ const d=day(),byId=new Map(d.stops.map(x=>[x.id,x])),sorted=d.result?.orderIds?d.result.orderIds.map(id=>byId.get(id)).filter(Boolean):d.stops;
+ const collecting=document.body.dataset.tripStep==='2';
+ const points=collecting?[...allStops(),...state.days.flatMap(x=>[x.origin,x.destination])]:[d.origin,...sorted,d.destination];
+ const seen=new Set();
+ return points.filter(p=>{if(!validMapPlace(p)||/미설정/.test(p.name)||seen.has(p.id))return false;seen.add(p.id);return true;});
+}
 function fitMap(padding){if(!map||!window.naver?.maps)return;if(!mapHasArea()){mapFitQueued=true;return;}const places=routePlaces();if(!places.length)return;
  if(places.length===1||places.every(p=>Math.abs(p.lat-places[0].lat)<.00001&&Math.abs(p.lng-places[0].lng)<.00001)){map.setCenter(new naver.maps.LatLng(places[0].lat,places[0].lng));map.setZoom(14);return;}
  const bounds=new naver.maps.LatLngBounds();for(const p of places)bounds.extend(new naver.maps.LatLng(p.lat,p.lng));
@@ -449,42 +455,43 @@ function previewPlace(place){if(!validMapPlace(place))return false;previewSelect
 function clearPlacePreview(){previewSelected=null;$('map-place-preview').hidden=true;if(previewMarker){previewMarker.setMap(null);previewMarker=null;}}
 function focusPlace(id){if(!map)return;const item=routePlaces().find(p=>p.id===id);if(!item)return;selectedMapStop=id;renderMap();const point=new naver.maps.LatLng(item.lat,item.lng);if(!map.getBounds()?.hasLatLng?.(point))map.panTo(point);const marker=markers.find(x=>x.__placeIds?.includes(id));if(marker&&markerInfo){const idx=routePlaces().findIndex(x=>x.id===id);markerInfo.setContent(selectedStopDetails(item,idx,item.id===day().origin.id?'origin':item.id===day().destination.id?'destination':'stop'));markerInfo.open(map,marker);}}
 function setMapLocked(next){mapLocked=Boolean(next);if(map)map.setOptions({draggable:!mapLocked,pinchZoom:!mapLocked,scrollWheel:!mapLocked,keyboardShortcuts:!mapLocked,disableDoubleTapZoom:mapLocked,disableDoubleClickZoom:mapLocked,disableTwoFingerTapZoom:mapLocked});}
-function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d.result;const routePanelVisible=!matchMedia('(max-width:768px)').matches||document.body.dataset.mobileView==='map';const signature=JSON.stringify([d.id,routePanelVisible,map.getZoom(),...places.map(x=>[x.id,x.name,x.lat,x.lng,x.category])]);if(signature===sceneSignature&&r===sceneResult){if(mapFitQueued)resizeMapStable();return;}sceneSignature=signature;sceneResult=r;overlayRenderCount++;clearMap();if(!places.length)return;
- // Group truly nearby markers rather than shifting their anchor away from real coordinates.
- // Kakao Local: y=latitude, x=longitude; Naver LatLng always receives (latitude,longitude).
- const clusters=new Map(),precision=map.getZoom()>=16?5:map.getZoom()>=12?4:3;
- places.forEach((place,index)=>{
-  const key=place.lat.toFixed(precision)+':'+place.lng.toFixed(precision);
-  if(!clusters.has(key))clusters.set(key,[]);
-  clusters.get(key).push({place,index});
+function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d.result;const routePanelVisible=!matchMedia('(max-width:768px)').matches||document.body.dataset.mobileView==='map';const signature=JSON.stringify([document.body.dataset.tripStep,d.id,routePanelVisible,map.getZoom(),...places.map(x=>[x.id,x.name,x.lat,x.lng,x.category])]);if(signature===sceneSignature&&r===sceneResult){if(mapFitQueued)resizeMapStable();return;}sceneSignature=signature;sceneResult=r;overlayRenderCount++;clearMap();if(!places.length)return;
+ // YeoPins owns the shared 44px presentation and the real-coordinate anchor (22,52).
+ // Only group near coordinates; never change geographic locations to make icons fit.
+ const collecting=document.body.dataset.tripStep==='2',precision=map.getZoom()>=16?5:map.getZoom()>=12?4:3,clusters=new Map();
+ places.forEach((place,index)=>{const key=place.lat.toFixed(precision)+':'+place.lng.toFixed(precision);
+  if(!clusters.has(key))clusters.set(key,[]);clusters.get(key).push({place,index});
  });
  for(const group of clusters.values()){
-  const {place,index}=group[0],multi=group.length>1;
-  const start=place.id===d.origin.id,end=place.id===d.destination.id,
-   kind=start?'origin':end?'destination':'stop',active=group.some(x=>x.place.id===selectedMapStop),meta=TripMeta.meta(place);
-  const bg=multi?'#286cf4':start?'#1762c2':end?'#293449':'#ffffff',
-   color=multi||start||end?'#fff':meta.color;
-  const label=multi?String(group.length):r?.entries?routeNumber(index):'•';
-  const categoryIcon=multi?'':TripMeta.icon(place,12);
-  const content=`<div class="route-marker ${multi?'cluster':kind} ${active?'active':''}" style="--category-color:${meta.color};--marker-bg:${bg};--marker-ink:${color}" aria-hidden="true"><span class="marker-order">${label}</span>${categoryIcon?'<span class="marker-category-mini">'+categoryIcon+'</span>':''}</div>`;
-  const marker=new naver.maps.Marker({position:new naver.maps.LatLng(place.lat,place.lng),map,
-   title:multi?group.map(g=>g.place.name).join(', '):place.name,zIndex:active?900:multi?700:start||end?500:100+index,
-   icon:{content,anchor:new naver.maps.Point(20,42)}});
+  const {place,index}=group[0],multi=group.length>1,
+   start=state.days.some(x=>place.id===x.origin.id),end=state.days.some(x=>place.id===x.destination.id);
+  const kind=multi?'cluster':start?'origin':end?'destination':collecting?'pending':'stop';
+  const stopNumber=d.result?.entries?.findIndex(e=>e.place?.id===place.id);
+  const chosen=group.some(x=>x.place.id===selectedMapStop);
+  const marker=window.YeoPins?.marker?.(map,place,{kind,order:!collecting&&stopNumber>0?String(stopNumber):'',count:group.length,selected:chosen,
+   zIndex:chosen?990:multi?800:start||end?600:100+index});
+  if(!marker)continue;
   marker.__placeId=place.id;marker.__placeIds=group.map(x=>x.place.id);markers.push(marker);
   naver.maps.Event.addListener(marker,'click',()=>{
    if(!markerInfo)return;
-   if(multi){
-    markerInfo.setContent('<div class="yg-marker-group"><strong>가까운 장소 '+group.length+'곳</strong>'+
-     group.map(({place:p})=>'<button type="button" data-yg-map-pick="'+esc(p.id)+'">'+esc(p.name)+'</button>').join('')+'</div>');
-   }else{
-    selectedMapStop=place.id;
-    markerInfo.setContent(selectedStopDetails(place,index,kind));
-   }
+   if(multi)markerInfo.setContent('<div class="yg-marker-group"><strong>가까운 장소 '+group.length+'곳</strong>'+
+    group.map(({place:p})=>'<button type="button" data-yg-map-pick="'+esc(p.id)+'">'+esc(p.name)+'</button>').join('')+'</div>');
+   else{selectedMapStop=place.id;markerInfo.setContent(selectedStopDetails(place,stopNumber>0?stopNumber:index,kind));}
    markerInfo.open(map,marker);
   });
  }
+ if(!collecting&&routePanelVisible&&r?.entries){
+  for(const entry of r.entries.slice(1)){
+   const leg=entry.leg;if(!leg||!Array.isArray(leg.path)||leg.path.length<2)continue;
+   const coords=leg.path.filter(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1])&&Math.abs(p[0])<=180&&Math.abs(p[1])<=90)
+    .map(p=>new naver.maps.LatLng(p[1],p[0]));
+   if(coords.length<2)continue;
+   const estimated=leg.source==='estimate',base={map,path:coords,strokeStyle:estimated?'shortdash':'solid'};
+   paths.push(new naver.maps.Polyline({...base,strokeColor:estimated?'#8c7a63':'#8a370d',strokeWeight:9,strokeOpacity:.88,zIndex:12}));
+   paths.push(new naver.maps.Polyline({...base,strokeColor:estimated?'#c89a59':'#ed5e17',strokeWeight:5.5,strokeOpacity:1,zIndex:13}));
+  }
+ }
 
- if(routePanelVisible&&r?.entries){r.entries.slice(1).forEach(entry=>{const leg=entry.leg;if(!leg||!Array.isArray(leg.path)||!leg.path.length)return;const coords=leg.path.filter(pair=>Array.isArray(pair)&&pair.length>=2&&Number.isFinite(pair[0])&&Number.isFinite(pair[1])).map(pair=>new naver.maps.LatLng(pair[1],pair[0]));if(coords.length<2)return;paths.push(new naver.maps.Polyline({map,path:coords,strokeColor:leg.source==='estimate'?'#e59b59':'#2475e7',strokeWeight:5,strokeOpacity:.78,strokeStyle:leg.source==='estimate'?'shortdash':'solid',zIndex:20}));});}
  
  if(mapFitQueued){mapFitQueued=false;fitMap();}
  window.MapWorkspace?.refresh?.();
