@@ -40,7 +40,7 @@ async function search(force=false){const text=cleanQuery(input.value);if(text.le
 function feedback(msg){const el=$('quick-feedback');el.hidden=false;el.textContent=msg;clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.hidden=true,2300);app.toast(msg);}
 function add(item,button=null){
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return false;
- const duplicate=app.getDay().stops.some(x=>samePlace(x,item));
+ const duplicate=app.allStops().some(x=>samePlace(x,item));
  if(duplicate){feedback('이미 담은 장소예요. 중복으로 추가하지 않았어요.');return false;}
  const result=app.addQuickStop(item,false);
  if(!result.ok){feedback(result.error||'장소를 담지 못했어요. 다시 해보세요.');return false;}
