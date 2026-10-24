@@ -63,6 +63,6 @@ test('v5.4 modified application scripts remain syntactically valid',async()=>{
 
 test('v5.4 pre-route stop markers remain stops even if endpoints are unconfigured',async()=>{
  const [app,map]=await Promise.all([read('public/static/app.js'),read('public/static/map-workspace.js')]);
- assert.match(app,/start=place\.id===d\.origin\.id,end=place\.id===d\.destination\.id/);
+ assert.match(app,/start=state\.days\.some\(x=>place\.id===x\.origin\.id\),end=state\.days\.some/);
  assert.match(map,/filter\(p=>p&&!\/미설정\/\.test\(p\.name\)\)/);
 });
