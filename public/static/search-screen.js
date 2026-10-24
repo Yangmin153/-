@@ -14,7 +14,10 @@ function updateSize(){
  if(searchMap&&opened&&mode==='map')requestAnimationFrame(()=>window.naver?.maps?.Event?.trigger(searchMap,'resize'));
 }
 function mapCenter(){
- const region=window.TripApp?.getRegion?.()||'제주';
+ const d=window.TripApp?.getDay?.();
+ const place=[d?.origin,...(d?.stops||[]),d?.destination].find(p=>p&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&!/미설정/.test(p.name||''));
+ if(place)return [place.lat,place.lng];
+ const region=window.YeoNext?.searchRegion?.()||'';
  if(centers[region])return centers[region];
  const naverMap=window.TripApp?.getMap?.();
  const c=naverMap?.getCenter?.();
@@ -45,7 +48,7 @@ function clearMarkers(){
  if(selectedMarker){selectedMarker.setMap(null);selectedMarker=null;}
 }
 function clearSavedMarkers(){for(const marker of savedMarkers)marker.setMap(null);savedMarkers=[];}
-function savedPlaces(){return window.TripApp?.allStops?.()||window.TripApp?.getDay?.()?.stops||[];}
+function savedPlaces(){return window.TripApp?.getDay?.()?.stops||[];}
 function showSaved(place){
  selected=place;isSavedSelection=true;
  $('search-picked-name').textContent=place.name;
@@ -128,12 +131,12 @@ function show(){
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  opened=true;historyEntry=true;previousFocus=document.activeElement;previousScroll=window.scrollY;
  feedback.hidden=true;picked.hidden=true;selected=null;items=[];isSavedSelection=false;input.value='';results.replaceChildren();results.hidden=true;
- $('search-screen-region').textContent=(window.TripApp?.getRegion?.()||'')+' · 방문지 추가';
+ $('search-screen-region').textContent=(window.YeoNext?.dateLabel?.()||'오늘')+' · 방문지 추가';
  $('search-screen-count').textContent=savedPlaces().length+'곳 담음';
  screen.hidden=false;screen.querySelector('#search-screen-form-mount').append(form);resultMount.append(results);
  document.documentElement.style.overflow='hidden';document.body.style.position='fixed';document.body.style.top='-'+previousScroll+'px';document.body.style.width='100%';document.body.classList.add('search-open');
  savedSignature='';updateSize();showMode('map');
- const region=window.TripApp?.getRegion?.()||'';
+ const region=String(window.TripApp?.getDay?.()?.id||'');
  if(searchMap&&lastChosenRegion!==region){const [lat,lng]=mapCenter();searchMap.setCenter(new window.naver.maps.LatLng(lat,lng));searchMap.setZoom(11);}
  lastChosenRegion=region;
  history.pushState({...history.state,yeohaenggilSearch:true},'',location.href);
@@ -181,4 +184,4 @@ document.addEventListener('trip-map-ready',()=>{if(opened)maybeMap()});
 document.addEventListener('trip:stops-changed',()=>{if(opened){savedSignature='';refreshSavedMarkers();}});
 document.addEventListener('trip:day-changed',()=>{if(opened){selected=null;picked.hidden=true;isSavedSelection=false;savedSignature='';refreshSavedMarkers();$('search-screen-count').textContent=savedPlaces().length+'곳 담음';}});
 window.addEventListener('resize',()=>{if(opened)refreshSavedMarkers();});
-window.YeoSearch={show,hide,isOpen:()=>opened,preview,searchStarted,onResults,addSuccess,refreshSavedMarkers};
+window.YeoSearch={show,hide,isOpen:()=>opened,preview,showSavedPlace:showSaved,searchStarted,onResults,addSuccess,refreshSavedMarkers};
