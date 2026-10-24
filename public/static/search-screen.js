@@ -48,7 +48,7 @@ function clearMarkers(){
  if(selectedMarker){selectedMarker.setMap(null);selectedMarker=null;}
 }
 function clearSavedMarkers(){for(const marker of savedMarkers)marker.setMap(null);savedMarkers=[];}
-function savedPlaces(){return window.TripApp?.getDay?.()?.stops||[];}
+function savedPlaces(){return window.TripApp?.allStops?.()||[];}
 function showSaved(place){
  selected=place;isSavedSelection=true;
  $('search-picked-name').textContent=place.name;
@@ -72,20 +72,14 @@ function refreshSavedMarkers(){
  }
  for(const group of grouped.values()){
   const place=group[0],count=group.length;
-  const content='<div class="search-saved-pin" title="담은 장소"><span>'+(count>1?String(count):'✓')+'</span></div>';
-  // Anchor to the actual GPS point: grouping prevents overlap without moving the icon offshore.
-  const marker=new window.naver.maps.Marker({map:searchMap,position:new window.naver.maps.LatLng(place.lat,place.lng),
-   title:group.map(p=>p.name).join(', '),zIndex:600,icon:{content,anchor:new window.naver.maps.Point(20,42)}});
-  window.naver.maps.Event.addListener(marker,'click',()=>{if(count>1){window.YeoNext?.openSheet?.();}else showSaved(place)});
-  savedMarkers.push(marker);
+  const pin=window.YeoPins?.marker?.(searchMap,place,{kind:count>1?'cluster':'pending',count,zIndex:600});
+  if(!pin)continue;
+  window.naver.maps.Event.addListener(pin,'click',()=>{if(count>1)window.YeoNext?.openSheet?.();else showSaved(place);});
+  savedMarkers.push(pin);
  }
 }
 function mark(item,pickedOne=false){
- const maps=window.naver?.maps;
- if(!searchMap||!maps?.Marker||!Number.isFinite(Number(item.lat))||!Number.isFinite(Number(item.lng)))return null;
- const color=pickedOne?'#1557d2':'#ffffff',textColor=pickedOne?'#ffffff':'#2769d9';
- const node='<div style="width:29px;height:35px;border-radius:16px 16px 16px 4px;transform:rotate(-45deg);background:'+color+';border:2px solid #2769d9;box-shadow:0 3px 10px #123c7433;display:grid;place-items:center"><span style="transform:rotate(45deg);font-size:16px;font-weight:800;color:'+textColor+'">⌖</span></div>';
- return new maps.Marker({map:searchMap,position:new maps.LatLng(Number(item.lat),Number(item.lng)),title:String(item.name||''),zIndex:pickedOne?800:100,icon:{content:node,anchor:new maps.Point(14,30)}});
+ return window.YeoPins?.marker?.(searchMap,item,{kind:pickedOne?'selected':'pending',selected:pickedOne,zIndex:pickedOne?800:100})||null;
 }
 function paintMarkers(){
  clearMarkers();
