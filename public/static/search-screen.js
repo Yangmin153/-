@@ -132,7 +132,7 @@ function show(){
  opened=true;historyEntry=true;previousFocus=document.activeElement;previousScroll=window.scrollY;
  feedback.hidden=true;picked.hidden=true;selected=null;items=[];isSavedSelection=false;input.value='';results.replaceChildren();results.hidden=true;
  $('search-screen-region').textContent=(window.YeoNext?.dateLabel?.()||'오늘')+' · 방문지 추가';
- $('search-screen-count').textContent=savedPlaces().length+'곳 담음';
+ $('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';
  screen.hidden=false;screen.querySelector('#search-screen-form-mount').append(form);resultMount.append(results);
  document.documentElement.style.overflow='hidden';document.body.style.position='fixed';document.body.style.top='-'+previousScroll+'px';document.body.style.width='100%';document.body.classList.add('search-open');
  savedSignature='';updateSize();showMode('map');
@@ -158,7 +158,7 @@ function addSuccess(message){
  if(!opened)return;
  selected=null;isSavedSelection=false;picked.hidden=true;
  savedSignature='';refreshSavedMarkers();
- $('search-screen-count').textContent=savedPlaces().length+'곳 담음';
+ $('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';
  feedback.textContent='✓ '+message;feedback.hidden=false;
  clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>feedback.hidden=true,2100);
  showMode('map');
@@ -182,7 +182,7 @@ window.visualViewport?.addEventListener('scroll',updateSize);
 window.addEventListener('resize',updateSize);
 document.addEventListener('trip-map-ready',()=>{if(opened)maybeMap()});
 document.addEventListener('trip:stops-changed',()=>{if(opened){savedSignature='';refreshSavedMarkers();}});
-document.addEventListener('trip:day-changed',()=>{if(opened){selected=null;picked.hidden=true;isSavedSelection=false;savedSignature='';refreshSavedMarkers();$('search-screen-count').textContent=savedPlaces().length+'곳 담음';}});
+document.addEventListener('trip:day-changed',()=>{if(opened){selected=null;picked.hidden=true;isSavedSelection=false;savedSignature='';refreshSavedMarkers();$('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';}});
 window.addEventListener('resize',()=>{if(opened)refreshSavedMarkers();});
 $('search-screen-count').addEventListener('click',()=>window.YeoNext?.openSheet?.());
 window.YeoSearch={show,hide,isOpen:()=>opened,preview,showSavedPlace:showSaved,searchStarted,onResults,addSuccess,refreshSavedMarkers};
