@@ -199,9 +199,9 @@ $('yg-place-sheet').addEventListener('click',e=>{
  if(down){app.reorderStop(down.dataset.stopDown,1);renderDaily();return;}
  const focus=e.target.closest('[data-focus-place]');
  if(focus){
-  const p=stops().find(s=>s.id===focus.dataset.focusPlace);
-  if(!p)return;closeSheet();go(2);openSearch();
-  window.YeoSearch?.showSavedPlace?.(p);
+  const p=app.allStops().find(s=>s.id===focus.dataset.focusPlace);
+  if(!p)return;closeSheet();go(2);app.focusPlace(p.id);
+  document.getElementById('map-region').scrollIntoView({behavior:'smooth',block:'center'});
  }
 });
 $('yg-place-sheet').addEventListener('change',e=>{
