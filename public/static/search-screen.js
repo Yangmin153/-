@@ -184,4 +184,5 @@ document.addEventListener('trip-map-ready',()=>{if(opened)maybeMap()});
 document.addEventListener('trip:stops-changed',()=>{if(opened){savedSignature='';refreshSavedMarkers();}});
 document.addEventListener('trip:day-changed',()=>{if(opened){selected=null;picked.hidden=true;isSavedSelection=false;savedSignature='';refreshSavedMarkers();$('search-screen-count').textContent=savedPlaces().length+'곳 담음';}});
 window.addEventListener('resize',()=>{if(opened)refreshSavedMarkers();});
+$('search-screen-count').addEventListener('click',()=>window.YeoNext?.openSheet?.());
 window.YeoSearch={show,hide,isOpen:()=>opened,preview,showSavedPlace:showSaved,searchStarted,onResults,addSuccess,refreshSavedMarkers};
