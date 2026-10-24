@@ -523,7 +523,7 @@ $('btn-route').addEventListener('click',()=>calculateRoute());
 $('btn-reset').addEventListener('click',()=>{if(!confirm('현재 여행의 방문지와 출발·도착지를 초기화할까요?'))return;const region=currentRegion();clearTimeout(pendingCalc);state.days=freshDays();state.days[0].region=region;state.active=0;state.dirtyDayIds.clear();window.TripQuickAdd?.setDirty?.(false);refresh();toast('방문지를 비웠습니다. 여행 지역은 유지됩니다.')});
 $('btn-export').addEventListener('click',()=>{const snapshot=state.days.map(({result,...rest})=>rest);const blob=new Blob([JSON.stringify({app:'yeohaenggil-v2',days:snapshot},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='여행길-일정백업.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('일정 JSON 파일을 저장했습니다.')});
 $('btn-import').addEventListener('click',()=>$('import-file').click());
-$('import-file').addEventListener('change',async(e)=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>1024*200)throw Error('파일 크기가 너무 큽니다.');const obj=JSON.parse(await file.text());if(!validDays(obj.days))throw Error('여행길 일정 형식이 아닙니다.');if(!confirm('현재 일정을 백업 파일로 교체할까요?'))return;state.days=normalizeDays(obj.days);state.active=0;refresh();toast('일정 백업을 불러왔습니다.')}catch(err){toast('불러오기 실패: '+err.message)}finally{e.target.value=''}});
+$('import-file').addEventListener('change',async(e)=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>1024*200)throw Error('파일 크기가 너무 큽니다.');const obj=JSON.parse(await file.text());if(!validDays(obj.days))throw Error('여행길 일정 형식이 아닙니다.');if(!confirm('현재 일정을 백업 파일로 교체할까요?'))return;state.days=normalizeDays(obj.days);state.active=0;refresh();document.dispatchEvent(new Event('trip:days-imported'));toast('일정 백업을 불러왔습니다.')}catch(err){toast('불러오기 실패: '+err.message)}finally{e.target.value=''}});
 $('modal-close').addEventListener('click',closeModal);$('btn-modal-cancel').addEventListener('click',closeModal);$('btn-modal-save').addEventListener('click',saveModal);$('place-modal').addEventListener('click',e=>{if(e.target===$('place-modal'))closeModal()});
 document.querySelectorAll('[data-modal-tab]').forEach(x=>x.addEventListener('click',()=>selectModalTab(x.dataset.modalTab)));
 $('btn-search-place').addEventListener('click',()=>{clearTimeout(placeTimer);$('place-query').blur();searchPlaces()});
@@ -544,8 +544,8 @@ window.visualViewport?.addEventListener('resize',syncModalViewport);window.visua
 async function boot(){refresh({mapView:false});try{const r=await fetch('/api/config'),c=await r.json();$('api-indicator').textContent=c.directionsReady?'도로 경로 확인 가능':'도로 경로 확인 필요';$('api-indicator').className='api-indicator '+(c.directionsReady?'ready':'not-ready');bootNaverMap(c.mapsKeyId)}catch{$('api-indicator').textContent='연결 상태 확인 중';$('api-indicator').className='api-indicator not-ready'}}
 window.TripApp = Object.freeze({
  getDays:()=>state.days, getDay:day, getActive:()=>state.active,validateDays:validDays,
- restoreGuestDays(){const days=loadDays();clearTimeout(pendingCalc);state.days=days;state.active=0;refresh();},
- newTrip(){const region=currentRegion();state.days=freshDays();state.days[0].region=region;state.active=0;state.dirtyDayIds.clear();refresh();},
+ restoreGuestDays(){const days=loadDays();clearTimeout(pendingCalc);state.days=days;state.active=0;refresh();document.dispatchEvent(new Event('trip:days-imported'));},
+ newTrip(){const region=currentRegion();state.days=freshDays();state.days[0].region=region;state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));},
 
  insertStopBetween(index,place){
   const d=day(),entries=d.result?.entries;if(!Array.isArray(entries)||index<1||index>=entries.length||d.stops.length>=30||!validPlace(place))return false;
@@ -557,7 +557,7 @@ window.TripApp = Object.freeze({
   arranged.splice(position,0,item);d.stops=arranged;d.mode='manual';markDirty(false);return true;
  },
  setActive(index){if(!Number.isInteger(index)||index<0||index>=state.days.length)return;clearTimeout(pendingCalc);state.active=index;mapFitQueued=true;sceneSignature='';selectedMapStop=null;refresh();document.dispatchEvent(new Event('trip:day-changed'));},
- importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);state.days=normalizeDays(days);state.active=0;state.dirtyDayIds.clear();refresh();return true},
+ importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);state.days=normalizeDays(days);state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));return true},
  refresh, calculateRoute, openModal, toast, markDirty,
  resizeMap:()=>resizeMapStable({fit:mapFitQueued}),refreshMap:renderMap,getMap:()=>map,fitMap,focusPlace,setMapLocked,
  setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,unassignedStops,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,previewPlace,clearPlacePreview,
