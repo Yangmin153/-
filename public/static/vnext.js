@@ -80,7 +80,7 @@ function renderSheet(){
  }).join(''):'<div class="yg-empty-sheet"><strong>아직 담은 장소가 없어요.</strong><p>가고 싶은 장소를 검색해서 추가해 보세요.</p></div>';
 }
 function openSheet(){
- if(window.YeoSearch?.isOpen?.())return;
+ if(window.YeoSearch?.isOpen?.())document.activeElement?.blur?.();
  sheetOpen=true;renderSheet();$('yg-place-sheet').hidden=false;document.body.classList.add('yg-sheet-open');
 }
 function closeSheet(){
