@@ -14,8 +14,9 @@ function ms(value){
 }
 function dateText(value,{short=false}={}){
  if(!Number.isFinite(ms(value)))return '날짜 미정';
- const options=short?{month:'numeric',day:'numeric',weekday:'short'}:{month:'long',day:'numeric',weekday:'short'};
- return new Intl.DateTimeFormat('ko-KR',{...options,timeZone:'UTC'}).format(ms(value)).replace(/\s+/g,' ');
+ const t=new Date(ms(value));
+ if(short)return (t.getUTCMonth()+1)+'.'+String(t.getUTCDate()).padStart(2,'0')+' ('+['일','월','화','수','목','금','토'][t.getUTCDay()]+')';
+ return new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'short',timeZone:'UTC'}).format(ms(value)).replace(/\s+/g,' ');
 }
 function duration(start,end){const a=ms(start),b=ms(end);return Number.isFinite(a)&&Number.isFinite(b)?Math.round((b-a)/MS)+1:0;}
 function configured(p){return p&&!/미설정/.test(p.name||'')&&Number.isFinite(p.lat)&&Number.isFinite(p.lng);}
