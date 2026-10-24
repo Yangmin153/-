@@ -11,11 +11,11 @@ const readableMinutes=value=>{const n=Math.max(0,Math.round(Number(value)||0)),h
 const routeNumber=i=>i>=0&&i<20?String.fromCharCode(0x2460+i):String(i+1);
 const p = (name,lat,lng) => ({id:uid(),name,lat,lng,locked:false});
 function freshDays(){
- return [{id:uid(),origin:p('출발지 미설정',33.489,126.498),destination:p('도착지 미설정',33.489,126.498),departure:'09:00',mode:'auto',stops:[],result:null}];
+ return [{id:uid(),origin:p('출발지 미설정',33.489,126.498),destination:p('도착지 미설정',33.489,126.498),departure:'09:00',mode:'auto',stops:[],unassignedStops:[],result:null}];
 }
 function validPlace(q){return q&&typeof q.name==='string'&&q.name.length<=100&&Number.isFinite(Number(q.lat))&&Number.isFinite(Number(q.lng))&&Math.abs(Number(q.lat))<=90&&Math.abs(Number(q.lng))<=180}
-function validDays(d){return Array.isArray(d)&&d.length>0&&d.length<=10&&d.every(day=>day&&validPlace(day.origin)&&validPlace(day.destination)&&Array.isArray(day.stops)&&day.stops.length<=300&&day.stops.every(validPlace)&&/^\d{2}:\d{2}$/.test(day.departure)&&['auto','manual'].includes(day.mode))}
-function normalizeDays(days){return days.map(d=>{const {transport,...data}=d;return {...data,origin:omitStay(data.origin),destination:omitStay(data.destination),stops:data.stops.map(omitStay),result:null};});}
+function validDays(d){return Array.isArray(d)&&d.length>0&&d.length<=10&&d.every(day=>day&&validPlace(day.origin)&&validPlace(day.destination)&&Array.isArray(day.stops)&&day.stops.length<=300&&day.stops.every(validPlace)&&(!day.unassignedStops||(Array.isArray(day.unassignedStops)&&day.unassignedStops.length<=30&&day.unassignedStops.every(validPlace)))&&/^\d{2}:\d{2}$/.test(day.departure)&&['auto','manual'].includes(day.mode))}
+function normalizeDays(days){return days.map(d=>{const {transport,...data}=d;return {...data,origin:omitStay(data.origin),destination:omitStay(data.destination),stops:data.stops.map(omitStay),unassignedStops:(data.unassignedStops||[]).map(omitStay),result:null};});}
 function omitStay(place){const {stayMinutes,...rest}=place;return rest;}
 function loadDays(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));if(validDays(saved))return normalizeDays(saved)}catch{}return freshDays()}
 const state={days:loadDays(),active:0,loading:false,modal:null,mapPicking:false,hadResult:{},dirtyDayIds:new Set()};
@@ -29,10 +29,21 @@ let previousSearchType="";
 const expandedStops=new Set();
 let mapFitQueued=true,selectedMapStop=null,mapLocked=false,markerInfo=null;
 const day=()=>state.days[state.active];
+const unassignedStops=()=>state.days[0]?.unassignedStops||[];
+function allStops(){return [...state.days.flatMap(d=>d.stops),...unassignedStops()];}
+function invalidateRoutes(){for(const d of state.days){if(d.result)state.dirtyDayIds.add(d.id);d.result=null;}sceneSignature='';sceneResult=null;mapFitQueued=true;}
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3300)}
 function currentRegion(){return day().region||state.days[0].region||DEFAULT_REGION;}
 function setRegion(value){const region=String(value||'').trim().replace(/\s+/g,' ').slice(0,28);if(!region)return false;for(const d of state.days)d.region=region;save();window.TripQuickAdd?.syncRegion?.();return true;}
-function addQuickStop(item,allowDuplicate=false){const d=day();if(!validPlace(item))return {ok:false,error:'올바른 장소를 선택해 주세요.'};if(d.stops.length>=30)return {ok:false,error:'한 날짜에는 최대 30곳까지 담을 수 있어요.'};const duplicated=d.stops.some(x=>(Boolean(x.sourceId)&&x.sourceId===String(item.id))||(Math.abs(x.lat-item.lat)<0.00003&&Math.abs(x.lng-item.lng)<0.00003&&x.name===item.name));if(duplicated&&!allowDuplicate)return {ok:false,duplicate:true};const stop={id:uid(),name:String(item.name).slice(0,100),lat:Number(item.lat),lng:Number(item.lng),address:String(item.address||'').slice(0,250),category:TripMeta.infer({categoryName:item.category,name:item.name}),sourceId:String(item.id||''),locked:false,fixedDate:null};d.stops.push(stop);markDirty(false);return {ok:true,stop};}
+function addQuickStop(item,allowDuplicate=false){
+ if(!validPlace(item))return {ok:false,error:'올바른 장소를 선택해 주세요.'};
+ if(allStops().length>=30)return {ok:false,error:'여행 전체에 최대 30곳까지 담을 수 있어요.'};
+ const dup=allStops().some(x=>(Boolean(x.sourceId)&&x.sourceId===String(item.id))||(Math.abs(x.lat-item.lat)<0.00003&&Math.abs(x.lng-item.lng)<0.00003&&x.name===item.name));
+ if(dup&&!allowDuplicate)return {ok:false,duplicate:true};
+ const stop={id:uid(),name:String(item.name).slice(0,100),lat:Number(item.lat),lng:Number(item.lng),address:String(item.address||'').slice(0,250),category:TripMeta.infer({categoryName:item.category,name:item.name}),sourceId:String(item.id||''),locked:false,fixedDate:null};
+ if(!state.days[0].unassignedStops)state.days[0].unassignedStops=[];
+ state.days[0].unassignedStops.push(stop);invalidateRoutes();refresh();document.dispatchEvent(new Event('trip:stops-changed'));return {ok:true,stop};
+}
 function save(){const snapshot=state.days.map(({result,...rest})=>rest);try{if(!window.YeoAccount?.isSignedIn?.())localStorage.setItem(STORAGE_KEY,JSON.stringify(snapshot))}catch{if(!save.warned){save.warned=true;toast('브라우저 저장 공간을 사용할 수 없습니다. 일정 저장 파일로 백업해 주세요.')}}}
 function refresh({mapView=true}={}){renderTabs();renderEditor();renderResult();if(mapView)renderMap();save();window.TripUX?.render?.();window.MapWorkspace?.refresh?.()}
 function renderTabs(){
@@ -115,8 +126,10 @@ function transferStop(id,toIndex){
  toast(stop.name+' · DAY '+(toIndex+1)+'로 이동했어요.');
 }
 function removeStop(id){
- for(const d of state.days){const old=d.stops.length;d.stops=d.stops.filter(s=>s.id!==id);if(d.stops.length!==old){if(d.result)state.dirtyDayIds.add(d.id);d.result=null;refresh();document.dispatchEvent(new Event('trip:stops-changed'));toast('장소를 삭제했습니다.');return true;}}
- return false;
+ const pool=unassignedStops();
+ if(pool.some(p=>p.id===id))state.days[0].unassignedStops=pool.filter(p=>p.id!==id);
+ else{const owner=state.days.find(d=>d.stops.some(p=>p.id===id));if(!owner)return false;owner.stops=owner.stops.filter(p=>p.id!==id);}
+ invalidateRoutes();refresh();document.dispatchEvent(new Event('trip:stops-changed'));toast('장소를 삭제했습니다.');return true;
 }
 function syncLinkedOrigins(from=1){
  for(let i=Math.max(1,from);i<state.days.length;i++){
@@ -126,15 +139,19 @@ function syncLinkedOrigins(from=1){
   if(changed){if(d.result)state.dirtyDayIds.add(d.id);d.result=null;}
  }
 }
-function allStops(){return state.days.flatMap(d=>d.stops);}
+
 function setStopFixedDate(id,value){
- const owner=state.days.find(d=>d.stops.some(s=>s.id===id));if(!owner)return false;
- const place=owner.stops.find(s=>s.id===id),target=state.days.find(d=>d.date===value);
- if(target&&target!==owner&&target.stops.length>=30){toast('선택한 날짜에 방문지가 너무 많아요.');return false;}
- place.fixedDate=value||null;
- if(owner.result)state.dirtyDayIds.add(owner.id);owner.result=null;
- if(target&&target!==owner){owner.stops=owner.stops.filter(p=>p.id!==id);target.stops.push(place);if(target.result)state.dirtyDayIds.add(target.id);target.result=null;}
- refresh();document.dispatchEvent(new Event('trip:stops-changed'));return true;
+ const owner=state.days.find(d=>d.stops.some(p=>p.id===id)),pool=unassignedStops(),stop=owner?.stops.find(p=>p.id===id)||pool.find(p=>p.id===id);
+ if(!stop)return false;
+ const target=value?state.days.find(d=>d.date===value):null;
+ if(value&&!target){toast('여행 기간에 포함된 날짜를 선택해 주세요.');return false;}
+ if(target&&target.stops.length>=30&&owner!==target){toast('해당 날짜에 최대 30곳까지 담을 수 있어요.');return false;}
+ if(owner)owner.stops=owner.stops.filter(p=>p.id!==id);
+ else state.days[0].unassignedStops=pool.filter(p=>p.id!==id);
+ stop.fixedDate=value||null;
+ if(target)target.stops.push(stop);
+ else state.days[0].unassignedStops.push(stop);
+ invalidateRoutes();refresh();document.dispatchEvent(new Event('trip:stops-changed'));return true;
 }
 function clearComputed(){
  state.days.forEach(d=>{d.result=null;state.dirtyDayIds.delete(d.id);});
@@ -151,8 +168,9 @@ function applyMultiRoutes(payload){
  if(seen.size!==stops.size)return false;
  for(let i=0;i<state.days.length;i++){
   const e=payload.days[i],d=state.days[i];d.stops=e.assignedStopIds.map(id=>stops.get(id));
-  d.result=e.route;d.mode='auto';state.dirtyDayIds.delete(d.id);
+  d.result=e.route;state.dirtyDayIds.delete(d.id);
  }
+ state.days[0].unassignedStops=[];
  sceneSignature='';sceneResult=null;mapFitQueued=true;refresh();document.dispatchEvent(new Event('trip:routes-ready'));return true;
 }
 function setRouteMode(mode,index=state.active){
@@ -219,8 +237,12 @@ function setTravelDates(start,end){
   }
   next.push(d);
  }
+ // Keep unassigned places independent of travel dates (legacy days without this field remain valid).
+ const unassigned=original.flatMap(d=>d.unassignedStops||[]);
+ const poolIds=new Set();next.forEach(d=>d.unassignedStops=[]);
+ for(const p of unassigned)if(!poolIds.has(p.id)){next[0].unassignedStops.push(p);poolIds.add(p.id);}
  // Restore archived dates without duplicating stops previously moved to a surviving date.
- const duplicated=new Set();
+ const duplicated=new Set(next[0].unassignedStops.map(p=>p.id));
  for(const d of next)d.stops=d.stops.filter(p=>{if(duplicated.has(p.id))return false;duplicated.add(p.id);return true;});
  const seen=new Set(next.flatMap(d=>d.stops.map(p=>p.id)));
  for(const d of original)for(const p of d.stops)if(!seen.has(p.id)){next[0].stops.push(p);seen.add(p.id);}
@@ -532,6 +554,6 @@ window.TripApp = Object.freeze({
  importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);state.days=normalizeDays(days);state.active=0;state.dirtyDayIds.clear();refresh();return true},
  refresh, calculateRoute, openModal, toast, markDirty,
  resizeMap:()=>resizeMapStable({fit:mapFitQueued}),refreshMap:renderMap,getMap:()=>map,fitMap,focusPlace,setMapLocked,
- setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,previewPlace,clearPlacePreview,
+ setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,unassignedStops,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,previewPlace,clearPlacePreview,
 });
 boot();
