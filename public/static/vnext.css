@@ -274,3 +274,16 @@ body[data-trip-step="3"] #yg-step-one{display:none!important}
 body[data-trip-step] .quick-region-label,body[data-trip-step] #search-screen .quick-region-label{display:none!important}
 body[data-trip-step] .search-screen .quick-form{min-width:0;max-width:100%}
 body[data-trip-step] #search-screen #quick-input{min-width:0;flex:1}
+
+/* Fullscreen saved-place access works while searching; the existing result/map toggle stays separate. */
+body[data-trip-step] #search-screen .yg-search-saved-button{
+ min-height:44px;min-width:82px;flex:0 0 auto;padding:7px 10px;border:1px solid #c8d9f5;
+ border-radius:12px;background:#edf4ff;color:#1956b2;font-size:11px;font-weight:850;white-space:nowrap;
+}
+body[data-trip-step] #search-screen .search-screen-top{display:flex;gap:7px;align-items:center;min-width:0}
+body[data-trip-step] #search-screen #search-screen-region{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+body.search-open.yg-sheet-open #yg-place-sheet{z-index:3500!important}
+@media(max-width:365px){
+ body[data-trip-step] #search-screen .yg-search-saved-button{font-size:10px;min-width:74px;padding:6px}
+ body[data-trip-step] #search-screen #search-screen-region{font-size:11px}
+}
