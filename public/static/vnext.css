@@ -392,3 +392,10 @@ body[data-trip-step="3"] .timeline-info{min-width:0}
  body[data-trip-step] .yg-place-sort button{width:29px}
  body[data-trip-step] .yg-place-row .yg-place-remove{width:34px;flex-basis:34px}
 }
+
+/* Readable category icons in fullscreen search rows. */
+.search-screen-results-mount .quick-result{display:flex!important;align-items:center;min-width:0;gap:11px}
+.yg-search-category-icon{flex:0 0 34px;width:34px;height:34px;display:grid;place-items:center;color:#276bca;background:#ecf4ff;border-radius:11px}
+.yg-search-category-icon svg{width:20px;height:20px}
+body[data-trip-step] .search-screen-results-mount .quick-direct-add{min-height:44px!important;min-width:64px!important;
+ padding:8px 10px!important;font-size:12px!important;background:#e8f2ff!important;color:#1e5dbc!important;font-weight:850}
