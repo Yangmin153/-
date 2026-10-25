@@ -66,8 +66,22 @@
       <div class="yg-visit-editor">
         <button type="button" id="yg-add-visit" class="yg-add-visit yg-search-open" aria-label="장소명 또는 주소 검색"><span aria-hidden="true">⌕</span> 장소명 또는 주소 검색 <span aria-hidden="true">→</span></button>
         <button type="button" id="yg-open-stops" class="yg-open-stops">담은 장소 <strong id="yg-stop-count">0곳</strong> <span aria-hidden="true">›</span></button>
-        <p id="yg-day-stop-sub" class="yg-collection-hint">날짜는 나중에 선택해도 돼요.</p>
+        <p id="yg-day-stop-sub" class="yg-collection-hint"></p>
         <span id="yg-day-stop-count" hidden>0곳</span><p id="yg-empty-inline" hidden></p>
+      </div>
+    </section>
+    <section id="yg-endpoint-section" class="yg-endpoint-section" aria-label="날짜별 출발지와 도착지">
+      <div class="yg-endpoint-section-title"><h2>어디서 출발하고, 어디로 돌아가나요?</h2></div>
+      <div class="yg-date-switch"><label for="yg-active-date">여행 날짜</label><select id="yg-active-date" aria-label="계획할 여행 날짜 선택"></select></div>
+      <div id="yg-current-endpoints" class="yg-current-endpoints">
+        <div id="yg-day-inherit" class="yg-day-inherit" hidden>
+          <label><input type="radio" name="yg-origin-choice" value="inherit"> 전날 도착지에서 출발</label>
+          <label><input type="radio" name="yg-origin-choice" value="custom"> 다른 장소에서 출발</label>
+        </div>
+        <div class="yg-endpoint-pair">
+          <div class="yg-endpoint-compact yg-origin-card"><span><i aria-hidden="true">↗</i> 출발지</span><button type="button" id="yg-origin-pick" class="yg-pick-place"><strong id="yg-origin-display">어디서 출발하나요?</strong><small id="yg-origin-sub"></small><span class="yg-chevron" aria-hidden="true">›</span></button></div>
+          <div class="yg-endpoint-compact yg-destination-card"><span><i aria-hidden="true">⌖</i> 도착지</span><button type="button" id="yg-dest-pick" class="yg-pick-place"><strong id="yg-dest-display">마지막으로 어디에 도착하나요?</strong><small id="yg-dest-sub"></small><span class="yg-chevron" aria-hidden="true">›</span></button></div>
+        </div>
       </div>
     </section>
     <div id="yg-map-caption" class="yg-section-caption"><strong>방문지 지도</strong><button type="button" id="yg-fit-all">전체 장소 보기 <span aria-hidden="true">⌗</span></button></div>
@@ -108,37 +122,28 @@
           <div class="metrics"><div class="metric"><span>방문 장소</span><strong id="metric-places">—</strong><small>곳</small></div><div class="metric"><span id="metric-mode-label">자동차 이동</span><strong id="metric-drive">—</strong><small>분</small></div><div class="metric"><span>이동 거리</span><strong id="metric-distance">—</strong><small>km</small></div></div>
           <p id="route-savings" class="route-savings hidden" aria-live="polite"></p><div id="result-alert" class="result-alert hidden" role="status"></div>
           <div class="result-head"><h3>계산된 방문 순서</h3><span id="timeline-note">최적 동선을 계산하면 표시됩니다.</span></div>
-          <div class="result-edit-actions"><button type="button" id="btn-result-add">+ 방문지 추가</button><button type="button" id="btn-result-recalc">최적 동선 다시 계산</button></div>
+          <div class="result-edit-actions" hidden><button type="button" id="btn-result-add">+ 방문지 추가</button><button type="button" id="btn-result-recalc">최적 동선 다시 계산</button></div>
           <div id="timeline" class="timeline"><div class="blank-timeline">방문할 곳을 담고<br><strong>빠른 길 찾기</strong>를 눌러주세요.</div></div>
+          <details id="yg-route-adjust" class="yg-route-adjust">
+            <summary>방문지 상세 조정 <span aria-hidden="true">⌄</span></summary>
+            <div class="yg-adjust-content">
+              <p>꼭 지켜야 할 순서만 고정하세요. 나머지는 빠른 길로 계산해요.</p>
+              <label class="yg-mode-row" for="yg-route-mode">경로 계산 방식
+                <select id="yg-route-mode" aria-label="경로 계산 방식"><option value="auto">자동 최적화</option><option value="manual">내 순서 유지</option></select>
+              </label>
+              <div id="yg-adjust-list" aria-label="방문지 순서와 고정 설정"></div>
+              <div class="yg-adjust-secondary"><button type="button" id="yg-three-list">담은 장소 보기</button><button type="button" id="yg-delete-routes" class="yg-danger">동선 삭제</button></div>
+            </div>
+          </details>
         </div>
       </section>
     </div>
-    <section id="yg-endpoint-section" class="yg-endpoint-section" aria-label="날짜별 출발지와 도착지">
-      <div class="yg-endpoint-section-title"><h2>하루의 시작과 끝</h2></div>
-      <div class="yg-date-switch"><label for="yg-active-date">여행 날짜</label><select id="yg-active-date" aria-label="계획할 여행 날짜 선택"></select></div>
-      <div id="yg-current-endpoints" class="yg-current-endpoints">
-        <div id="yg-day-inherit" class="yg-day-inherit" hidden>
-          <label><input type="radio" name="yg-origin-choice" value="inherit"> 전날 도착지에서 출발</label>
-          <label><input type="radio" name="yg-origin-choice" value="custom"> 다른 장소에서 출발</label>
-        </div>
-        <div class="yg-endpoint-pair">
-          <div class="yg-endpoint-compact"><span>출발지</span><button type="button" id="yg-origin-pick" class="yg-pick-place"><strong id="yg-origin-display">어디서 출발하나요?</strong><small id="yg-origin-sub"></small><span class="yg-chevron" aria-hidden="true">›</span></button></div>
-          <div class="yg-endpoint-compact"><span>도착지</span><button type="button" id="yg-dest-pick" class="yg-pick-place"><strong id="yg-dest-display">어디에서 하루를 마치나요?</strong><small id="yg-dest-sub"></small><span class="yg-chevron" aria-hidden="true">›</span></button></div>
-        </div>
-      </div>
-    </section>
     <div id="yg-step-two-actions" class="yg-step-actions"><button type="button" id="yg-back-dates" class="yg-secondary">← 날짜 수정</button><button type="button" id="yg-calculate" class="yg-primary">최적 동선 만들기 <span>→</span></button><p id="yg-calc-progress" role="status" hidden>여행 날짜별 동선을 계산하고 있어요…</p></div>
     <div id="yg-assign-warning" role="status" aria-live="polite"></div>
     <div id="yg-step-three-actions" class="yg-step-actions yg-result-toolbar">
-      <label class="yg-route-select-label">경로 방식 <select id="yg-route-mode" aria-label="경로 계산 방식"><option value="auto">자동 최적화</option><option value="manual">내 순서 유지</option></select></label>
-      <button type="button" id="yg-back-places" class="yg-secondary">← 장소 수정</button>
-      <button type="button" id="yg-three-recalc" class="yg-primary">다시 계산</button>
-      <details class="yg-result-more"><summary>더보기 <span>⌄</span></summary><div class="yg-result-more-menu">
-        <button type="button" id="yg-three-add">+ 방문지 추가</button>
-        <button type="button" id="yg-three-list">방문지 목록</button>
-        <button type="button" id="yg-delete-routes" class="yg-danger">동선 삭제</button>
-      </div></details>
-      
+      <button type="button" id="yg-back-places" class="yg-secondary">← 이전 단계</button>
+      <button type="button" id="yg-three-add" class="yg-outline">＋ 방문지 추가</button>
+      <button type="button" id="yg-three-recalc" class="yg-primary">↻ 다시 계산하기</button>
     </div>
     <footer class="footer"><span>여행길 · 더 편리한 여행 일정</span><span>실제 자동차 이동시간은 네이버 길찾기로 확인합니다.</span></footer>
   </div>
