@@ -46,10 +46,10 @@ function renderDaily(){
  $('yg-day-inherit').hidden=active===0;
  document.querySelectorAll('[name="yg-origin-choice"]').forEach(el=>el.checked=el.value===(inherit?'inherit':'custom'));
  const previous=list[active-1]?.destination;
- $('yg-origin-display').textContent=inherit?(configured(previous)?'전날 마지막 도착지 · '+previous.name:'전날 도착지를 먼저 설정해 주세요'):(configured(d.origin)?d.origin.name:'출발지를 선택해 주세요');
+ $('yg-origin-display').textContent=inherit?(configured(previous)?previous.name:'전날 도착지를 설정해 주세요'):(configured(d.origin)?d.origin.name:'어디서 출발하나요?');
  $('yg-origin-sub').textContent=inherit?'자동으로 연결된 출발지':(d.origin.address||'공항, 숙소 등 하루를 시작하는 장소');
  $('yg-origin-pick').disabled=inherit;
- $('yg-dest-display').textContent=configured(d.destination)?d.destination.name:'이날의 도착지를 설정해 주세요';
+ $('yg-dest-display').textContent=configured(d.destination)?d.destination.name:'마지막으로 어디에 도착하나요?';
  $('yg-dest-sub').textContent=d.destination.address||'숙소, 공항 등 하루를 마치는 장소';
  const count=app.allStops().length,pending=app.unassignedStops().length;
  $('yg-day-stop-count').textContent=count+'곳';
@@ -57,25 +57,36 @@ function renderDaily(){
  $('yg-empty-inline').hidden=true;
  $('yg-stop-count').textContent=count+'곳';
  $('yg-route-mode').value=d.mode==='manual'?'manual':'auto';
- if(sheetOpen)renderSheet();
+ $('yg-origin-pick').classList.toggle('is-configured',configured(d.origin));
+ $('yg-dest-pick').classList.toggle('is-configured',configured(d.destination));
+ renderAdjustment();if(sheetOpen)renderSheet();
+}
+function renderAdjustment(){
+ const d=day(),ids=d.result?.orderIds||d.stops.map(p=>p.id),byId=new Map(d.stops.map(p=>[p.id,p])),ordered=ids.map(id=>byId.get(id)).filter(Boolean);
+ $('yg-adjust-list').innerHTML=ordered.length?ordered.map((p,i)=>{
+  const name=escape(p.name),icon=window.TripMeta?.icon?.(p,17)||'•',fixed=Boolean(p.locked);
+  return '<div class="yg-adjust-row"><span class="yg-adjust-index">'+(i+1)+'</span>'+
+   '<span class="yg-adjust-icon">'+icon+'</span><div class="yg-adjust-name"><strong>'+name+'</strong><small>'+(fixed?'이 순서 고정':'자동 최적화 대상')+'</small></div>'+
+   '<label class="yg-adjust-lock"><input type="checkbox" data-route-lock="'+escape(p.id)+'" '+(fixed?'checked':'')+'><span>고정</span></label>'+
+   '<div class="yg-adjust-move"><button type="button" data-route-up="'+escape(p.id)+'" aria-label="'+name+' 한 칸 위로" '+(i===0?'disabled':'')+'>▲</button>'+
+   '<button type="button" data-route-down="'+escape(p.id)+'" aria-label="'+name+' 한 칸 아래로" '+(i===ordered.length-1?'disabled':'')+'>▼</button></div></div>';
+ }).join(''):'<p class="yg-adjust-empty">방문지를 추가하면 순서를 조정할 수 있어요.</p>';
 }
 function renderSheet(){
  const list=days(),items=app.allStops(),pending=app.unassignedStops(),count=items.length;
  $('yg-sheet-count').textContent=String(count);
  $('yg-stop-count').textContent=count+'곳';
- $('yg-sheet-date').textContent=pending.length?'날짜 미배정 '+pending.length+'곳 · 필요한 장소만 날짜를 지정하세요.':'방문 날짜와 담은 순서를 변경할 수 있어요.';
+ $('yg-sheet-date').textContent=pending.length?'날짜 미배정 '+pending.length+'곳':'필요한 장소의 날짜를 바꿀 수 있어요.';
  $('yg-sheet-list').innerHTML=items.length?items.map((p,i)=>{
   const owner=list.find(d=>d.stops.some(x=>x.id===p.id)),date=p.fixedDate||owner?.date||'',invalid=Boolean(date&&!list.some(d=>d.date===date));
   const meta=window.TripMeta?.meta?.(p),name=escape(p.name),cat=meta?.label||p.category||'장소';
-  const icon=window.TripMeta?.icon?.(p,18)||'•',group=owner?owner.stops:pending,position=group.findIndex(q=>q.id===p.id);
+  const icon=window.TripMeta?.icon?.(p,18)||'•';
   const choices=['<option value="">날짜 미배정</option>',...list.map(d=>'<option value="'+d.date+'" '+(d.date===date?'selected':'')+'>'+dateText(d.date,{short:true})+'</option>')];
   if(invalid)choices.push('<option value="__invalid__" selected>기간 외 날짜 · 재지정 필요</option>');
   return '<div class="yg-place-row" data-place-id="'+escape(p.id)+'">'+
-   '<span class="yg-place-order">'+(i+1)+'</span><span class="yg-place-category" aria-label="'+escape(cat)+'">'+icon+'</span>'+
+   '<span class="yg-place-category" aria-label="'+escape(cat)+'">'+icon+'</span>'+
    '<div class="yg-place-details"><button class="yg-place-focus" type="button" data-focus-place="'+escape(p.id)+'"><strong>'+name+'</strong><small>'+escape(p.address||cat)+'</small></button>'+
    '<select class="yg-stop-date" data-fixed-id="'+escape(p.id)+'" aria-label="'+name+' 방문 날짜 선택">'+choices.join('')+'</select></div>'+
-   '<div class="yg-place-sort"><button type="button" data-stop-up="'+escape(p.id)+'" aria-label="'+name+' 한 칸 위로" '+(position===0?'disabled':'')+'>▲</button>'+
-   '<button type="button" data-stop-down="'+escape(p.id)+'" aria-label="'+name+' 한 칸 아래로" '+(position===group.length-1?'disabled':'')+'>▼</button></div>'+
    '<button type="button" class="yg-place-remove" data-remove-place="'+escape(p.id)+'" aria-label="'+name+' 삭제">×</button></div>';
  }).join(''):'<div class="yg-empty-sheet"><strong>아직 담은 장소가 없어요.</strong><p>가고 싶은 장소를 검색해서 추가해 보세요.</p></div>';
 }
@@ -196,10 +207,6 @@ $('yg-place-sheet').addEventListener('click',e=>{
  if(e.target.closest('[data-close-sheet]'))return closeSheet();
  const remove=e.target.closest('[data-remove-place]');
  if(remove){app.removeStop(remove.dataset.removePlace);renderDaily();return;}
- const up=e.target.closest('[data-stop-up]');
- if(up){app.reorderStop(up.dataset.stopUp,-1);renderDaily();return;}
- const down=e.target.closest('[data-stop-down]');
- if(down){app.reorderStop(down.dataset.stopDown,1);renderDaily();return;}
  const focus=e.target.closest('[data-focus-place]');
  if(focus){
   const p=app.allStops().find(s=>s.id===focus.dataset.focusPlace);
@@ -212,6 +219,14 @@ $('yg-place-sheet').addEventListener('change',e=>{
  if(app.setStopFixedDate(select.dataset.fixedId,select.value)){
   renderDaily();if(currentStep===3){go(2);app.toast('방문 날짜가 바뀌었어요. 동선을 다시 계산해 주세요.');}
  }
+});
+$('yg-adjust-list').addEventListener('click',e=>{
+ const up=e.target.closest('[data-route-up]'),down=e.target.closest('[data-route-down]');
+ if(up){app.moveRouteStop(up.dataset.routeUp,-1);renderDaily();}
+ else if(down){app.moveRouteStop(down.dataset.routeDown,1);renderDaily();}
+});
+$('yg-adjust-list').addEventListener('change',e=>{
+ const checkbox=e.target.closest('[data-route-lock]');if(checkbox){app.setRouteStopLocked(checkbox.dataset.routeLock,checkbox.checked);renderDaily();}
 });
 $('yg-sheet-map').addEventListener('click',()=>{closeSheet();openSearch();});
 $('yg-delete-routes').addEventListener('click',()=>{
