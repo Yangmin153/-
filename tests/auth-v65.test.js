@@ -40,3 +40,12 @@ test('legacy anon JWT is accepted for backward compatibility, no publishable key
   const c=await GET().json();assert.equal(c.supabaseReady,true);assert.equal(c.supabaseAnonKey,jwt);
  });
 });
+
+test('auth UI no longer touches removed account-guest element',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const source=await readFile(new URL('../public/static/accounts.js',import.meta.url),'utf8');
+ const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
+ assert.doesNotMatch(source,/\$\('account-guest'\)\.hidden/);
+ assert.match(source,/!config\.supabaseReady\|\|!config\.supabaseUrl\|\|!config\.supabaseAnonKey/);
+ assert.match(html,/src="\/static\/accounts\.js\?v=6\.5\.0"/);
+});
