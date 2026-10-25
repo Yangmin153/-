@@ -199,6 +199,35 @@ function reorderStop(id,direction){
  if(owner)owner.mode='manual';
  invalidateRoutes();refresh();document.dispatchEvent(new Event('trip:stops-changed'));return true;
 }
+// Result-step adjustments apply to the selected date only. Automatic mode remains selected.
+function setRouteStopLocked(id,locked){
+ const d=day(),index=d.stops.findIndex(p=>p.id===id);if(index<0)return false;
+ // Persist the calculated presentation order before placing a positional lock.
+ if(d.result?.orderIds?.length){
+  const byId=new Map(d.stops.map(p=>[p.id,p]));
+  d.stops=d.result.orderIds.map(key=>byId.get(key)).filter(Boolean);
+ }
+ const place=d.stops.find(p=>p.id===id);place.locked=Boolean(locked);
+ if(d.result)state.dirtyDayIds.add(d.id);
+ d.result=null;sceneSignature='';mapFitQueued=true;refresh();
+ document.dispatchEvent(new Event('trip:stops-changed'));return true;
+}
+function moveRouteStop(id,direction){
+ const d=day();
+ if(d.result?.orderIds?.length){
+  const byId=new Map(d.stops.map(p=>[p.id,p]));
+  d.stops=d.result.orderIds.map(key=>byId.get(key)).filter(Boolean);
+ }
+ const index=d.stops.findIndex(p=>p.id===id),next=index+direction;
+ if(index<0||next<0||next>=d.stops.length)return false;
+ if(d.stops[next].locked){toast('고정된 방문지를 먼저 잠금 해제해 주세요.');return false;}
+ [d.stops[index],d.stops[next]]=[d.stops[next],d.stops[index]];
+ // Moving an item is an explicit preference: preserve that item at its new position.
+ d.stops[next].locked=true;
+ if(d.result)state.dirtyDayIds.add(d.id);
+ d.result=null;sceneSignature='';mapFitQueued=true;refresh();
+ document.dispatchEvent(new Event('trip:stops-changed'));return true;
+}
 function applyDailyRoutes(payload){
  if(!payload||!Array.isArray(payload.days)||payload.days.length!==state.days.length)return false;
  // Atomic validation: never move a visit to another travel date.
@@ -560,6 +589,6 @@ window.TripApp = Object.freeze({
  importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);state.days=normalizeDays(days);state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));return true},
  refresh, calculateRoute, openModal, toast, markDirty,
  resizeMap:()=>resizeMapStable({fit:mapFitQueued}),refreshMap:renderMap,getMap:()=>map,fitMap,focusPlace,setMapLocked,
- setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,unassignedStops,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,previewPlace,clearPlacePreview,
+ setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,unassignedStops,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,setRouteStopLocked,moveRouteStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,previewPlace,clearPlacePreview,
 });
 boot();
