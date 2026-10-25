@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {GET} from '../api/config.js';
-function await withEnv(values,fn){
+async function withEnv(values,fn){
  const names=['SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','SUPABASE_ANON_KEY'];
  const old=Object.fromEntries(names.map(k=>[k,process.env[k]]));
  for(const key of names){if(values[key]===undefined)delete process.env[key];else process.env[key]=values[key];}
- try{return fn();}finally{for(const key of names){if(old[key]===undefined)delete process.env[key];else process.env[key]=old[key];}}
+ try{return await fn();}finally{for(const key of names){if(old[key]===undefined)delete process.env[key];else process.env[key]=old[key];}}
 }
 const key='sb_publishable_'+'a'.repeat(36),url='https://halbesrgdvjdzrvmdyxy.supabase.co';
 test('Supabase config becomes READY only if client has both valid URL and publishable key',async()=>{
