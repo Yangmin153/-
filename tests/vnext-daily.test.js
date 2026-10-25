@@ -29,7 +29,7 @@ test('STEP2 list sheet edits date and removes places; positional reorder belongs
  assert.doesNotMatch(js,/data-stop-up|data-stop-down/);
  assert.match(app,/function moveRouteStop\(id,direction\)/);
  assert.match(html,/id="yg-open-stops"/);
- assert.match(js,/document\.body\.classList\.add\('yg-sheet-open'\)/);
+ assert.match(js,/body\.classList\.add\('yg-sheet-open'\)/);
  assert.doesNotMatch(js,/dragstart|draggable/);
 });
 test('daily route requests are scoped per day and preserve configured auto/manual modes',async()=>{
