@@ -509,14 +509,18 @@ function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d
   });
  }
  if(!collecting&&routePanelVisible&&r?.entries){
-  for(const entry of r.entries.slice(1)){
-   const leg=entry.leg;if(!leg||!Array.isArray(leg.path)||leg.path.length<2)continue;
-   const coords=leg.path.filter(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1])&&Math.abs(p[0])<=180&&Math.abs(p[1])<=90)
-    .map(p=>new naver.maps.LatLng(p[1],p[0]));
-   if(coords.length<2)continue;
-   const estimated=leg.source==='estimate',base={map,path:coords,strokeStyle:estimated?'shortdash':'solid'};
-   paths.push(new naver.maps.Polyline({...base,strokeColor:estimated?'#8c7a63':'#8a370d',strokeWeight:9,strokeOpacity:.88,zIndex:12}));
-   paths.push(new naver.maps.Polyline({...base,strokeColor:estimated?'#c89a59':'#ed5e17',strokeWeight:5.5,strokeOpacity:1,zIndex:13}));
+  for(let i=1;i<r.entries.length;i++){
+   const entry=r.entries[i],leg=entry.leg;
+   if(!leg||!Array.isArray(leg.path)||leg.path.length<2)continue;
+   const previous=r.entries[i-1].place,current=entry.place;
+   const geometry=window.YeoRoadShape?.displayPath(leg.path,previous,current)||[];
+   if(geometry.length<2)continue;
+   const coords=geometry.map(p=>new naver.maps.LatLng(p[1],p[0]));
+   const estimated=leg.source==='estimate';
+   paths.push(new naver.maps.Polyline({
+    map,path:coords,strokeColor:'#2979D9',strokeWeight:4.5,
+    strokeOpacity:estimated?0.55:0.9,strokeStyle:estimated?'shortdash':'solid',zIndex:8
+   }));
   }
  }
 
