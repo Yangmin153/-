@@ -7,7 +7,7 @@ const colors={origin:'#2175e6',destination:'#e64b3e',stop:'#e75b18',pending:'#23
 function html(place,{kind='pending',order='',count=0,selected=false}={}){
  const type=colors[kind]?kind:'pending',meta=root.TripMeta?.meta?.(place),
  svg=root.TripMeta?.icon?.(place,13)||'',cat=meta?.label||'장소';
- const text=type==='origin'?'S':type==='destination'?'E':type==='cluster'?String(count):type==='stop'?(String(order||'•')):'';
+ const text=type==='origin'?'출발':type==='destination'?'도착':type==='cluster'?String(count):type==='stop'?(String(order||'•')):'';
  return '<div class="yg-map-pin yg-map-pin--'+type+(selected?' yg-map-pin--selected':'')+'" style="--yg-pin-color:'+colors[type]+'">'+
   '<span class="yg-map-pin__head">'+(text?'<b>'+esc(text)+'</b>':svg)+'</span>'+
   (type==='stop'||type==='pending'?'<span class="yg-map-pin__category" title="'+esc(cat)+'">'+svg+'</span>':'')+
