@@ -8,7 +8,7 @@ function currentDays(){return app().getDays().map(({result,...day})=>structuredC
 async function initApi(){
  if(api)return api;
  config=config||await (await fetch('/api/config')).json();
- if(!config.supabaseReady)throw Error('회원 저장은 Supabase 설정을 완료한 뒤 이용할 수 있습니다. 비회원은 계속 이용 가능합니다.');
+ if(!config.supabaseReady||!config.supabaseUrl||!config.supabaseAnonKey)throw Error(config.supabaseError||'회원가입 서버 설정을 확인할 수 없습니다. 나중에 다시 시도해 주세요.');
  if(!window.supabase?.createClient)await new Promise((resolve,reject)=>{const el=document.createElement('script');el.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';el.onload=resolve;el.onerror=()=>reject(Error('로그인 라이브러리를 불러오지 못했습니다.'));document.head.append(el)});
  if(!window.supabase?.createClient)throw Error('로그인 라이브러리를 사용할 수 없습니다.');
  api=window.supabase.createClient(config.supabaseUrl,config.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -24,7 +24,7 @@ function applySession(next){
  $('account-auth-form').hidden=loggedIn();
  $('account-signed').hidden=!loggedIn();
  $('cloud-save').hidden=!loggedIn();
- $('account-guest').hidden=loggedIn();
+ // The former account-guest element was removed from the current 3-step layout.
 }
 function open(){panel.hidden=false;document.body.classList.add('account-open');if(loggedIn())void loadTrips();}
 function close(){panel.hidden=true;document.body.classList.remove('account-open');}
