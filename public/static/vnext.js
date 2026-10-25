@@ -116,7 +116,7 @@ function closeSheet(){
   body.style.position=hold.bodyPosition;body.style.top=hold.bodyTop;
   body.style.width=hold.bodyWidth;body.style.overflow=hold.bodyOverflow;
   html.style.overflow=hold.htmlOverflow;
-  window.scrollTo(0,hold.scrollY);
+  window.scrollTo({top:hold.scrollY,behavior:'instant'});
  }
 }
 function go(next){
