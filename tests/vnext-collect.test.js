@@ -13,9 +13,9 @@ test('STEP 1 renders no calendar-day cards but auto-generates real dates',async(
  assert.match(ui,/function renderDates\(\)\{\/\*/);
 });
 
-test('STEP 2 DOM order is search then saved-list then Naver map then endpoint panel',async()=>{
+test('STEP 2 DOM order is search then saved-list then endpoints then Naver map',async()=>{
  const html=await read('public/index.html');
- const idx=['id="yg-add-visit"','id="yg-open-stops"','id="map-region"','id="yg-endpoint-section"','id="yg-active-date"','id="yg-origin-pick"','id="yg-dest-pick"'].map(x=>html.indexOf(x));
+ const idx=['id="yg-add-visit"','id="yg-open-stops"','id="yg-endpoint-section"','id="yg-active-date"','id="yg-origin-pick"','id="yg-dest-pick"','id="map-region"'].map(x=>html.indexOf(x));
  assert.ok(idx.every(n=>n>=0));assert.deepEqual(idx,[...idx].sort((a,b)=>a-b));
  assert.match(html,/id="yg-fit-all"/);
 });
