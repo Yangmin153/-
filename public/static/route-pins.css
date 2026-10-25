@@ -23,3 +23,11 @@ body[data-trip-step="3"] .timeline-entry:last-child .timeline-dot{background:#e6
 body[data-trip-step="3"] .timeline-info strong{font-size:15px!important;line-height:1.45}
 body[data-trip-step="3"] .trip-leg-divider{margin:4px 0 8px!important}
 body[data-trip-step="3"] .trip-leg-summary{font-size:12px!important;font-weight:750}
+
+/* Korean departure / arrival text fits inside the existing 42px circle;
+   marker's geographic anchor remains exactly (22,52). */
+.yg-map-pin--origin .yg-map-pin__head b,
+.yg-map-pin--destination .yg-map-pin__head b{
+ font-size:12.5px!important;font-weight:850!important;letter-spacing:-.65px!important;
+ line-height:1!important;white-space:nowrap!important;
+}
