@@ -5,7 +5,7 @@
 const app=window.TripApp,$=id=>document.getElementById(id);
 if(!app||!$('yg-step-one'))return;
 const MS=86400000,MAX_DAYS=10,escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-let currentStep=1,busy=false,sheetOpen=false,lastWarnings=[],dragStartY=0;
+let currentStep=1,busy=false,sheetOpen=false,sheetFreeze=null,lastWarnings=[],dragStartY=0;
 const days=()=>app.getDays(),day=()=>app.getDay(),stops=()=>day().stops;
 function ms(value){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return NaN;
@@ -91,12 +91,33 @@ function renderSheet(){
  }).join(''):'<div class="yg-empty-sheet"><strong>아직 담은 장소가 없어요.</strong><p>가고 싶은 장소를 검색해서 추가해 보세요.</p></div>';
 }
 function openSheet(){
- if(window.YeoSearch?.isOpen?.())document.activeElement?.blur?.();
- sheetOpen=true;renderSheet();$('yg-place-sheet').hidden=false;document.body.classList.add('yg-sheet-open');
+ if(sheetOpen)return;
+ const searchOpen=Boolean(window.YeoSearch?.isOpen?.());
+ document.activeElement?.blur?.();
+ const body=document.body,html=document.documentElement;
+ sheetFreeze={
+  searchOpen,scrollY:window.scrollY,
+  bodyPosition:body.style.position,bodyTop:body.style.top,bodyWidth:body.style.width,
+  bodyOverflow:body.style.overflow,htmlOverflow:html.style.overflow
+ };
+ if(!searchOpen){
+  // iOS Safari needs a fixed body; overflow:hidden alone still allows background touch scrolling.
+  body.style.position='fixed';body.style.top='-'+sheetFreeze.scrollY+'px';
+  body.style.width='100%';body.style.overflow='hidden';html.style.overflow='hidden';
+ }
+ sheetOpen=true;renderSheet();$('yg-place-sheet').hidden=false;body.classList.add('yg-sheet-open');
 }
 function closeSheet(){
  if(!sheetOpen)return;
  sheetOpen=false;$('yg-place-sheet').hidden=true;document.body.classList.remove('yg-sheet-open');
+ const hold=sheetFreeze;sheetFreeze=null;
+ if(hold&&!hold.searchOpen){
+  const body=document.body,html=document.documentElement;
+  body.style.position=hold.bodyPosition;body.style.top=hold.bodyTop;
+  body.style.width=hold.bodyWidth;body.style.overflow=hold.bodyOverflow;
+  html.style.overflow=hold.htmlOverflow;
+  window.scrollTo(0,hold.scrollY);
+ }
 }
 function go(next){
  if(next===2&&!days().every(d=>Number.isFinite(ms(d.date)))){error('출발일과 돌아오는 날을 먼저 선택해 주세요.');currentStep=1;document.body.dataset.tripStep='1';return;}
