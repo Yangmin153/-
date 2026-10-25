@@ -58,7 +58,7 @@ test('shared custom markers use GPS coordinates and matching pixel dimensions',a
  assert.match(pins,/anchor:new maps\.Point\(22,52\)/);
  assert.match(css,/width:44px!important;height:52px!important/);
  assert.match(app,/YeoPins\?\.marker/);assert.match(search,/YeoPins\?\.marker/);
- assert.match(pins,/type==='origin'\?'S':type==='destination'\?'E'/);
+ assert.match(pins,/type==='origin'\?'출발':type==='destination'\?'도착'/);
 });
 
 test('STEP 2 shows all visits before calculating; STEP 3 shows date-specific order',async()=>{
@@ -70,13 +70,13 @@ test('STEP 2 shows all visits before calculating; STEP 3 shows date-specific ord
  assert.match(app,/i===0\?'S':i===r\.entries\.length-1\?'E':i/);
 });
 
-test('map draws only NAVER returned road polyline [longitude,latitude], in orange dual strokes',async()=>{
+test('map uses a single thin blue polyline with valid Naver geometry',async()=>{
  const app=await read('public/static/app.js');
  assert.match(app,/new naver\.maps\.LatLng\(p\[1\],p\[0\]\)/);
- assert.match(app,/#ed5e17/);
- assert.match(app,/#8a370d/);
+ assert.match(app,/#2979D9/);
+ assert.match(app,/strokeWeight:4\.5/);
  assert.match(app,/leg\.source==='estimate'/);
- assert.match(app,/for\(const entry of r\.entries\.slice\(1\)\)/);
+ assert.match(app,/for\(let i=1;i<r\.entries\.length;i\+\+\)/);
 });
 
 test('readable STEP 3 controls have map fit, zoom, and full-screen actions separated from result toolbar',async()=>{
