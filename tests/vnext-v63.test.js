@@ -40,7 +40,7 @@ test('automatic multi-day allocator passes locked places to the actual daily roa
  await withRoadFetch(async()=>{
   const r=await runMultiDay(trip,env);
   assert.equal(r.days.length,1);
-  assert.equal(r.days[0].route.orderIds[1],'B');
+  assert.equal(r.days[0].route.orderIds[0],'B'); // Locked fixed-date place takes the first allocated-day slot.
   assert.equal(r.days[0].route.status,'road_exact');
  });
 });
