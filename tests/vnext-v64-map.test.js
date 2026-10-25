@@ -57,7 +57,7 @@ test('saved places bottom sheet freezes background while allowing inside list to
  const [ui,css]=await Promise.all([read('public/static/vnext.js'),read('public/static/vnext.css')]);
  assert.match(ui,/body\.style\.position='fixed'/);
  assert.match(ui,/body\.style\.top='-'\+sheetFreeze\.scrollY\+'px'/);
- assert.match(ui,/window\.scrollTo\(0,hold\.scrollY\)/);
+ assert.match(ui,/window\.scrollTo\(\{top:hold\.scrollY,behavior:'instant'\}\)/);
  assert.match(ui,/if\(!searchOpen\)/);
  assert.match(css,/body\.yg-sheet-open \.yg-sheet-list/);
  assert.match(css,/-webkit-overflow-scrolling:touch/);
