@@ -516,3 +516,11 @@ body[data-trip-step="3"] .yg-adjust-secondary .yg-danger{color:#ad5b4e;backgroun
 @media(min-width:769px){
  body[data-trip-step="3"] #yg-step-three-actions{position:static!important;transform:none!important;margin:16px auto!important;max-width:950px!important}
 }
+
+/* vNext 6.4: independently scrollable visit sheet while page is frozen on iOS. */
+body.yg-sheet-open{overflow:hidden!important;overscroll-behavior:none!important}
+body.yg-sheet-open #yg-place-sheet{overscroll-behavior:contain}
+body.yg-sheet-open .yg-sheet-shade{touch-action:none;overscroll-behavior:none}
+body.yg-sheet-open .yg-sheet-panel{max-height:min(85dvh,860px);overflow:hidden;overscroll-behavior:contain}
+body.yg-sheet-open .yg-sheet-list{overflow-y:auto!important;overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
