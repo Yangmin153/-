@@ -21,13 +21,13 @@ test('STEP 2 puts location search before map and endpoints below map',async()=>{
  assert.match(css,/max-width:160px/);
  assert.doesNotMatch(html,/<script defer src="\/static\/design-v51\.js/);
 });
-test('list sheet edits the active day and uses click controls, not touch drag reordering',async()=>{
+test('STEP2 list sheet edits date and removes places; positional reorder belongs to STEP3',async()=>{
  const js=await read('public/static/vnext.js'),html=await read('public/index.html'),app=await read('public/static/app.js');
- for(const part of ['data-stop-up','data-stop-down','data-remove-place','yg-place-order'])
+ for(const part of ['data-fixed-id','data-remove-place','yg-place-category'])
   assert.ok(js.includes(part));
  assert.match(js,/const list=days\(\),items=app\.allStops\(\),pending=app\.unassignedStops\(\)/);
- assert.match(js,/app\.reorderStop\(up\.dataset\.stopUp,-1\)/);
- assert.match(app,/if\(owner\)owner\.mode='manual'/);
+ assert.doesNotMatch(js,/data-stop-up|data-stop-down/);
+ assert.match(app,/function moveRouteStop\(id,direction\)/);
  assert.match(html,/id="yg-open-stops"/);
  assert.match(js,/document\.body\.classList\.add\('yg-sheet-open'\)/);
  assert.doesNotMatch(js,/dragstart|draggable/);
