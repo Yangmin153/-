@@ -524,3 +524,80 @@ body.yg-sheet-open .yg-sheet-shade{touch-action:none;overscroll-behavior:none}
 body.yg-sheet-open .yg-sheet-panel{max-height:min(85dvh,860px);overflow:hidden;overscroll-behavior:contain}
 body.yg-sheet-open .yg-sheet-list{overflow-y:auto!important;overscroll-behavior:contain;
  -webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
+
+/* vNext 6.6: one selected date controls the entire second step. */
+body[data-trip-step] #yg-plan-date,body[data-trip-step] #yg-result-date{display:none!important}
+body[data-trip-step="2"] #yg-plan-date{display:flex!important;align-items:center;justify-content:flex-start;
+ max-width:690px;margin:0 auto 12px;min-height:46px}
+body[data-trip-step="2"] #yg-plan-date .yg-date-switch{display:flex;align-items:center;gap:10px;margin:0;width:100%}
+body[data-trip-step="2"] #yg-plan-date .yg-date-switch label{font-size:12px;color:#6c829e;font-weight:800}
+body[data-trip-step="2"] #yg-plan-date #yg-active-date{width:158px!important;max-width:158px!important;
+ height:41px!important;min-height:41px!important;background-color:#e9f2ff;border-color:#bad3f7;
+ font-size:13px!important;font-weight:850;color:#1f63c3}
+body[data-trip-step="2"] #yg-step-two-intro{margin-top:0!important}
+body[data-trip-step="2"] #yg-endpoint-section .yg-date-switch{display:none!important}
+body[data-trip-step="2"] .yg-collection-hint:empty{display:none!important}
+body[data-trip-step="2"] #yg-open-stops{font-size:14px;min-height:50px}
+body[data-trip-step="2"] .yg-legacy-stops{display:grid;gap:7px;padding:13px 14px;
+ background:#fff8ea;border:1px solid #f4ddb4;border-radius:13px;color:#684c26;margin:5px 0}
+body[data-trip-step="2"] .yg-legacy-stops[hidden]{display:none!important}
+body[data-trip-step="2"] .yg-legacy-stops strong{font-size:13px}
+body[data-trip-step="2"] .yg-legacy-stops p{font-size:11px;line-height:1.5;margin:0}
+body[data-trip-step="2"] #yg-legacy-assign{width:max-content;min-height:44px;padding:8px 12px;border:1px solid #d0ae66;
+ background:#fff;color:#775126;font-size:12px;font-weight:800;border-radius:10px}
+body[data-trip-step="2"] #yg-sheet-list .yg-stop-date,
+body[data-trip-step="2"] #yg-sheet-list .yg-place-sort,
+body[data-trip-step="2"] #yg-sheet-list .yg-place-order{display:none!important}
+body[data-trip-step="3"] #yg-result-date{display:flex!important;align-items:center;justify-content:flex-start;
+ max-width:950px;gap:11px;padding:12px 12px;margin:0 auto 12px;background:#f4f8ff;
+ border:1px solid #dfeaf9;border-radius:0 0 14px 14px}
+body[data-trip-step="3"] #yg-result-date .map-current-day{display:flex!important;align-items:center;gap:10px;width:100%}
+body[data-trip-step="3"] #yg-result-date .map-current-day span{font-size:12px;color:#7388a5;font-weight:700;white-space:nowrap}
+body[data-trip-step="3"] #yg-result-date #map-day-select{appearance:none;-webkit-appearance:none;
+ width:min(180px,60vw)!important;min-width:0!important;height:43px!important;border-radius:12px;
+ background:#fff;border:1px solid #c9dcf7;color:#1d57aa;font-weight:850;font-size:13px;
+ padding:8px 10px}
+body[data-trip-step="3"] #map-overlay-controls .map-control-buttons{width:100%!important;justify-content:flex-end}
+body[data-trip-step="3"] #trip-workspace #map-control-bar .map-current-day{display:none!important}
+/* New focused Supabase account journey. */
+.account-panel .account-sheet{max-height:min(92dvh,850px);overflow-y:auto;overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px))}
+.account-panel .account-auth-view[hidden],.account-panel #account-auth-form[hidden],
+.account-panel #account-signed[hidden],.account-panel #account-confirm-field[hidden],
+.account-panel #account-password-field[hidden]{display:none!important}
+.account-panel .account-auth-view{display:grid;gap:13px;padding:13px 0 6px}
+.account-panel .account-auth-view h3{font-size:22px;line-height:1.35;letter-spacing:-.65px;margin:0;color:#192e4d}
+.account-panel .account-auth-view p{margin:0;font-size:13px;line-height:1.55;color:#667c9a}
+.account-panel .account-auth-view label{display:grid;gap:7px;font-size:12px;font-weight:800;color:#435d7e}
+.account-panel .account-auth-view input{box-sizing:border-box;display:block;width:100%;height:49px;min-width:0;max-width:100%;
+ border-radius:12px;border:1px solid #d2e0f3;background:#f9fbff;color:#1c3352;font-size:15px;padding:10px 13px}
+.account-panel .account-auth-view input:focus{outline:2px solid #91bfff;outline-offset:1px;background:#fff}
+.account-panel .account-auth-view button{min-height:46px;border-radius:12px;cursor:pointer}
+.account-panel .account-auth-primary{display:block;width:100%;padding:12px 15px;background:#2168d8!important;
+ border:1px solid #2168d8!important;color:#fff!important;font-weight:850!important;font-size:14px!important}
+.account-panel .account-auth-primary:disabled{opacity:.6;cursor:wait}
+.account-panel .account-auth-outline{display:block;width:100%;padding:11px 15px;background:#f3f7ff!important;
+ border:1px solid #ccdcf5!important;color:#2863b6!important;font-size:14px!important;font-weight:850!important}
+.account-panel .account-auth-back{width:max-content;min-height:40px!important;padding:6px 0!important;
+ background:transparent!important;border:none!important;font-weight:750;color:#687f9e}
+.account-panel .account-auth-view .account-link{border:0;background:none!important;color:#3d6dac!important;
+ font-size:12px;font-weight:750;min-height:38px}
+.account-panel .account-field-hint{font-size:11px!important;color:#8a6680!important;min-height:0}
+.account-panel .account-field-hint:empty{display:none}
+.account-panel .account-password-wrap{display:flex;gap:5px;align-items:center;position:relative}
+.account-panel .account-password-wrap input{flex:1;padding-right:60px}
+.account-panel .account-password-wrap button{position:absolute;right:4px;top:5px;height:39px;min-height:39px!important;
+ padding:7px 10px;border:0;background:transparent;color:#4f709c;font-size:12px}
+.account-panel .account-welcome-icon,.account-panel .account-mail-icon{display:grid;place-items:center;
+ width:57px;height:57px;border-radius:17px;background:#eaf3ff;color:#236cdd;font-size:30px;font-weight:850}
+.account-panel #account-auth-welcome small{color:#8292aa;text-align:center;font-size:11px;margin:4px 0}
+.account-panel #account-auth-verify p{display:grid;gap:6px}
+.account-panel #account-auth-verify p strong{color:#245cb1;font-size:13px;overflow-wrap:anywhere}
+.account-panel #account-feedback:not(:empty){padding:9px 12px;background:#eef5ff;border-radius:10px;
+ font-size:12px;line-height:1.5;white-space:normal}
+.account-panel #account-feedback[data-error="true"]{background:#fff1ee;color:#a54133}
+@media(max-width:390px){
+ body[data-trip-step="2"] #yg-plan-date{padding:0 1px}
+ body[data-trip-step="3"] #yg-result-date{padding:10px}
+ .account-panel .account-sheet{padding-left:15px;padding-right:15px}
+}
