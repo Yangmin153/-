@@ -115,25 +115,56 @@ async function importLocal(){
 }
 async function perform(action){
  if(busy)return;busy=true;panel.querySelectorAll('button').forEach(b=>b.disabled=true);
+ if(['signin','signup','reset'].includes(action))$('account-auth-submit').textContent='처리 중…';
  try{
-  if(['signup','signin','reset'].includes(action)){
-   await initApi();const email=$('account-email').value.trim(),password=$('account-password').value;
-   if(!email.includes('@'))throw Error('올바른 이메일을 입력해 주세요.');
-   if(action==='reset'){const {error}=await api.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;notice('비밀번호 재설정 이메일을 확인해 주세요.');}
-   else{
-    if(password.length<8||password.length>128)throw Error('비밀번호는 8~128자여야 합니다.');
-    const {data,error}=action==='signup'?await api.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await api.auth.signInWithPassword({email,password});
-    if(error)throw error;if(data.session){applySession(data.session);await loadTrips();notice('로그인했습니다.');}else notice('이메일 인증 후 로그인해 주세요.');
-    $('account-password').value='';
+  if(['signup','signin','reset','resend','setrecovery'].includes(action)){
+   await initApi();
+   const {email,password,confirm}=validateFields();
+   const redirectTo=location.origin+location.pathname;
+   if(action==='setrecovery'){
+    const value=$('account-recovery-password').value;
+    if(!passwordOK(value)||value!==$('account-recovery-confirm').value)throw Error('비밀번호는 8자 이상으로 입력하고 확인 값과 일치시켜 주세요.');
+    const {error}=await api.auth.updateUser({password:value});if(error)throw error;
+    $('account-recovery-password').value='';$('account-recovery-confirm').value='';
+    setView('signin');notice('비밀번호를 변경했어요.');
+    if(loggedIn()){$('account-auth-form').hidden=true;$('account-signed').hidden=false;}
+   }else if(action==='resend'){
+    if(!validEmail(pendingEmail))throw Error('이메일 주소를 먼저 입력해 주세요.');
+    const response=pendingEmailType==='recovery'?
+      await api.auth.resetPasswordForEmail(pendingEmail,{redirectTo}):
+      await api.auth.resend({type:'signup',email:pendingEmail,options:{emailRedirectTo:redirectTo}});
+    if(response.error)throw response.error;
+    notice('메일을 다시 요청했어요. 메일함을 확인해 주세요.');
+   }else{
+    if(!validEmail(email))throw Error('올바른 이메일 주소를 입력해 주세요.');
+    if(action==='reset'){
+     const {error}=await api.auth.resetPasswordForEmail(email,{redirectTo});
+     if(error)throw error;
+     pendingEmail=email;pendingEmailType='recovery';setView('verify');
+     notice('메일이 보이지 않으면 스팸함도 확인해 주세요.');
+    }else{
+     if(!passwordOK(password))throw Error('비밀번호는 8~128자로 입력해 주세요.');
+     if(action==='signup'&&password!==confirm)throw Error('비밀번호 확인이 일치하지 않아요.');
+     const {data,error}=action==='signup'?
+       await api.auth.signUp({email,password,options:{emailRedirectTo:redirectTo}}):
+       await api.auth.signInWithPassword({email,password});
+     if(error)throw error;
+     $('account-password').value='';$('account-password-confirm').value='';
+     if(data.session){applySession(data.session);await loadTrips();notice('로그인했습니다.');}
+     else{
+      pendingEmail=email;pendingEmailType='signup';setView('verify');
+      notice('메일이 오지 않으면 스팸함도 확인해 주세요.');
+     }
+    }
    }
-  }else if(action==='save')await saveCloud();
+  }  }else if(action==='save')await saveCloud();
   else if(action==='list')await loadTrips();
   else if(action==='import')await importLocal();
   else if(action==='new'){if(confirm('새 여행을 시작할까요? 기존 클라우드 여행은 별도로 저장해야 합니다.')){activeId=null;app().newTrip();$('account-trip-name').value='새 여행';close();}}
   else if(action==='signout'){const {error}=await api.auth.signOut();if(error)throw error;applySession(null);close();}
   else if(action==='password'){const password=prompt('새 비밀번호 (8자 이상)');if(password===null)return;if(password.length<8)throw Error('비밀번호는 8자 이상이어야 합니다.');const {error}=await api.auth.updateUser({password});if(error)throw error;notice('비밀번호가 변경됐습니다.');}
   else if(action==='delete'){if(prompt('계정 삭제와 여행 데이터 영구 삭제에 동의한다면 DELETE를 입력하세요.')!=='DELETE')return;const response=await fetch('/api/account',{method:'DELETE',headers:{authorization:'Bearer '+session.access_token}});const body=await response.json();if(!response.ok)throw Error(body.error||'계정 삭제를 완료하지 못했습니다.');await api.auth.signOut();applySession(null);close();}
- }catch(e){notice(e.message||'요청 실패',true)}finally{busy=false;panel.querySelectorAll('button').forEach(b=>b.disabled=false)}
+ }catch(e){notice(humanError(e),true)}finally{busy=false;panel.querySelectorAll('button').forEach(b=>b.disabled=false);if(['signin','signup','reset'].includes(authView))$('account-auth-submit').textContent=authView==='signup'?'회원가입':authView==='reset'?'재설정 메일 보내기':'로그인';}
 }
 function init(){
  $('account-button').onclick=open;$('cloud-save').onclick=()=>{open();void perform('save')};$('account-close').onclick=close;
