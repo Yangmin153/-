@@ -51,10 +51,10 @@ test('STEP2 search preview displays selected marker only while saved markers rea
  assert.match(js,/items=\[\];\s*clearMarkers\(\);savedSignature='';refreshSavedMarkers\(\)/);
  assert.match(js,/document\.addEventListener\('trip:stops-changed'/);
 });
-test('STEP2 collection sheet has date assign and delete but no reordering controls',async()=>{
+test('STEP2 collection sheet hides date choice and only supports deletion',async()=>{
  const [html,ui]=await Promise.all([read('public/index.html'),read('public/static/vnext.js')]);
  assert.match(html,/id="yg-open-stops"/);
- assert.match(ui,/data-fixed-id/);
+ assert.doesNotMatch(ui,/data-fixed-id/);
  assert.match(ui,/data-remove-place/);
  assert.doesNotMatch(ui,/data-stop-up|data-stop-down/);
  const start=html.indexOf('id="yg-endpoint-section"'),map=html.indexOf('id="map-region"');
