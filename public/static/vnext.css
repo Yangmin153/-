@@ -601,3 +601,71 @@ body[data-trip-step="3"] #trip-workspace #map-control-bar .map-current-day{displ
  body[data-trip-step="3"] #yg-result-date{padding:10px}
  .account-panel .account-sheet{padding-left:15px;padding-right:15px}
 }
+
+/* vNext 6.7 — STEP3 reliable touch-first day dropdown, no platform-native select layout. */
+body[data-trip-step="3"] #yg-result-date{
+ position:relative!important;z-index:55!important;
+ display:flex!important;align-items:center!important;
+ width:100%!important;max-width:950px!important;min-width:0!important;
+ margin:0 auto 13px!important;padding:10px 14px!important;
+ border-radius:0 0 17px 17px!important;border:1px solid #dae7f8!important;
+ background:linear-gradient(180deg,#f5f9ff,#fff)!important;
+ box-shadow:0 3px 12px #123d7a0a;overflow:visible!important;
+}
+body[data-trip-step="3"] #yg-result-date .map-current-day{
+ display:flex!important;align-items:center!important;gap:12px!important;
+ width:100%!important;min-width:0!important;
+}
+body[data-trip-step="3"] #yg-result-date .map-current-day>span{
+ font-size:12px!important;letter-spacing:-.1px;color:#6d809b!important;
+ font-weight:800!important;flex:0 0 auto;
+}
+body[data-trip-step="3"] .yg-result-day-picker{position:relative;flex:1;min-width:0;max-width:265px}
+body[data-trip-step="3"] #yg-result-day-toggle{
+ appearance:none;-webkit-appearance:none;display:flex;align-items:center;justify-content:space-between;
+ gap:10px;width:100%;min-height:48px;padding:11px 15px;
+ border:1px solid #c9dbf5;border-radius:13px;
+ background:#fff;color:#2054a3;text-align:left;font-size:14px;line-height:22px;
+ font-weight:850;box-shadow:0 1px 3px #16467d0b;cursor:pointer;
+}
+body[data-trip-step="3"] #yg-result-day-toggle:focus-visible,
+body[data-trip-step="3"] .yg-result-day-option:focus-visible{outline:3px solid #86baf8;outline-offset:2px}
+body[data-trip-step="3"] #yg-result-day-toggle .yg-result-day-chevron{
+ font-size:21px;line-height:17px;color:#5f83b8;transition:transform .15s ease
+}
+body[data-trip-step="3"] #yg-result-day-toggle[aria-expanded="true"] .yg-result-day-chevron{transform:rotate(180deg)}
+body[data-trip-step="3"] #yg-result-day-menu{
+ position:absolute;top:calc(100% + 7px);left:0;z-index:1000;
+ min-width:230px;width:min(285px,calc(100vw - 44px));max-width:calc(100vw - 32px);
+ max-height:min(330px,46dvh);overflow-y:auto;overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;display:grid;gap:3px;padding:6px;
+ background:#fff;border:1px solid #d7e4f6;border-radius:15px;
+ box-shadow:0 14px 35px #153a6c2a;
+}
+body[data-trip-step="3"] #yg-result-day-menu[hidden]{display:none!important}
+body[data-trip-step="3"] #yg-result-day-menu .yg-result-day-option{
+ appearance:none;-webkit-appearance:none;width:100%;min-height:52px;
+ border:0;border-radius:10px;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;padding:11px 13px;text-align:left;background:transparent;color:#293e59;
+ font-size:13px;font-weight:750;cursor:pointer
+}
+body[data-trip-step="3"] #yg-result-day-menu .yg-result-day-option small{
+ font-size:10px;font-weight:600;color:#8ca0ba;white-space:nowrap
+}
+body[data-trip-step="3"] #yg-result-day-menu .yg-result-day-option.is-active{
+ background:#ebf3ff;color:#1959bd
+}
+body[data-trip-step="3"] #yg-result-day-menu .yg-result-day-option.is-active small{color:#3668ac}
+body[data-trip-step="3"] #map-day-select.yg-result-day-native{
+ position:absolute!important;left:0!important;top:0!important;
+ width:1px!important;height:1px!important;min-width:0!important;
+ max-width:1px!important;min-height:0!important;
+ padding:0!important;margin:0!important;opacity:0!important;
+ pointer-events:none!important;border:0!important;overflow:hidden!important
+}
+@media(max-width:390px){
+ body[data-trip-step="3"] #yg-result-date{padding:9px 10px!important}
+ body[data-trip-step="3"] #yg-result-date .map-current-day{gap:7px!important}
+ body[data-trip-step="3"] #yg-result-date .map-current-day>span{font-size:11px!important}
+ body[data-trip-step="3"] #yg-result-day-toggle{min-height:46px;padding:9px 11px;font-size:13px}
+}
