@@ -1,9 +1,53 @@
 /* Email auth & owner-scoped travel plans; never handles raw passwords outside Supabase SDK. */
 const $=id=>document.getElementById(id),app=()=>window.TripApp;
-let api=null,session=null,user=null,activeId=null,config=null,lastId=null,busy=false;
+let api=null,session=null,user=null,activeId=null,config=null,lastId=null,busy=false,authView='welcome',pendingEmail='',pendingEmailType='signup';
 const panel=$('account-panel'),feedback=$('account-feedback'),travelList=$('account-trips');
 const notice=(msg,error=false)=>{feedback.textContent=msg;feedback.dataset.error=String(error)};
 const loggedIn=()=>Boolean(user&&session?.access_token);
+const validEmail=email=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email||'').trim());
+const passwordOK=value=>typeof value==='string'&&value.length>=8&&value.length<=128;
+function setView(view){
+ authView=view;
+ $('account-auth-welcome').hidden=view!=='welcome';
+ $('account-auth-credentials').hidden=!['signin','signup','reset'].includes(view);
+ $('account-auth-verify').hidden=view!=='verify';
+ $('account-auth-recovery').hidden=view!=='recovery';
+ if(['signin','signup','reset'].includes(view)){
+  $('account-auth-title').textContent=view==='signup'?'회원가입':view==='reset'?'비밀번호 찾기':'이메일로 로그인';
+  $('account-password-field').hidden=view==='reset';
+  $('account-confirm-field').hidden=view!=='signup';
+  $('account-password').autocomplete=view==='signup'?'new-password':'current-password';
+  $('account-auth-submit').dataset.accountAction=view;
+  $('account-auth-submit').textContent=view==='signup'?'회원가입':view==='reset'?'재설정 메일 보내기':'로그인';
+  $('account-auth-alternate').hidden=view==='signup';
+  $('account-auth-reset-link').hidden=view==='reset';
+  $('account-password-hint').textContent=view==='signup'?'비밀번호는 8~128자로 입력해 주세요.':'';
+ }
+ if(view==='verify'){
+  $('account-verify-email').textContent=pendingEmail;
+  $('account-verify-title').textContent=pendingEmailType==='recovery'?'비밀번호 재설정 메일을 보냈어요.':'인증 메일을 보냈어요.';
+ }
+ feedback.textContent='';feedback.dataset.error='false';
+}
+function humanError(err){
+ const s=String(err?.code||'')+' '+String(err?.message||err||'');
+ if(/invalid_credentials|invalid login/i.test(s))return '이메일 또는 비밀번호를 확인해 주세요.';
+ if(/email_not_confirmed/i.test(s))return '이메일 인증을 완료한 뒤 로그인해 주세요.';
+ if(/user_already_exists|user already registered/i.test(s))return '이미 가입된 이메일입니다. 로그인해 주세요.';
+ if(/weak_password|password should|password is too/i.test(s))return '비밀번호 조건을 확인해 주세요.';
+ if(/email_address_invalid|invalid email/i.test(s))return '올바른 이메일 주소를 입력해 주세요.';
+ if(/over_email_send_rate_limit|email rate limit|rate limit/i.test(s))return '메일 요청이 너무 많아요. 잠시 뒤 다시 시도해 주세요.';
+ if(/otp_expired|expired/i.test(s))return '인증 링크가 만료됐어요. 새 인증 메일을 요청해 주세요.';
+ if(/network|fetch failed|failed to fetch/i.test(s))return '인터넷 연결을 확인하고 다시 시도해 주세요.';
+ return String(err?.message||err||'요청을 완료하지 못했어요.');
+}
+function validateFields(){
+ const email=$('account-email').value.trim(),password=$('account-password').value,confirm=$('account-password-confirm').value;
+ $('account-email-hint').textContent=email&&!validEmail(email)?'이메일 주소를 다시 확인해 주세요.':'';
+ if(authView==='signup')$('account-password-hint').textContent=confirm&&password!==confirm?'비밀번호가 서로 달라요.':!passwordOK(password)?'비밀번호는 8~128자로 입력해 주세요.':'';
+ return {email,password,confirm};
+}
+
 function currentDays(){return app().getDays().map(({result,...day})=>structuredClone(day));}
 async function initApi(){
  if(api)return api;
@@ -12,7 +56,11 @@ async function initApi(){
  if(!window.supabase?.createClient)await new Promise((resolve,reject)=>{const el=document.createElement('script');el.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';el.onload=resolve;el.onerror=()=>reject(Error('로그인 라이브러리를 불러오지 못했습니다.'));document.head.append(el)});
  if(!window.supabase?.createClient)throw Error('로그인 라이브러리를 사용할 수 없습니다.');
  api=window.supabase.createClient(config.supabaseUrl,config.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
- api.auth.onAuthStateChange((event,newSession)=>queueMicrotask(()=>applySession(newSession)));
+ api.auth.onAuthStateChange((event,newSession)=>queueMicrotask(()=>{
+  applySession(newSession);
+  if(event==='PASSWORD_RECOVERY'){panel.hidden=false;document.body.classList.add('account-open');setView('recovery');$('account-auth-form').hidden=false;$('account-signed').hidden=true;}
+  else if(event==='SIGNED_IN'&&authView==='verify'&&newSession?.user)notice('이메일 인증이 완료됐어요.');
+ }));
  return api;
 }
 function applySession(next){
@@ -21,12 +69,12 @@ function applySession(next){
  lastId=id;session=next;user=next?.user||null;
  $('account-button').textContent=user?'내 여행':'로그인';
  $('account-user').textContent=user?.email||'비회원으로도 자유롭게 여행을 계획할 수 있어요.';
- $('account-auth-form').hidden=loggedIn();
+ $('account-auth-form').hidden=loggedIn()&&authView!=='recovery';
  $('account-signed').hidden=!loggedIn();
  $('cloud-save').hidden=!loggedIn();
  // The former account-guest element was removed from the current 3-step layout.
 }
-function open(){panel.hidden=false;document.body.classList.add('account-open');if(loggedIn())void loadTrips();}
+function open(){panel.hidden=false;document.body.classList.add('account-open');if(!loggedIn()&&authView==='recovery'&&!session)setView('welcome');if(loggedIn())void loadTrips();}
 function close(){panel.hidden=true;document.body.classList.remove('account-open');}
 async function request(path,method='GET',payload){
  if(!loggedIn())throw Error('로그인이 필요합니다.');
@@ -89,9 +137,16 @@ async function perform(action){
 }
 function init(){
  $('account-button').onclick=open;$('cloud-save').onclick=()=>{open();void perform('save')};$('account-close').onclick=close;
- panel.addEventListener('click',e=>{if(e.target===panel)close();const btn=e.target.closest('[data-account-action]');if(btn)void perform(btn.dataset.accountAction)});
+ panel.addEventListener('click',e=>{
+  if(e.target===panel){close();return;}
+  const toggler=e.target.closest('[data-toggle-password]');
+  if(toggler){const input=$(toggler.dataset.togglePassword);input.type=input.type==='password'?'text':'password';toggler.textContent=input.type==='password'?'보기':'숨기기';toggler.setAttribute('aria-label',input.type==='password'?'비밀번호 보기':'비밀번호 숨기기');return;}
+  const view=e.target.closest('[data-auth-view]');if(view){setView(view.dataset.authView);return;}
+  const btn=e.target.closest('[data-account-action]');if(btn)void perform(btn.dataset.accountAction);
+ });
+ for(const id of ['account-email','account-password','account-password-confirm'])$(id).addEventListener('input',validateFields);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
- fetch('/api/config').then(r=>r.json()).then(async c=>{config=c;if(!c.supabaseReady)return;await initApi();const {data}=await api.auth.getSession();applySession(data.session)}).catch(()=>{});
+ setView('welcome');fetch('/api/config').then(r=>r.json()).then(async c=>{config=c;if(!c.supabaseReady)return;await initApi();const {data}=await api.auth.getSession();applySession(data.session)}).catch(e=>notice(humanError(e),true));
 }
 window.YeoAccount={isSignedIn:loggedIn,open,loadTrips};
 init();
