@@ -67,8 +67,13 @@ function init(){if(!app())return;
  $('yg-result-day-toggle').addEventListener('click',()=>{
   const menu=$('yg-result-day-menu'),open=menu.hidden;
   if(!open)return closeDateMenu();
-  renderDatePicker();menu.hidden=false;
+  renderDatePicker();menu.hidden=false;menu.classList.remove('is-upward');
   $('yg-result-day-toggle').setAttribute('aria-expanded','true');
+  const toggle=$('yg-result-day-toggle').getBoundingClientRect();
+  const popupHeight=menu.getBoundingClientRect().height;
+  if(window.innerHeight-toggle.bottom<popupHeight+80&&toggle.top>popupHeight+20){
+   menu.classList.add('is-upward');
+  }
   requestAnimationFrame(()=>menu.querySelector('[aria-current="date"]')?.focus({preventScroll:true}));
  });
  $('yg-result-day-menu').addEventListener('click',e=>{
@@ -78,6 +83,7 @@ function init(){if(!app())return;
   $('yg-result-day-toggle').focus({preventScroll:true});
  });
  document.addEventListener('click',e=>{if(!e.target.closest('#yg-result-date'))closeDateMenu();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('yg-result-day-menu').hidden){e.preventDefault();closeDateMenu(true);}});
  $('yg-result-day-menu').addEventListener('keydown',e=>{
   const options=[...$('yg-result-day-menu').querySelectorAll('[data-result-day]')];
   const index=options.indexOf(document.activeElement);
