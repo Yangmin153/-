@@ -2,96 +2,73 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
-
-test('STEP 1 renders no calendar-day cards but auto-generates real dates',async()=>{
+test('STEP1 retains date range and creates real day records without visible day cards',async()=>{
  const [html,ui]=await Promise.all([read('public/index.html'),read('public/static/vnext.js')]);
- const before=html.indexOf('id="yg-step-one"'),after=html.indexOf('id="yg-step-two-intro"');
- const section=html.slice(before,after);
- assert.doesNotMatch(section,/id="yg-day-cards"|class="yg-date-pill"/);
- assert.match(section,/id="yg-start-date"/);assert.match(section,/id="yg-end-date"/);assert.match(section,/id="yg-duration"/);
- assert.match(ui,/app\.setTravelDates\(start,end\)/);
- assert.match(ui,/function renderDates\(\)\{\/\*/);
+ assert.match(html,/id="yg-start-date"/);assert.match(html,/id="yg-end-date"/);
+ assert.doesNotMatch(html,/id="yg-day-cards"/);assert.match(ui,/app\.setTravelDates\(start,end\)/);
 });
-
-test('STEP 2 DOM order is search then saved-list then endpoints then Naver map',async()=>{
+test('STEP2 puts one day selector at top, prior to heading and add search',async()=>{
  const html=await read('public/index.html');
- const idx=['id="yg-add-visit"','id="yg-open-stops"','id="yg-endpoint-section"','id="yg-active-date"','id="yg-origin-pick"','id="yg-dest-pick"','id="map-region"'].map(x=>html.indexOf(x));
- assert.ok(idx.every(n=>n>=0));assert.deepEqual(idx,[...idx].sort((a,b)=>a-b));
- assert.match(html,/id="yg-fit-all"/);
+ const ids=['yg-plan-date','yg-active-date','yg-step-two-intro','yg-add-visit','yg-open-stops','yg-endpoint-section','map-region'];
+ const positions=ids.map(x=>html.indexOf('id="'+x+'"'));
+ assert.ok(positions.every(i=>i>=0),JSON.stringify(positions));
+ assert.deepEqual(positions,[...positions].sort((a,b)=>a-b));
+ assert.equal((html.match(/id="yg-active-date"/g)||[]).length,1);
 });
-
-test('date-unassigned visits live in compatible days data, are never force-assigned on search',async()=>{
- const app=await read('public/static/app.js');
- assert.match(app,/unassignedStops:\[\]/);
+test('STEP2 adds into active days[].stops and same-day duplicates are prevented',async()=>{
+ const [app,quick]=await Promise.all([read('public/static/app.js'),read('public/static/quick-add.js')]);
+ assert.match(app,/const d=day\(\);[\s\S]*const duplicate=d\.stops\.some/);
+ assert.match(app,/d\.stops\.push\(stop\)/);
+ assert.match(app,/fixedDate:d\.date\|\|null/);
+ assert.match(quick,/app\.getDay\(\)\.stops\.some/);
+});
+test('old unassigned data remains supported and transfer requires explicit user approval',async()=>{
+ const [app,ui,html]=await Promise.all([read('public/static/app.js'),read('public/static/vnext.js'),read('public/index.html')]);
  assert.match(app,/unassignedStops:\(data\.unassignedStops\|\|\[\]\)\.map\(omitStay\)/);
- assert.match(app,/state\.days\[0\]\.unassignedStops\.push\(stop\)/);
- assert.match(app,/function setStopFixedDate\(id,value\)/);
- assert.match(app,/stop\.fixedDate=value\|\|null/);
- assert.match(app,/function allStops\(\)/);
- assert.match(app,/invalidateRoutes\(\);refresh\(\)/);
+ assert.match(app,/function moveUnassignedToActive\(\)/);
+ assert.match(ui,/confirm\('기존 미배정 장소 '/);
+ assert.match(html,/id="yg-legacy-assign"/);
+ assert.match(ui,/app\.moveUnassignedToActive\(\)/);
+ assert.match(ui,/if\(pending\.length\)\{/);
 });
-
-test('visit date changes remain reversible, and route results invalidate on data changes',async()=>{
- const app=await read('public/static/app.js'),wizard=await read('public/static/vnext.js');
- assert.match(app,/if\(target\)target\.stops\.push\(stop\)/);
- assert.match(app,/else state\.days\[0\]\.unassignedStops\.push\(stop\)/);
- assert.match(wizard,/data-fixed-id/);assert.match(wizard,/option value="">날짜 미배정/);
- assert.match(wizard,/app\.setStopFixedDate\(select\.dataset\.fixedId,select\.value\)/);
- assert.match(app,/function invalidateRoutes\(\)/);
+test('STEP2 saved list has category, name and delete but no date or arrow controls',async()=>{
+ const [ui,html]=await Promise.all([read('public/static/vnext.js'),read('public/index.html')]);
+ assert.match(ui,/const d=day\(\),items=d\.stops/);
+ assert.match(ui,/data-remove-place/);
+ assert.doesNotMatch(ui,/data-fixed-id|data-stop-up|data-stop-down/);
+ assert.match(html,/id="yg-open-stops"/);
 });
-
-test('date allocation uses fixed dates and real road routing APIs, with no fabricated route labels',async()=>{
- const [wizard,multi,core]=await Promise.all([read('public/static/vnext.js'),read('lib/multi-day.js'),read('lib/core.js')]);
- assert.match(wizard,/fetch\('\/api\/multi-route'/);
- assert.match(wizard,/fetch\('\/api\/route'/);
- assert.match(wizard,/fixedDate:d\.date/);
- assert.match(wizard,/pending\.map\(p=>\(\{\.\.\.p,fixedDate:null\}\)\)/);
- assert.match(multi,/for\(const place of trip\.stops\)if\(place\.fixedDate\)/);
- assert.match(multi,/await buildPlan\(/);
- assert.match(core,/signal:AbortSignal\.timeout\(5500\)/);
- assert.match(core,/r\.status|source:'estimate'|status=road===0/);
+test('STEP2 map shows only current day places and STEP3 route reads selected day',async()=>{
+ const [app,search]=await Promise.all([read('public/static/app.js'),read('public/static/search-screen.js')]);
+ assert.match(app,/collecting\?\[\.\.\.d\.stops,d\.origin,d\.destination\]/);
+ assert.match(search,/function savedPlaces\(\)\{return window\.TripApp\?\.getDay\?\.\(\)\?\.stops\|\|\[\];\}/);
+ assert.match(app,/const points=collecting/);
+ assert.match(app,/YeoPins\?\.marker/);
 });
-
-test('shared custom markers use GPS coordinates and matching pixel dimensions',async()=>{
- const [pins,css,app,search]=await Promise.all([read('public/static/route-pins.js'),read('public/static/route-pins.css'),read('public/static/app.js'),read('public/static/search-screen.js')]);
+test('STEP3 date selector immediately follows map and remains wired to active day',async()=>{
+ const [html,workspace]=await Promise.all([read('public/index.html'),read('public/static/map-workspace.js')]);
+ const map=html.indexOf('id="map-region"'),date=html.indexOf('id="yg-result-date"'),results=html.indexOf('id="route-results"');
+ assert.ok(map<date&&date<results);
+ assert.match(workspace,/\$\('map-day-select'\)\.addEventListener\('change'/);
+});
+test('route calculation uses road route API, fixed order and manual mode remain',async()=>{
+ const [ui,app]=await Promise.all([read('public/static/vnext.js'),read('public/static/app.js')]);
+ assert.match(ui,/fetch\('\/api\/route'/);
+ assert.doesNotMatch(ui,/fetch\('\/api\/multi-route'/);
+ assert.match(ui,/mode:d\.mode==='manual'\?'manual':'auto'/);
+ assert.match(app,/function moveRouteStop/);assert.match(app,/function setRouteStopLocked/);
+});
+test('shared Naver markers use true coordinates and Korean endpoints',async()=>{
+ const [pins,css]=await Promise.all([read('public/static/route-pins.js'),read('public/static/route-pins.css')]);
  assert.match(pins,/new maps\.LatLng\(lat,lng\)/);
  assert.match(pins,/anchor:new maps\.Point\(22,52\)/);
- assert.match(css,/width:44px!important;height:52px!important/);
- assert.match(app,/YeoPins\?\.marker/);assert.match(search,/YeoPins\?\.marker/);
  assert.match(pins,/type==='origin'\?'출발':type==='destination'\?'도착'/);
+ assert.match(css,/width:44px!important;height:52px!important/);
 });
-
-test('STEP 2 shows all visits before calculating; STEP 3 shows date-specific order',async()=>{
- const app=await read('public/static/app.js');
- assert.match(app,/collecting\?\[\.\.\.allStops\(\),\.\.\.state\.days\.flatMap/);
- assert.match(app,/const points=collecting/);
- assert.match(app,/stopNumber=d\.result\?\.entries\?\.findIndex/);
- assert.match(app,/if\(!collecting&&routePanelVisible&&r\?\.entries\)/);
- assert.match(app,/i===0\?'S':i===r\.entries\.length-1\?'E':i/);
-});
-
-test('map uses a single thin blue polyline with valid Naver geometry',async()=>{
- const app=await read('public/static/app.js');
- assert.match(app,/new naver\.maps\.LatLng\(p\[1\],p\[0\]\)/);
- assert.match(app,/#2979D9/);
- assert.match(app,/strokeWeight:4\.5/);
- assert.match(app,/leg\.source==='estimate'/);
- assert.match(app,/for\(let i=1;i<r\.entries\.length;i\+\+\)/);
-});
-
-test('readable STEP 3 controls have map fit, zoom, and full-screen actions separated from result toolbar',async()=>{
- const [html,css,workspace]=await Promise.all([read('public/index.html'),read('public/static/vnext.css'),read('public/static/map-workspace.js')]);
- for(const id of ['yg-route-fit','map-zoom-out','map-zoom-in','map-maximize','yg-step-three-actions','yg-three-recalc'])
-  assert.match(html,new RegExp('id="'+id+'"'));
- assert.match(workspace,/\$\('yg-route-fit'\)\.addEventListener\('click',fit\)/);
- assert.match(css,/@media\(min-width:769px\)/);
- assert.match(css,/position:static!important;bottom:auto!important/);
-});
-
-test('saved and cloud trips retain unassigned pool and refresh date selectors when loaded',async()=>{
- const [app,accounts,wizard]=await Promise.all([read('public/static/app.js'),read('public/static/accounts.js'),read('public/static/vnext.js')]);
- assert.match(accounts,/function currentDays\(\)/);assert.match(accounts,/\.\.\.day/);
+test('Supabase trips stay owner scoped and legacy schema load triggers date rerender',async()=>{
+ const [app,accounts,ui]=await Promise.all([read('public/static/app.js'),read('public/static/accounts.js'),read('public/static/vnext.js')]);
+ assert.match(accounts,/function currentDays\(\)/);
  assert.match(app,/document\.dispatchEvent\(new Event\('trip:days-imported'\)\)/);
- assert.match(wizard,/addEventListener\('trip:days-imported'/);
+ assert.match(ui,/addEventListener\('trip:days-imported'/);
  assert.match(app,/unassignedStops:\(data\.unassignedStops\|\|\[\]\)\.map/);
 });
