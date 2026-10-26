@@ -51,11 +51,13 @@ function renderDaily(){
  $('yg-origin-pick').disabled=inherit;
  $('yg-dest-display').textContent=configured(d.destination)?d.destination.name:'마지막으로 어디에 도착하나요?';
  $('yg-dest-sub').textContent=d.destination.address||'숙소, 공항 등 하루를 마치는 장소';
- const count=app.allStops().length,pending=app.unassignedStops().length;
+ const count=d.stops.length,pending=app.unassignedStops().length;
  $('yg-day-stop-count').textContent=count+'곳';
- $('yg-day-stop-sub').textContent=pending?pending+'곳은 날짜 미배정 · 목록에서 날짜 선택 가능':'장소를 담고 날짜를 선택하세요.';
- $('yg-empty-inline').hidden=true;
+ $('yg-day-stop-sub').textContent='';
+ $('yg-empty-inline').hidden=count!==0;
  $('yg-stop-count').textContent=count+'곳';
+ $('yg-legacy-stops').hidden=!pending;
+ $('yg-legacy-count').textContent=String(pending);
  $('yg-route-mode').value=d.mode==='manual'?'manual':'auto';
  $('yg-origin-pick').classList.toggle('is-configured',configured(d.origin));
  $('yg-dest-pick').classList.toggle('is-configured',configured(d.destination));
@@ -73,20 +75,16 @@ function renderAdjustment(){
  }).join(''):'<p class="yg-adjust-empty">방문지를 추가하면 순서를 조정할 수 있어요.</p>';
 }
 function renderSheet(){
- const list=days(),items=app.allStops(),pending=app.unassignedStops(),count=items.length;
- $('yg-sheet-count').textContent=String(count);
- $('yg-stop-count').textContent=count+'곳';
- $('yg-sheet-date').textContent=pending.length?'날짜 미배정 '+pending.length+'곳':'필요한 장소의 날짜를 바꿀 수 있어요.';
- $('yg-sheet-list').innerHTML=items.length?items.map((p,i)=>{
-  const owner=list.find(d=>d.stops.some(x=>x.id===p.id)),date=p.fixedDate||owner?.date||'',invalid=Boolean(date&&!list.some(d=>d.date===date));
-  const meta=window.TripMeta?.meta?.(p),name=escape(p.name),cat=meta?.label||p.category||'장소';
+ const d=day(),items=d.stops;
+ $('yg-sheet-count').textContent=String(items.length);
+ $('yg-stop-count').textContent=items.length+'곳';
+ $('yg-sheet-date').textContent=dateText(d.date,{short:true})+' · 이 날짜에 담은 장소';
+ $('yg-sheet-list').innerHTML=items.length?items.map(p=>{
+  const name=escape(p.name),cat=window.TripMeta?.meta?.(p)?.label||p.category||'장소';
   const icon=window.TripMeta?.icon?.(p,18)||'•';
-  const choices=['<option value="">날짜 미배정</option>',...list.map(d=>'<option value="'+d.date+'" '+(d.date===date?'selected':'')+'>'+dateText(d.date,{short:true})+'</option>')];
-  if(invalid)choices.push('<option value="__invalid__" selected>기간 외 날짜 · 재지정 필요</option>');
   return '<div class="yg-place-row" data-place-id="'+escape(p.id)+'">'+
    '<span class="yg-place-category" aria-label="'+escape(cat)+'">'+icon+'</span>'+
-   '<div class="yg-place-details"><button class="yg-place-focus" type="button" data-focus-place="'+escape(p.id)+'"><strong>'+name+'</strong><small>'+escape(p.address||cat)+'</small></button>'+
-   '<select class="yg-stop-date" data-fixed-id="'+escape(p.id)+'" aria-label="'+name+' 방문 날짜 선택">'+choices.join('')+'</select></div>'+
+   '<div class="yg-place-details"><button type="button" class="yg-place-focus" data-focus-place="'+escape(p.id)+'"><strong>'+name+'</strong><small>'+escape(p.address||cat)+'</small></button></div>'+
    '<button type="button" class="yg-place-remove" data-remove-place="'+escape(p.id)+'" aria-label="'+name+' 삭제">×</button></div>';
  }).join(''):'<div class="yg-empty-sheet"><strong>아직 담은 장소가 없어요.</strong><p>가고 싶은 장소를 검색해서 추가해 보세요.</p></div>';
 }
@@ -144,8 +142,8 @@ async function calculate(){
  const arranged=days(),pending=app.unassignedStops(),full=arranged.map((d,i)=>({d,i})).filter(({d})=>configured(d.origin)&&configured(d.destination));
  const incomplete=arranged.find(d=>d.stops.length&&(!configured(d.origin)||!configured(d.destination)));
  if(incomplete){app.setActive(arranged.indexOf(incomplete));go(2);app.toast(dateText(incomplete.date)+' 출발지와 도착지를 먼저 설정해 주세요.');return;}
- if(pending.length&&arranged.some(d=>!configured(d.origin)||!configured(d.destination))){
-  app.toast('날짜 미배정 장소를 자동 배분하려면 모든 날짜의 출발지와 도착지가 필요해요.');go(2);return;
+ if(pending.length){
+  go(2);app.toast('기존 미배정 장소 '+pending.length+'곳이 남아 있어요. 날짜를 고른 뒤 한 번에 옮겨 주세요.');return;
  }
  if(!full.length){app.toast('출발지와 도착지를 설정해 주세요.');go(2);return;}
  // Existing assigned visits are pinned to their day. Only the unassigned pool is redistributed.
@@ -162,31 +160,14 @@ async function calculate(){
  $('yg-calc-progress').textContent='실제 자동차 이동 경로를 계산하고 있어요…';
  try{
   let result;
-  if(pending.length){
-   const payload={days:arranged.map(d=>({date:d.date,origin:d.origin,destination:d.destination})),
-    stops:[...arranged.flatMap(d=>d.stops.map(p=>({...p,fixedDate:d.date}))),...pending.map(p=>({...p,fixedDate:null}))]};
-   const response=await fetch('/api/multi-route',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-   result=await response.json().catch(()=>null);
-   if(!response.ok)throw Error(result?.detail||'날짜별 배분에 실패했어요. 날짜를 직접 지정하고 다시 시도해 주세요.');
-   // Honor manual ordering even when auto date allocation is used on another day.
-   for(let i=0;i<arranged.length;i++){
-    if(arranged[i].mode!=='manual')continue;
-    const ids=new Set(result.days[i].assignedStopIds),known=arranged[i].stops.filter(p=>ids.has(p.id));
-    const added=pending.filter(p=>ids.has(p.id));
-    const ordered=[...known,...added];
-    result.days[i].route=await routeRequest(arranged[i],ordered);
-    result.days[i].assignedStopIds=ordered.map(p=>p.id);
-   }
-  }else{
-   const routes=arranged.map(d=>({date:d.date,route:null})),jobs=full.slice(),queue=[...jobs];
-   await Promise.all(Array.from({length:Math.min(2,jobs.length)},async()=>{
-    while(queue.length){const {d,i}=queue.shift();routes[i].route=await routeRequest(d);}
-   }));
-   result={days:routes,warnings:[]};
-  }
+  const routes=arranged.map(d=>({date:d.date,route:null})),queue=[...full];
+  await Promise.all(Array.from({length:Math.min(2,queue.length)},async()=>{
+   while(queue.length){const {d,i}=queue.shift();routes[i].route=await routeRequest(d);}
+  }));
+  result={days:routes,warnings:[]};
   const latest=JSON.stringify({days:days().map(d=>({date:d.date,origin:d.origin,destination:d.destination,stops:d.stops,mode:d.mode})),pending:app.unassignedStops()});
   if(snapshot!==latest)throw Error('계산 중 일정이 변경됐어요. 다시 계산해 주세요.');
-  const ok=pending.length?app.applyMultiRoutes(result):app.applyDailyRoutes(result);
+  const ok=app.applyDailyRoutes(result);
   if(!ok)throw Error('계산 결과와 현재 방문지가 일치하지 않아요. 다시 계산해 주세요.');
   lastWarnings=result.warnings||[];$('yg-calc-progress').hidden=true;go(3);
  }catch(e){app.toast('동선 계산 실패: '+e.message);$('yg-calc-progress').textContent=e.message;}
@@ -213,6 +194,14 @@ document.querySelectorAll('[name="yg-origin-choice"]').forEach(radio=>radio.addE
 }));
 $('yg-add-visit').addEventListener('click',openSearch);
 $('yg-fit-all').addEventListener('click',()=>{app.fitMap();app.resizeMap();});
+$('yg-legacy-assign').addEventListener('click',()=>{
+ const count=app.unassignedStops().length,chosen=day()?.date;
+ if(!count||!chosen)return;
+ if(!confirm('기존 미배정 장소 '+count+'곳을 '+dateText(chosen,{short:true})+' 일정에 담을까요?'))return;
+ const result=app.moveUnassignedToActive();
+ if(!result.ok)return app.toast(result.error);
+ app.toast('기존 장소 '+result.count+'곳을 이 날짜로 옮겼어요.');renderDaily();
+});
 $('yg-next-places').addEventListener('click',()=>go(2));
 $('yg-back-dates').addEventListener('click',()=>go(1));
 $('yg-back-places').addEventListener('click',()=>go(2));
@@ -235,12 +224,7 @@ $('yg-place-sheet').addEventListener('click',e=>{
   document.getElementById('map-region').scrollIntoView({behavior:'smooth',block:'center'});
  }
 });
-$('yg-place-sheet').addEventListener('change',e=>{
- const select=e.target.closest('[data-fixed-id]');if(!select||select.value==='__invalid__')return;
- if(app.setStopFixedDate(select.dataset.fixedId,select.value)){
-  renderDaily();if(currentStep===3){go(2);app.toast('방문 날짜가 바뀌었어요. 동선을 다시 계산해 주세요.');}
- }
-});
+
 $('yg-adjust-list').addEventListener('click',e=>{
  const up=e.target.closest('[data-route-up]'),down=e.target.closest('[data-route-down]');
  if(up){app.moveRouteStop(up.dataset.routeUp,-1);renderDaily();}
