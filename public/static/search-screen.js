@@ -48,7 +48,7 @@ function clearMarkers(){
  if(selectedMarker){selectedMarker.setMap(null);selectedMarker=null;}
 }
 function clearSavedMarkers(){for(const marker of savedMarkers)marker.setMap(null);savedMarkers=[];}
-function savedPlaces(){return window.TripApp?.allStops?.()||[];}
+function savedPlaces(){return window.TripApp?.getDay?.()?.stops||[];}
 function showSaved(place){
  selected=place;isSavedSelection=true;
  $('search-picked-name').textContent=place.name;
@@ -105,7 +105,8 @@ function showMode(next){
  mode=next==='list'?'list':'map';
  mapStage.hidden=mode!=='map';
  resultMount.hidden=mode!=='list';
- $('search-list-toggle').textContent=mode==='list'?'지도보기':'목록보기';
+ $('search-list-toggle').textContent=mode==='list'?'지도에서 확인':'검색 결과';
+ $('search-list-toggle').hidden=!items.length&&!selected;
  $('search-list-toggle').setAttribute('aria-pressed',String(mode==='list'));
  screen.dataset.searchMode=mode;
  if(mode==='map'){requestAnimationFrame(()=>{maybeMap();updateSize();});}
@@ -130,6 +131,7 @@ function preview(item){
 }
 function show(){
  if(opened)return;
+ $('search-list-toggle').hidden=true;
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  opened=true;historyEntry=true;previousFocus=document.activeElement;previousScroll=window.scrollY;
  feedback.hidden=true;picked.hidden=true;selected=null;items=[];isSavedSelection=false;input.value='';results.replaceChildren();results.hidden=true;
