@@ -157,7 +157,7 @@ async function perform(action){
      }
     }
    }
-  }  }else if(action==='save')await saveCloud();
+  }else if(action==='save')await saveCloud();
   else if(action==='list')await loadTrips();
   else if(action==='import')await importLocal();
   else if(action==='new'){if(confirm('새 여행을 시작할까요? 기존 클라우드 여행은 별도로 저장해야 합니다.')){activeId=null;app().newTrip();$('account-trip-name').value='새 여행';close();}}
