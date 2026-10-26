@@ -690,3 +690,22 @@ body[data-trip-step="3"] #map-day-select.yg-result-day-native{
 .account-panel .account-social-separator::before,.account-panel .account-social-separator::after{
  content:'';flex:1;height:1px;background:#e2e9f2
 }
+
+/* v6.7.1 — old 125px map toolbar width was shrinking the new date picker. */
+body[data-trip-step="3"] #yg-result-date .map-current-day{
+ max-width:none!important;width:100%!important;flex:1 1 auto!important;
+}
+body[data-trip-step="3"] #yg-result-date .yg-result-day-picker{
+ flex:1 1 0%!important;min-width:170px!important;max-width:285px!important;
+}
+body[data-trip-step="3"] #yg-result-day-toggle{min-width:0!important}
+body[data-trip-step="3"] #yg-result-day-toggle #yg-result-day-label{
+ display:block!important;min-width:0!important;flex:1!important;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap!important
+}
+body[data-trip-step="3"] #yg-result-day-menu{
+ left:auto!important;right:0!important;width:min(285px,calc(100vw - 32px))!important;
+}
+body[data-trip-step="3"] #yg-result-day-menu.is-upward{
+ top:auto!important;bottom:calc(100% + 7px)!important;
+}
