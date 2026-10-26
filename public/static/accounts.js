@@ -1,6 +1,7 @@
 /* Email auth & owner-scoped travel plans; never handles raw passwords outside Supabase SDK. */
 const $=id=>document.getElementById(id),app=()=>window.TripApp;
-let api=null,session=null,user=null,activeId=null,config=null,lastId=null,busy=false,authView='welcome',pendingEmail='',pendingEmailType='signup';
+let api=null,session=null,user=null,activeId=null,config=null,lastId=null,busy=false,authView='welcome',pendingEmail='',pendingEmailType='signup',oauthCheckedAt=0;
+const enabledOAuth={google:false,kakao:false};
 const panel=$('account-panel'),feedback=$('account-feedback'),travelList=$('account-trips');
 const notice=(msg,error=false)=>{feedback.textContent=msg;feedback.dataset.error=String(error)};
 const loggedIn=()=>Boolean(user&&session?.access_token);
@@ -63,6 +64,28 @@ async function initApi(){
  }));
  return api;
 }
+async function refreshOAuthProviders(force=false){
+ if(!config?.supabaseReady)return;
+ if(!force&&Date.now()-oauthCheckedAt<60000)return;
+ oauthCheckedAt=Date.now();
+ let google=false,kakao=false;
+ try{
+  // Supabase exposes public provider availability; do not copy OAuth client secrets to Vercel.
+  const response=await fetch(config.supabaseUrl+'/auth/v1/settings',{
+   headers:{apikey:config.supabaseAnonKey},
+   signal:AbortSignal.timeout(7500)
+  });
+  if(response.ok){
+   const settings=await response.json();
+   google=settings.external?.google===true;
+   kakao=settings.external?.kakao===true;
+  }
+ }catch{ /* Keep disabled providers hidden until the public settings endpoint is reachable. */ }
+ enabledOAuth.google=google;enabledOAuth.kakao=kakao;
+ $('account-oauth-google').hidden=!google;
+ $('account-oauth-kakao').hidden=!kakao;
+ $('account-social-buttons').hidden=!google&&!kakao;
+}
 function applySession(next){
  const id=next?.user?.id||null;
  if(lastId!==null&&id!==lastId){activeId=null;travelList.replaceChildren();app().restoreGuestDays();}
@@ -76,7 +99,7 @@ function applySession(next){
  $('cloud-save').hidden=!loggedIn();
  // The former account-guest element was removed from the current 3-step layout.
 }
-function open(){panel.hidden=false;document.body.classList.add('account-open');if(!loggedIn()&&authView==='recovery'&&!session)setView('welcome');if(loggedIn())void loadTrips();}
+function open(){panel.hidden=false;document.body.classList.add('account-open');if(!loggedIn()&&authView==='recovery'&&!session)setView('welcome');if(loggedIn())void loadTrips();else if(api)void refreshOAuthProviders();}
 function close(){panel.hidden=true;document.body.classList.remove('account-open');}
 async function request(path,method='GET',payload){
  if(!loggedIn())throw Error('로그인이 필요합니다.');
@@ -119,7 +142,17 @@ async function perform(action){
  if(busy)return;busy=true;panel.querySelectorAll('button').forEach(b=>b.disabled=true);
  if(['signin','signup','reset'].includes(action))$('account-auth-submit').textContent='처리 중…';
  try{
-  if(['signup','signin','reset','resend','setrecovery'].includes(action)){
+  if(action.startsWith('oauth:')){
+   const provider=action.slice('oauth:'.length);
+   if(!['google','kakao'].includes(provider))throw Error('지원하지 않는 로그인 방식입니다.');
+   await initApi();
+   await refreshOAuthProviders(true);
+   if(!enabledOAuth[provider])throw Error('아직 설정되지 않은 로그인 방식입니다. Supabase 제공자 설정을 확인해 주세요.');
+   const {error}=await api.auth.signInWithOAuth({
+    provider,options:{redirectTo:location.origin+location.pathname}
+   });
+   if(error)throw error;
+  }else if(['signup','signin','reset','resend','setrecovery'].includes(action)){
    await initApi();
    const {email,password,confirm}=validateFields();
    const redirectTo=location.origin+location.pathname;
@@ -174,6 +207,7 @@ function init(){
   if(e.target===panel){close();return;}
   const toggler=e.target.closest('[data-toggle-password]');
   if(toggler){const input=$(toggler.dataset.togglePassword);input.type=input.type==='password'?'text':'password';toggler.textContent=input.type==='password'?'보기':'숨기기';toggler.setAttribute('aria-label',input.type==='password'?'비밀번호 보기':'비밀번호 숨기기');return;}
+  const social=e.target.closest('[data-oauth-provider]');if(social){void perform('oauth:'+social.dataset.oauthProvider);return;}
   const view=e.target.closest('[data-auth-view]');if(view){setView(view.dataset.authView);return;}
   const btn=e.target.closest('[data-account-action]');if(btn)void perform(btn.dataset.accountAction);
  });
@@ -183,7 +217,7 @@ function init(){
  const query=new URLSearchParams(location.search),fragment=new URLSearchParams(location.hash.replace(/^#/,'')),
   errorCode=query.get('error_code')||fragment.get('error_code')||query.get('error')||fragment.get('error');
  if(errorCode){open();setView('signin');notice(humanError({code:errorCode,message:query.get('error_description')||fragment.get('error_description')||errorCode}),true);}
- fetch('/api/config').then(r=>r.json()).then(async c=>{config=c;if(!c.supabaseReady)return;await initApi();const {data}=await api.auth.getSession();applySession(data.session)}).catch(e=>notice(humanError(e),true));
+ fetch('/api/config').then(r=>r.json()).then(async c=>{config=c;if(!c.supabaseReady)return;await initApi();void refreshOAuthProviders();const {data}=await api.auth.getSession();applySession(data.session)}).catch(e=>notice(humanError(e),true));
 }
 window.YeoAccount={isSignedIn:loggedIn,open,loadTrips};
 init();
