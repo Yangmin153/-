@@ -163,7 +163,7 @@ async function perform(action){
   else if(action==='list')await loadTrips();
   else if(action==='import')await importLocal();
   else if(action==='new'){if(confirm('새 여행을 시작할까요? 기존 클라우드 여행은 별도로 저장해야 합니다.')){activeId=null;app().newTrip();$('account-trip-name').value='새 여행';close();}}
-  else if(action==='signout'){const {error}=await api.auth.signOut();if(error)throw error;applySession(null);close();}
+  else if(action==='signout'){const {error}=await api.auth.signOut();if(error)throw error;applySession(null);setView('welcome');close();}
   else if(action==='password'){const password=prompt('새 비밀번호 (8자 이상)');if(password===null)return;if(password.length<8)throw Error('비밀번호는 8자 이상이어야 합니다.');const {error}=await api.auth.updateUser({password});if(error)throw error;notice('비밀번호가 변경됐습니다.');}
   else if(action==='delete'){if(prompt('계정 삭제와 여행 데이터 영구 삭제에 동의한다면 DELETE를 입력하세요.')!=='DELETE')return;const response=await fetch('/api/account',{method:'DELETE',headers:{authorization:'Bearer '+session.access_token}});const body=await response.json();if(!response.ok)throw Error(body.error||'계정 삭제를 완료하지 못했습니다.');await api.auth.signOut();applySession(null);close();}
  }catch(e){notice(humanError(e),true)}finally{busy=false;panel.querySelectorAll('button').forEach(b=>b.disabled=false);if(['signin','signup','reset'].includes(authView))$('account-auth-submit').textContent=authView==='signup'?'회원가입':authView==='reset'?'재설정 메일 보내기':'로그인';}
