@@ -68,7 +68,9 @@ function applySession(next){
  if(lastId!==null&&id!==lastId){activeId=null;travelList.replaceChildren();app().restoreGuestDays();}
  lastId=id;session=next;user=next?.user||null;
  $('account-button').textContent=user?'내 여행':'로그인';
- $('account-user').textContent=user?.email||'비회원으로도 자유롭게 여행을 계획할 수 있어요.';
+ $('account-user').textContent=user?.email||'';
+ $('account-user').hidden=!loggedIn();
+ $('account-panel-title').textContent=loggedIn()?'내 여행':'여행길 계정';
  $('account-auth-form').hidden=loggedIn()&&authView!=='recovery';
  $('account-signed').hidden=!loggedIn();
  $('cloud-save').hidden=!loggedIn();
@@ -177,7 +179,11 @@ function init(){
  });
  for(const id of ['account-email','account-password','account-password-confirm'])$(id).addEventListener('input',validateFields);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
- setView('welcome');fetch('/api/config').then(r=>r.json()).then(async c=>{config=c;if(!c.supabaseReady)return;await initApi();const {data}=await api.auth.getSession();applySession(data.session)}).catch(e=>notice(humanError(e),true));
+ setView('welcome');
+ const query=new URLSearchParams(location.search),fragment=new URLSearchParams(location.hash.replace(/^#/,'')),
+  errorCode=query.get('error_code')||fragment.get('error_code')||query.get('error')||fragment.get('error');
+ if(errorCode){open();setView('signin');notice(humanError({code:errorCode,message:query.get('error_description')||fragment.get('error_description')||errorCode}),true);}
+ fetch('/api/config').then(r=>r.json()).then(async c=>{config=c;if(!c.supabaseReady)return;await initApi();const {data}=await api.auth.getSession();applySession(data.session)}).catch(e=>notice(humanError(e),true));
 }
 window.YeoAccount={isSignedIn:loggedIn,open,loadTrips};
 init();
