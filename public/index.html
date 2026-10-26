@@ -19,20 +19,20 @@
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
   <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
-  <link rel="stylesheet" href="/static/vnext.css?v=6.4.0">
+  <link rel="stylesheet" href="/static/vnext.css?v=6.6.0">
   <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
   <script defer src="/static/route-pins.js?v=6.4.0"></script>
   <script defer src="/static/route-shape.js?v=6.4.0"></script>
-  <script defer src="/static/app.js?v=6.4.0"></script>
+  <script defer src="/static/app.js?v=6.6.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
-  <script type="module" src="/static/quick-add.js?v=5.4.0"></script>
-  <script type="module" src="/static/search-screen.js?v=6.2.0"></script>
+  <script type="module" src="/static/quick-add.js?v=6.6.0"></script>
+  <script type="module" src="/static/search-screen.js?v=6.6.0"></script>
   <script defer src="/static/map-workspace.js?v=6.4.0"></script>
-  <script type="module" src="/static/accounts.js?v=6.5.0"></script>
+  <script type="module" src="/static/accounts.js?v=6.6.0"></script>
   <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
-  <script defer src="/static/vnext.js?v=6.4.0"></script>
+  <script defer src="/static/vnext.js?v=6.6.0"></script>
 </head>
 <body data-mobile-view="edit" data-trip-step="1" class="region-ready">
   <div class="app-shell">
@@ -62,18 +62,24 @@
       <div class="yg-step-actions"><button type="button" id="yg-next-places" class="yg-primary">다음: 가고 싶은 곳 담기 <span>→</span></button></div>
     </section>
     <div class="region-onboarding" aria-label="여행 지역 고르기"><div class="onboarding-step"><span class="onboarding-step-number">1</span><div><strong>어디로 떠나시나요?</strong><small>먼저 지역을 선택하면 지도가 그곳으로 이동해요.</small></div></div><div class="trip-region-row"><label for="trip-region">직접 입력</label><input id="trip-region" list="trip-region-options" type="text" maxlength="28" value="" autocomplete="off" aria-label="여행 지역 선택" placeholder="제주, 부산, 인천처럼 직접 입력하세요"><datalist id="trip-region-options"><option value="제주"><option value="서울"><option value="부산"><option value="인천"><option value="대전"><option value="대구"><option value="광주"><option value="울산"><option value="세종"><option value="수원"><option value="용인"><option value="고양"><option value="성남"><option value="춘천"><option value="원주"><option value="강릉"><option value="경주"><option value="속초"><option value="여수"><option value="전주"><option value="동해"><option value="양양"><option value="평창"><option value="청주"><option value="충주"><option value="단양"><option value="제천"><option value="천안"><option value="아산"><option value="보령"><option value="태안"><option value="공주"><option value="군산"><option value="익산"><option value="남원"><option value="무주"><option value="순천"><option value="광양"><option value="목포"><option value="담양"><option value="해남"><option value="완도"><option value="포항"><option value="안동"><option value="구미"><option value="영주"><option value="문경"><option value="울진"><option value="창원"><option value="김해"><option value="진주"><option value="통영"><option value="거제"><option value="남해"><option value="밀양"><option value="제주시"><option value="서귀포"><option value="강화"><option value="가평"><option value="양평"><option value="파주"><option value="의정부"><option value="화성"><option value="안산"><option value="김포"><option value="평택"><option value="이천"><option value="양산"><option value="울릉"></datalist><small>나중에 바꿔도 괜찮아요</small></div><div class="region-shortcuts" id="region-shortcuts" aria-label="인기 여행 지역 바로 선택"><span>인기 여행지</span><button type="button" data-region-choice="제주">제주</button><button type="button" data-region-choice="부산">부산</button><button type="button" data-region-choice="강릉">강릉</button><button type="button" data-region-choice="경주">경주</button><button type="button" data-region-choice="서울">서울</button><button type="button" data-region-choice="여수">여수</button></div><div class="region-confirm-row"><button type="button" id="region-confirm" class="region-confirm">이 지역으로 여행 시작하기 <span aria-hidden="true">→</span></button><span id="region-selection-state" role="status" aria-live="polite">① 지역을 먼저 골라주세요.</span></div></div>
+    <div id="yg-plan-date" class="yg-plan-date"><div class="yg-date-switch"><label for="yg-active-date">여행 날짜</label><select id="yg-active-date" aria-label="계획할 여행 날짜 선택"></select></div></div>
     <div id="yg-step-two-intro" class="yg-step-intro"><span>STEP 2 · 가고 싶은 곳 담기</span><h1>어디를 가고 싶으세요?</h1><p>가고 싶은 곳부터 담아보세요.</p></div>
     <section id="yg-daily-editor" class="yg-daily-editor" aria-label="가고 싶은 방문지 담기">
       <div class="yg-visit-editor">
         <button type="button" id="yg-add-visit" class="yg-add-visit yg-search-open" aria-label="장소명 또는 주소 검색"><span aria-hidden="true">⌕</span> 장소명 또는 주소 검색 <span aria-hidden="true">→</span></button>
         <button type="button" id="yg-open-stops" class="yg-open-stops">담은 장소 <strong id="yg-stop-count">0곳</strong> <span aria-hidden="true">›</span></button>
         <p id="yg-day-stop-sub" class="yg-collection-hint"></p>
+        <div id="yg-legacy-stops" class="yg-legacy-stops" hidden>
+          <strong>이전에 담은 미배정 장소 <span id="yg-legacy-count">0</span>곳</strong>
+          <p>위에서 날짜를 고른 뒤 한 번에 옮길 수 있어요.</p>
+          <button type="button" id="yg-legacy-assign">선택한 날짜로 옮기기</button>
+        </div>
         <span id="yg-day-stop-count" hidden>0곳</span><p id="yg-empty-inline" hidden></p>
       </div>
     </section>
     <section id="yg-endpoint-section" class="yg-endpoint-section" aria-label="날짜별 출발지와 도착지">
       <div class="yg-endpoint-section-title"><h2>어디서 출발하고, 어디로 돌아가나요?</h2></div>
-      <div class="yg-date-switch"><label for="yg-active-date">여행 날짜</label><select id="yg-active-date" aria-label="계획할 여행 날짜 선택"></select></div>
+      
       <div id="yg-current-endpoints" class="yg-current-endpoints">
         <div id="yg-day-inherit" class="yg-day-inherit" hidden>
           <label><input type="radio" name="yg-origin-choice" value="inherit"> 전날 도착지에서 출발</label>
@@ -114,8 +120,9 @@
 
       <section class="view-panel" aria-label="여행 동선 결과">
         <div class="view-toolbar"><div class="view-title"><span class="live-ring"></span><div><h2>여행 장소 지도</h2><p id="map-caption">오늘 갈 곳을 지도에서 볼 수 있어요</p></div></div><div class="view-actions"><button class="map-fit" id="btn-sidebar-toggle" type="button" aria-pressed="false" title="왼쪽 목록 접기">목록 접기</button></div></div>
-        <div class="map-control-bar" id="map-control-bar" aria-label="지도 조작"><div class="map-overlay-controls" id="map-overlay-controls"><div class="map-current-day"><span>보고 있는 날짜</span><select id="map-day-select" aria-label="지도 날짜 선택"></select></div><div class="map-control-buttons"><button type="button" id="yg-route-fit" class="yg-route-fit" title="동선 전체 보기">경로 전체</button><button type="button" id="map-zoom-out" class="map-zoom-button" aria-label="지도 축소" title="지도 축소">−</button><button type="button" id="map-zoom-in" class="map-zoom-button" aria-label="지도 확대" title="지도 확대">+</button><button type="button" id="map-lock" aria-pressed="false" title="지도 이동 잠금">지도 움직임 잠그기</button><button type="button" id="map-maximize" aria-pressed="false" title="지도 크게 보기">전체화면</button></div></div><button type="button" id="map-full-close" class="map-full-close" hidden>✕ 지도 닫기</button></div>
-        <div class="map-region" id="map-region"><div id="map"></div><div class="map-placeholder" id="map-placeholder"><div class="map-pattern"></div><div class="map-illustration">⌖</div><strong>네이버 지도를 연결하면<br>실제 여행 경로가 표시됩니다.</strong><span>잠시 후 다시 시도해 주세요.</span></div><span class="map-watermark">Powered by NAVER Maps</span></div><div class="map-accessories" id="map-accessories"><div id="map-place-preview" class="map-place-preview" hidden aria-live="polite"><div class="map-preview-detail"><strong id="map-preview-name"></strong><small id="map-preview-address"></small></div><div class="map-preview-buttons"><button type="button" id="map-preview-cancel">닫기</button><button type="button" id="map-preview-add">이 장소 추가</button></div></div>
+        <div class="map-control-bar" id="map-control-bar" aria-label="지도 조작"><div class="map-overlay-controls" id="map-overlay-controls"><div class="map-control-buttons"><button type="button" id="yg-route-fit" class="yg-route-fit" title="동선 전체 보기">경로 전체</button><button type="button" id="map-zoom-out" class="map-zoom-button" aria-label="지도 축소" title="지도 축소">−</button><button type="button" id="map-zoom-in" class="map-zoom-button" aria-label="지도 확대" title="지도 확대">+</button><button type="button" id="map-lock" aria-pressed="false" title="지도 이동 잠금">지도 움직임 잠그기</button><button type="button" id="map-maximize" aria-pressed="false" title="지도 크게 보기">전체화면</button></div></div><button type="button" id="map-full-close" class="map-full-close" hidden>✕ 지도 닫기</button></div>
+        <div class="map-region" id="map-region"><div id="map"></div><div class="map-placeholder" id="map-placeholder"><div class="map-pattern"></div><div class="map-illustration">⌖</div><strong>네이버 지도를 연결하면<br>실제 여행 경로가 표시됩니다.</strong><span>잠시 후 다시 시도해 주세요.</span></div><span class="map-watermark">Powered by NAVER Maps</span></div>
+        <div id="yg-result-date" class="yg-result-date"><div class="map-current-day"><span>보고 있는 날짜</span><select id="map-day-select" aria-label="지도 날짜 선택"></select></div></div><div class="map-accessories" id="map-accessories"><div id="map-place-preview" class="map-place-preview" hidden aria-live="polite"><div class="map-preview-detail"><strong id="map-preview-name"></strong><small id="map-preview-address"></small></div><div class="map-preview-buttons"><button type="button" id="map-preview-cancel">닫기</button><button type="button" id="map-preview-add">이 장소 추가</button></div></div>
 <div class="map-select-notice hidden" id="map-select-notice"><strong>지도에서 위치를 선택하세요</strong><span>원하는 곳을 지도에서 한 번 눌러주세요</span><button id="btn-cancel-map-pick">취소</button></div></div>
         <div class="map-sheet" id="map-sheet"><button class="map-sheet-toggle" id="map-sheet-toggle" type="button" aria-expanded="false">가는 순서 보기 <span aria-hidden="true">⌃</span></button><div class="map-sheet-list" id="map-sheet-list"></div></div>
         <div class="result-section" id="route-results">
@@ -211,14 +218,44 @@
   <p id="account-user">비회원으로도 여행을 계획할 수 있습니다.</p>
   <p id="account-feedback" role="status" aria-live="polite"></p>
   <div id="account-auth-form" class="account-auth-form">
-   <label>이메일 <input id="account-email" type="email" autocomplete="username" placeholder="name@example.com"></label>
-   <label>비밀번호 <input id="account-password" type="password" autocomplete="current-password" minlength="8" placeholder="8자 이상"></label>
-   <div class="account-auth-buttons">
-    <button data-account-action="signin" type="button">로그인</button>
-    <button data-account-action="signup" type="button">회원가입</button>
-   </div>
-   <button data-account-action="reset" type="button" class="account-link">비밀번호 재설정</button>
-   <p class="account-caption">가입 시 이메일 인증이 필요합니다. 로그인하지 않아도 일정 만들기와 자동차 동선 계산이 가능합니다.</p>
+    <div id="account-auth-welcome" class="account-auth-view">
+      <div class="account-welcome-icon" aria-hidden="true">⌖</div>
+      <h3>여행길에 오신 것을 환영해요.</h3>
+      <p>여행을 저장하고 다른 기기에서도 이어서 계획하세요.</p>
+      <button type="button" class="account-auth-primary" data-auth-view="signin">이메일로 로그인</button>
+      <button type="button" class="account-auth-outline" data-auth-view="signup">회원가입</button>
+      <small>로그인하지 않아도 여행 계획을 만들 수 있어요.</small>
+    </div>
+    <div id="account-auth-credentials" class="account-auth-view" hidden>
+      <button class="account-auth-back" type="button" data-auth-view="welcome">‹ 돌아가기</button>
+      <h3 id="account-auth-title">로그인</h3>
+      <label>이메일 <input id="account-email" type="email" inputmode="email" autocomplete="username" maxlength="254" placeholder="name@example.com"></label>
+      <p class="account-field-hint" id="account-email-hint" aria-live="polite"></p>
+      <div id="account-password-field">
+        <label>비밀번호 <span class="account-password-wrap"><input id="account-password" type="password" autocomplete="current-password" maxlength="128" minlength="8" placeholder="8자 이상"><button type="button" data-toggle-password="account-password" aria-label="비밀번호 보기">보기</button></span></label>
+      </div>
+      <div id="account-confirm-field" hidden>
+        <label>비밀번호 확인 <span class="account-password-wrap"><input id="account-password-confirm" type="password" autocomplete="new-password" maxlength="128" placeholder="비밀번호 한 번 더 입력"><button type="button" data-toggle-password="account-password-confirm" aria-label="비밀번호 확인 보기">보기</button></span></label>
+      </div>
+      <p class="account-field-hint" id="account-password-hint" aria-live="polite"></p>
+      <button type="button" class="account-auth-primary" id="account-auth-submit" data-account-action="signin">로그인</button>
+      <button type="button" class="account-link" id="account-auth-alternate" data-auth-view="signup">처음이신가요? 회원가입</button>
+      <button type="button" class="account-link" id="account-auth-reset-link" data-auth-view="reset">비밀번호를 잊으셨나요?</button>
+    </div>
+    <div id="account-auth-verify" class="account-auth-view" hidden>
+      <div class="account-mail-icon" aria-hidden="true">✉</div>
+      <h3>인증 메일을 보냈어요.</h3>
+      <p><strong id="account-verify-email"></strong><span>메일함에서 인증 링크를 눌러주세요.</span></p>
+      <button class="account-auth-primary" type="button" data-account-action="resend">인증 메일 다시 보내기</button>
+      <button type="button" class="account-auth-outline" data-auth-view="signin">로그인 화면으로</button>
+    </div>
+    <div id="account-auth-recovery" class="account-auth-view" hidden>
+      <h3>새 비밀번호 설정</h3>
+      <p>계속 사용할 비밀번호를 입력해 주세요.</p>
+      <label>새 비밀번호 <span class="account-password-wrap"><input id="account-recovery-password" type="password" autocomplete="new-password" minlength="8" maxlength="128"><button type="button" data-toggle-password="account-recovery-password" aria-label="새 비밀번호 보기">보기</button></span></label>
+      <label>비밀번호 확인 <input id="account-recovery-confirm" type="password" autocomplete="new-password" maxlength="128"></label>
+      <button class="account-auth-primary" type="button" data-account-action="setrecovery">비밀번호 변경하기</button>
+    </div>
   </div>
   <div id="account-signed" hidden>
    <label>여행 이름 <input id="account-trip-name" maxlength="90" value="새 여행" autocomplete="off"></label>
