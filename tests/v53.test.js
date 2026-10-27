@@ -41,9 +41,11 @@ test('v5.3 map search has map, toggleable large list, visible pin and continuous
 
 test('v5.3 fullscreen dialog blocks background scroll and restores its state',async()=>{
  const [js,css]=await Promise.all(['public/static/search-screen.js','public/static/design-v53.css'].map(read));
- assert.match(js,/document\.body\.style\.position='fixed'/);
- assert.match(js,/document\.body\.style\.position=''/);
- assert.match(js,/window\.scrollTo\(0,previousScroll\)/);
+ assert.match(js,/YGScrollLock\?\.lock\('search-screen'\)/);
+ assert.match(js,/YGScrollLock\?\.unlock\('search-screen'\)/);
+ const lock=await read('public/static/scroll-lock.js');
+ assert.match(lock,/body\.style\.position='fixed'/);
+ assert.match(lock,/root\.scrollTo\(\{top:saved\.y,behavior:'instant'\}\)/);
  assert.match(js,/window\.visualViewport\?\.addEventListener\('resize',updateSize\)/);
  assert.match(css,/overscroll-behavior:contain/);
 });
