@@ -185,12 +185,12 @@ $('yg-start-date').addEventListener('change',()=>{
 $('yg-end-date').addEventListener('change',syncDateRange);
 // STEP 2: Selecting a date never recreates/stomps another day's stops.
 $('yg-active-date').addEventListener('change',e=>app.setActive(Number(e.target.value)));
-$('yg-origin-pick').addEventListener('click',()=>app.openModal('origin'));
-$('yg-dest-pick').addEventListener('click',()=>app.openModal('destination'));
+$('yg-origin-pick').addEventListener('click',()=>{if(window.YeoSearch)window.YeoSearch.show('origin');else app.openModal('origin');});
+$('yg-dest-pick').addEventListener('click',()=>{if(window.YeoSearch)window.YeoSearch.show('destination');else app.openModal('destination');});
 document.querySelectorAll('[name="yg-origin-choice"]').forEach(radio=>radio.addEventListener('change',()=>{
  if(!radio.checked)return;
  app.setDayOriginMode(app.getActive(),radio.value);
- if(radio.value==='custom')app.openModal('origin');
+ if(radio.value==='custom'){if(window.YeoSearch)window.YeoSearch.show('origin');else app.openModal('origin');}
 }));
 $('yg-add-visit').addEventListener('click',openSearch);
 $('yg-fit-all').addEventListener('click',()=>{app.fitMap();app.resizeMap();});
