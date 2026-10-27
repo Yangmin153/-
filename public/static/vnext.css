@@ -850,3 +850,49 @@ body[data-trip-step] #yg-kakao-navi-domain{
  display:block;padding:9px 10px;border-radius:9px;background:#f4f7fc;
  color:#284a6c;font-size:11px;overflow-wrap:anywhere;white-space:normal
 }
+
+/* v7.2: contextual on-the-road GPS reroute just below the STEP3 map/day control. */
+body[data-trip-step] #yg-live-controls,body[data-trip-step] #yg-route-account-actions{display:none!important}
+body[data-trip-step="3"] #yg-live-controls{
+ display:grid!important;gap:8px;width:100%;max-width:950px;
+ margin:-4px auto 11px;padding:0 12px 11px;
+ border-bottom:1px solid #e2eaf5
+}
+body[data-trip-step="3"] .yg-live-button{
+ display:flex;justify-content:center;align-items:center;gap:8px;
+ border:1px solid #b7d4f7;background:#eaf3ff;color:#1a5bb1;
+ border-radius:13px;width:100%;min-height:52px;padding:12px 14px;
+ font-size:14px;font-weight:850;letter-spacing:-.25px;cursor:pointer
+}
+body[data-trip-step="3"] .yg-live-button span{font-size:22px;line-height:1}
+body[data-trip-step="3"] .yg-live-button:disabled{opacity:.55;cursor:wait}
+body[data-trip-step="3"] #yg-live-controls>small{
+ font-size:11px;color:#8191a7;text-align:center;line-height:1.4
+}
+body[data-trip-step="3"] #yg-live-status:not([hidden]){
+ display:block;font-size:12px;line-height:1.55;color:#245eaa;
+ margin:1px 0;background:#f5f9ff;padding:9px 11px;border-radius:10px
+}
+body[data-trip-step="3"] #yg-live-status[data-error="true"]{
+ color:#a24836;background:#fff4f2
+}
+body[data-trip-step="3"] .yg-live-reset:not([hidden]){
+ min-height:44px;width:100%;border:1px solid #d4e1f2;
+ color:#3c628d;background:#fff;border-radius:11px;
+ font-size:12px;font-weight:750
+}
+body[data-trip-step="3"] #yg-route-account-actions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;width:100%;max-width:950px;margin:0 auto 12px;padding:0 12px
+}
+body[data-trip-step="3"] #yg-route-account-actions button{
+ min-width:0;min-height:47px;border:1px solid #d4e0f0;border-radius:11px;
+ background:#fff;color:#486787;font-size:12px;font-weight:800;
+ padding:10px 7px;cursor:pointer
+}
+body[data-trip-step="3"] #yg-route-account-actions button:focus-visible,
+body[data-trip-step="3"] .yg-live-button:focus-visible{outline:3px solid #8fbeff;outline-offset:2px}
+@media(max-width:370px){
+ body[data-trip-step="3"] #yg-route-account-actions button{font-size:11px}
+ body[data-trip-step="3"] #yg-live-controls{padding:0 8px 10px}
+}
