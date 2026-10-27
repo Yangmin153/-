@@ -35,7 +35,7 @@
   const active=Boolean(d?.liveOrigin&&d?.result?.isLiveRoute);
   reset.hidden=!active;
   button.textContent=busy?'현재 위치로 계산 중…':'◎ 현재 위치에서 다시 최적화';
-  button.disabled=busy||!d||!d.stops?.length||!/^(?:[^]*)$/.test(String(d.date||''));
+  button.disabled=busy||!d||!d.stops?.length||!d.date;
   if(!busy){
    if(!d?.stops?.length)message('방문지를 추가하면 현재 위치에서 최적화할 수 있어요.');
    else if(active)message('현재 위치에서 새로 계산한 동선이에요. 원래 계획은 그대로 보관돼요.');
