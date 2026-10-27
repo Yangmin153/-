@@ -4,7 +4,7 @@ const screen=$('search-screen'),form=$('quick-form'),results=$('quick-results'),
 const mapNode=$('search-naver-map'),mapStage=$('search-map-stage'),resultMount=$('search-screen-results-mount');
 const feedback=$('search-screen-feedback'),picked=$('search-picked');
 const centers={제주:[33.489,126.498],서울:[37.5665,126.978],부산:[35.1796,129.0756],강릉:[37.7519,128.8761],경주:[35.8562,129.2247],속초:[38.207,128.5918],여수:[34.7604,127.6622],전주:[35.8242,127.148],인천:[37.4563,126.7052],서귀포:[33.254,126.559]};
-let opened=false,historyEntry=false,previousFocus=null,previousScroll=0;
+let opened=false,historyEntry=false,previousFocus=null,previousScroll=0,searchKind='stop';
 let mode='map',selected=null,items=[],searchMap=null,markers=[],selectedMarker=null,savedMarkers=[],savedSignature='',isSavedSelection=false;
 let feedbackTimer=null, lastChosenRegion='';
 function updateSize(){
@@ -49,30 +49,39 @@ function clearMarkers(){
 }
 function clearSavedMarkers(){for(const marker of savedMarkers)marker.setMap(null);savedMarkers=[];}
 function savedPlaces(){return window.TripApp?.getDay?.()?.stops||[];}
+function existingPlaces(){
+ const d=window.TripApp?.getDay?.();if(!d)return [];
+ return [...savedPlaces().map(place=>({place,kind:'pending'})),
+  ...(['origin','destination'].filter(kind=>d[kind]&&Number.isFinite(d[kind].lat)&&Number.isFinite(d[kind].lng)&&!/미설정/.test(d[kind].name||'')).map(kind=>({place:d[kind],kind})))];
+}
+function endpointMode(){return searchKind==='origin'||searchKind==='destination';}
+function actionText(){return searchKind==='origin'?'출발지로 설정':searchKind==='destination'?'도착지로 설정':'+ 방문지 추가';}
 function showSaved(place){
  selected=place;isSavedSelection=true;
  $('search-picked-name').textContent=place.name;
  $('search-picked-address').textContent=(place.address||'')+' · 이미 담은 장소';
- $('search-picked-add').textContent='이미 추가됨';
- $('search-picked-add').disabled=true;
+ $('search-picked-add').textContent=endpointMode()?actionText():'이미 추가됨';
+ $('search-picked-add').disabled=!endpointMode();
  picked.hidden=false;showMode('map');paintMarkers();
  if(searchMap)searchMap.panTo(new window.naver.maps.LatLng(place.lat,place.lng));
 }
 function refreshSavedMarkers(){
  const current=window.TripApp?.getDay?.();
- const signature=String(current?.id||'')+'|'+savedPlaces().map(p=>[p.id,p.lat,p.lng,p.name].join(':')).join('|');
+ const signature=String(current?.id||'')+'|'+existingPlaces().map(({place,kind})=>[kind,place.id,place.lat,place.lng,place.name].join(':')).join('|');
  if(signature===savedSignature)return;
  savedSignature=signature;clearSavedMarkers();
  if(!searchMap||!window.naver?.maps?.Marker)return;
  const grouped=new Map();
- for(const place of savedPlaces()){
+ for(const entry of existingPlaces()){
+  const {place}=entry;
   const key=Number(place.lat).toFixed(4)+':'+Number(place.lng).toFixed(4);
   if(!grouped.has(key))grouped.set(key,[]);
-  grouped.get(key).push(place);
+  grouped.get(key).push(entry);
  }
  for(const group of grouped.values()){
-  const place=group[0],count=group.length;
-  const pin=window.YeoPins?.marker?.(searchMap,place,{kind:count>1?'cluster':'pending',count,zIndex:600});
+  const {place,kind}=group[0],count=group.length;
+  if(selected&&count===1&&place.id===selected.id)continue;
+  const pin=window.YeoPins?.marker?.(searchMap,place,{kind:count>1?'cluster':kind,count,zIndex:600});
   if(!pin)continue;
   window.naver.maps.Event.addListener(pin,'click',()=>{if(count>1)window.YeoNext?.openSheet?.();else showSaved(place);});
   savedMarkers.push(pin);
@@ -85,10 +94,8 @@ function paintMarkers(){
  clearMarkers();
  if(!searchMap)return;
  if(selected){
-  // A single search-result preview must not show other result or saved markers.
-  clearSavedMarkers();
-  if(isSavedSelection)selectedMarker=mark(selected,true);
-  else selectedMarker=mark(selected,true);
+  // Retain saved visits/endpoints; hide only unselected SEARCH result candidates.
+  savedSignature='';refreshSavedMarkers();selectedMarker=mark(selected,true);
   return;
  }
  // While browsing without a selected preview, all collected places stay visible.
@@ -119,7 +126,7 @@ function onResults(next){
 }
 function preview(item){
  if(!item)return;
- selected=item;isSavedSelection=false;$('search-picked-add').disabled=false;$('search-picked-add').textContent='+ 방문지 추가';
+ selected=item;isSavedSelection=false;$('search-picked-add').disabled=false;$('search-picked-add').textContent=actionText();
  $('search-picked-name').textContent=String(item.name||'선택한 위치');
  $('search-picked-address').textContent=String(item.address||'주소를 확인해 주세요.');
  picked.hidden=false;
@@ -129,13 +136,14 @@ function preview(item){
  if(searchMap)searchMap.panTo(new window.naver.maps.LatLng(Number(item.lat),Number(item.lng)));
  input.blur();
 }
-function show(){
+function show(kind='stop'){
  if(opened)return;
+ searchKind=['origin','destination'].includes(kind)?kind:'stop';
  $('search-list-toggle').hidden=true;
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  opened=true;historyEntry=true;previousFocus=document.activeElement;previousScroll=window.scrollY;
  feedback.hidden=true;picked.hidden=true;selected=null;items=[];isSavedSelection=false;input.value='';results.replaceChildren();results.hidden=true;
- $('search-screen-region').textContent=(window.YeoNext?.dateLabel?.()||'오늘')+' · 방문지 추가';
+ $('search-screen-region').textContent=(window.YeoNext?.dateLabel?.()||'오늘')+' · '+(searchKind==='origin'?'출발지 검색':searchKind==='destination'?'도착지 검색':'방문지 추가');
  $('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';
  screen.hidden=false;screen.querySelector('#search-screen-form-mount').append(form);resultMount.append(results);
  document.documentElement.style.overflow='hidden';document.body.style.position='fixed';document.body.style.top='-'+previousScroll+'px';document.body.style.width='100%';document.body.classList.add('search-open');
@@ -148,7 +156,7 @@ function show(){
 }
 function hide(fromPopstate=false){
  if(!opened)return;
- opened=false;selected=null;items=[];clearMarkers();clearSavedMarkers();savedSignature='';input.blur();
+ opened=false;selected=null;items=[];searchKind='stop';clearMarkers();clearSavedMarkers();savedSignature='';input.blur();
  original.insertBefore(results,original.firstChild);original.insertBefore(form,$('quick-feedback'));
  screen.hidden=true;mapStage.hidden=false;resultMount.hidden=true;results.hidden=true;
  document.body.classList.remove('search-open');document.body.style.position='';document.body.style.top='';document.body.style.width='';document.documentElement.style.overflow='';
@@ -168,9 +176,16 @@ function addSuccess(message){
  showMode('map');
  requestAnimationFrame(()=>input.focus({preventScroll:true}));
 }
+function completeEndpoint(item){
+ const kind=searchKind;
+ if(!endpointMode())return false;
+ if(!window.TripApp?.setEndpointFromSearch?.(kind,item))return false;
+ hide();window.TripApp?.toast?.((kind==='origin'?'출발지':'도착지')+'를 설정했어요.');
+ return true;
+}
 function chooseAdd(){
- if(!selected||isSavedSelection)return;
- const ok=window.TripQuickAdd?.addPlace?.(selected);
+ if(!selected||(!endpointMode()&&isSavedSelection))return;
+ const ok=endpointMode()?completeEndpoint(selected):window.TripQuickAdd?.addPlace?.(selected);
  if(ok===false){$('search-picked-add').textContent='이미 추가한 장소';setTimeout(()=>$('search-picked-add').textContent='+ 방문지 추가',1200);}
 }
 $('search-screen-back').addEventListener('click',()=>hide());
@@ -189,4 +204,4 @@ document.addEventListener('trip:stops-changed',()=>{if(opened){savedSignature=''
 document.addEventListener('trip:day-changed',()=>{if(opened){selected=null;picked.hidden=true;isSavedSelection=false;savedSignature='';paintMarkers();$('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';}});
 window.addEventListener('resize',()=>{if(opened)refreshSavedMarkers();});
 $('search-screen-count').addEventListener('click',()=>window.YeoNext?.openSheet?.());
-window.YeoSearch={show,hide,isOpen:()=>opened,preview,showSavedPlace:showSaved,searchStarted,onResults,addSuccess,refreshSavedMarkers};
+window.YeoSearch={show,hide,isOpen:()=>opened,mode:()=>searchKind,isEndpointMode:endpointMode,completeEndpoint,preview,showSavedPlace:showSaved,searchStarted,onResults,addSuccess,refreshSavedMarkers};
