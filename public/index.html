@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
   <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
-  <link rel="stylesheet" href="/static/vnext.css?v=7.0.0">
+  <link rel="stylesheet" href="/static/vnext.css?v=7.1.0">
   <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
@@ -34,7 +34,7 @@
   <script type="module" src="/static/accounts.js?v=7.0.0"></script>
   <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
   <script defer src="/static/vnext.js?v=7.0.0"></script>
-  <script defer src="/static/navigation.js?v=7.0.0"></script>
+  <script defer src="/static/navigation.js?v=7.1.0"></script>
 </head>
 <body data-mobile-view="edit" data-trip-step="1" class="region-ready">
   <div class="app-shell">
@@ -193,6 +193,14 @@
       <p id="yg-nav-status" class="yg-nav-status" role="status" aria-live="polite"></p>
       <div id="yg-nav-segments" class="yg-nav-segments"></div>
       <button id="yg-nav-start" class="yg-nav-primary" type="button">길안내 시작</button>
+      <button id="yg-nav-retry" type="button" class="yg-nav-retry" hidden>방금 길안내 다시 열기</button>
+      <details id="yg-kakao-navi-help" class="yg-kakao-navi-help" hidden>
+        <summary>카카오내비에서 서비스 오류가 뜨나요?</summary>
+        <p>카카오 디벨로퍼스 → 앱 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 아래 주소를 등록해 주세요.</p>
+        <code id="yg-kakao-navi-domain"></code>
+        <p>JavaScript 키가 발급된 앱과 실제 사용 앱이 같아야 합니다. 등록 후에도 실패하면 카카오내비를 최신 버전으로 업데이트하고 앱을 다시 실행해 보세요.</p>
+        <p>SDK 초기화가 성공해도 카카오내비 앱의 인증 성공을 보장하지는 않습니다.</p>
+      </details>
       <small class="yg-nav-disclaimer">다음 길안내는 안전하게 정차한 뒤 실행해 주세요.</small>
     </section>
   </div>
