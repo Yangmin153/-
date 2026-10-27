@@ -51,7 +51,21 @@ function kakaoArguments(part){
  return {name:part.destination.name,x:Number(part.destination.lng),y:Number(part.destination.lat),
  coordType:'wgs84',viaPoints:part.via.map(p=>({name:p.name,x:Number(p.lng),y:Number(p.lat)}))};
 }
-const planner=Object.freeze({orderedPoints,sections,naverUrl,kakaoArguments,MAX_VIA});
+function naverRouteUrl(part,webOrigin){
+ return naverUrl(part,webOrigin).replace(/^nmap:\/\/navigation\?/,'nmap://route/car?');
+}
+function androidNaverIntent(schemeUrl){
+ const url=new URL(schemeUrl);
+ if(url.protocol!=='nmap:')throw Error('지원하지 않는 네이버 지도 호출 주소입니다.');
+ return 'intent://'+url.host+url.pathname+url.search+
+  '#Intent;scheme=nmap;action=android.intent.action.VIEW;'+
+  'category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;end';
+}
+function naverLaunchUrl(part,webOrigin,agent,preview=false){
+ const scheme=preview?naverRouteUrl(part,webOrigin):naverUrl(part,webOrigin);
+ return /Android/i.test(agent||'')?androidNaverIntent(scheme):scheme;
+}
+const planner=Object.freeze({orderedPoints,sections,naverUrl,naverRouteUrl,naverLaunchUrl,androidNaverIntent,kakaoArguments,MAX_VIA});
 root.TripNaviPlanner=planner;
 if(!root.document||!$('yg-nav-open'))return;
 let provider='naver',config=null,loadPromise=null,activeDayId='',lastOpened=-1;
@@ -71,7 +85,8 @@ function redraw(){
   '<div class="yg-nav-segment-top"><strong>'+(part.index+1)+'구간</strong><span>'+
    safe(part.startHint)+' → '+safe(part.destination.name)+'</span></div>'+
   (part.via.length?'<small>앱에 전달할 경유지 '+part.via.length+'곳: '+part.via.map((p,i)=>(i+1)+'. '+safe(p.name)).join(' → ')+'</small>':'<small>경유지 없이 목적지로 이동</small>')+
-  '<button type="button" data-nav-segment="'+part.index+'">'+(part.index===0?'길안내 시작':'이 구간 실행')+'</button></div>').join('');
+  '<button type="button" data-nav-segment="'+part.index+'">'+(part.index===0?'길안내 시작':'이 구간 실행')+'</button>'+
+  (provider==='naver'&&part.via.length?'<button type="button" data-nav-preview="'+part.index+'" class="yg-nav-preview">경유지 포함 경로 먼저 확인</button>':'')+'</div>').join('');
  $('yg-nav-segment-count').textContent=parts.length?parts.length+'개 구간':'계산 결과 없음';
  explain(unready?'이 날짜의 동선을 먼저 계산해 주세요.':(parts.length>1?'한 구간을 마친 뒤 여행길로 돌아와 다음 구간을 실행하세요. ':'')+
  (provider==='kakao'?'카카오내비에는 최대 3개 경유지를 직접 전달합니다. ':'네이버지도에는 최대 5개 경유지를 직접 전달합니다. ')+
@@ -112,7 +127,7 @@ function open(){
  activeDayId=d.id;lastOpened=-1;provider='naver';$('yg-nav-provider').value=provider;
  panel.hidden=false;document.body.classList.add('yg-nav-open');redraw();
 }
-function launch(index){
+function launch(index,preview=false){
  const selected=day(),parts=sections(selected,provider),part=parts[index];
  if(!part){explain('최신 동선으로 다시 계산한 뒤 내비게이션을 시작해 주세요.');return;}
  // Validate again at the exact moment navigation is opened.
@@ -120,7 +135,7 @@ function launch(index){
  lastOpened=index;redraw();
  if(provider==='naver'){
   // Direct, trusted Naver official scheme. The external app uses GPS as origin.
-  const url=naverUrl(part,location.origin);
+  const url=naverLaunchUrl(part,location.origin,navigator.userAgent,preview);
   window.location.href=url;return;
  }
  // Call the app-launching SDK synchronously within the click when preloaded;
@@ -137,6 +152,8 @@ $('yg-nav-start').addEventListener('click',()=>launch(0));
 $('yg-nav-close').addEventListener('click',close);
 panel.addEventListener('click',e=>{
  if(e.target===panel||e.target.closest('[data-nav-close]'))return close();
+ const preview=e.target.closest('[data-nav-preview]');
+ if(preview)return launch(Number(preview.dataset.navPreview),true);
  const b=e.target.closest('[data-nav-segment]');if(b)launch(Number(b.dataset.navSegment));
 });
 $('yg-nav-provider').addEventListener('change',e=>{
