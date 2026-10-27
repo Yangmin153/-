@@ -203,6 +203,8 @@ async function perform(action){
 }
 function init(){
  $('account-button').onclick=open;$('cloud-save').onclick=()=>{open();void perform('save')};$('account-close').onclick=close;
+ $('yg-route-save')?.addEventListener('click',saveCurrent);
+ $('yg-route-load')?.addEventListener('click',openSaved);
  panel.addEventListener('click',e=>{
   if(e.target===panel){close();return;}
   const toggler=e.target.closest('[data-toggle-password]');
