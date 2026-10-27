@@ -48,7 +48,7 @@ test('STEP2 search preview displays selected marker only while saved markers rea
  const js=await read('public/static/search-screen.js');
  assert.match(js,/if\(selected\)\{[\s\S]*clearSavedMarkers\(\)/);
  assert.match(js,/selectedMarker=mark\(selected,true\)/);
- assert.match(js,/items=\[\];\s*clearMarkers\(\);savedSignature='';refreshSavedMarkers\(\)/);
+ assert.match(js,/items=\[\];\s*clearMarkers\(\);refreshSavedMarkers\(\)/);
  assert.match(js,/document\.addEventListener\('trip:stops-changed'/);
 });
 test('STEP2 collection sheet hides date choice and only supports deletion',async()=>{
