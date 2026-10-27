@@ -49,7 +49,7 @@ function validateFields(){
  return {email,password,confirm};
 }
 
-function currentDays(){return app().getDays().map(({result,...day})=>structuredClone(day));}
+function currentDays(){return app().exportCloudDays?.()||app().getDays().map(day=>structuredClone(day));}
 async function initApi(){
  if(api)return api;
  config=config||await (await fetch('/api/config')).json();
@@ -114,7 +114,7 @@ function tripRow(trip){
  const openBtn=document.createElement('button');openBtn.type='button';openBtn.className='account-trip-open';
  const name=document.createElement('strong');name.textContent=trip.name;
  const sub=document.createElement('small');sub.textContent=[trip.region,new Date(trip.updated_at).toLocaleDateString('ko-KR')+' 수정'].filter(Boolean).join(' · ');
- openBtn.append(name,sub);openBtn.onclick=()=>{if(!confirm('이 여행을 열까요? 화면의 현재 여행은 교체됩니다. 브라우저에 저장된 비회원 일정은 유지됩니다.'))return;if(!app().importDays(trip.days))return notice('저장된 데이터가 올바르지 않습니다.',true);activeId=trip.id;$('account-trip-name').value=trip.name;close();};
+ openBtn.append(name,sub);openBtn.onclick=()=>{if(!confirm('이 여행을 열까요? 화면의 현재 여행은 교체됩니다. 브라우저에 저장된 비회원 일정은 유지됩니다.'))return;if(!app().importDays(trip.days))return notice('저장된 데이터가 올바르지 않습니다.',true);activeId=trip.id;$('account-trip-name').value=trip.name;close();if(trip.days.some(d=>d.result)&&window.YeoNext?.go)window.YeoNext.go(3);app().toast('저장한 여행을 불러왔어요.');};
  const edit=document.createElement('button');edit.type='button';edit.textContent='이름';edit.onclick=async()=>{const value=prompt('여행 이름 변경',trip.name);if(value===null)return;const name=value.trim();if(!name||name.length>90)return notice('이름을 1~90자로 입력해 주세요.',true);try{await request('?id='+trip.id,'PATCH',payload(name,trip.days,trip.import_fingerprint));if(activeId===trip.id)$('account-trip-name').value=name;await loadTrips();notice('변경 완료');}catch(e){notice(e.message,true)}};
  const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='삭제';del.onclick=async()=>{if(!confirm('여행 '+trip.name+'을(를) 삭제할까요?'))return;try{await request('?id='+trip.id,'DELETE');if(activeId===trip.id)activeId=null;await loadTrips();notice('삭제 완료')}catch(e){notice(e.message,true)}};
  const opts=document.createElement('div');opts.className='account-trip-ops';opts.append(edit,del);row.append(openBtn,opts);return row;
@@ -219,6 +219,18 @@ function init(){
  if(errorCode){open();setView('signin');notice(humanError({code:errorCode,message:query.get('error_description')||fragment.get('error_description')||errorCode}),true);}
  fetch('/api/config').then(r=>r.json()).then(async c=>{config=c;if(!c.supabaseReady)return;await initApi();void refreshOAuthProviders();const {data}=await api.auth.getSession();applySession(data.session)}).catch(e=>notice(humanError(e),true));
 }
-window.YeoAccount={isSignedIn:loggedIn,open,loadTrips};
+function saveCurrent(){
+ if(!loggedIn()){
+  open();notice('로그인한 뒤 여행 저장을 눌러주세요.');return;
+ }
+ open();
+ void perform('save');
+}
+function openSaved(){
+ open();
+ if(loggedIn())void loadTrips();
+ else notice('저장된 여행을 불러오려면 로그인해 주세요.');
+}
+window.YeoAccount={isSignedIn:loggedIn,open,loadTrips,saveCurrent,openSaved};
 init();
 
