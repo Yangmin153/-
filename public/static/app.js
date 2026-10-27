@@ -15,7 +15,20 @@ function freshDays(){
 }
 function validPlace(q){return q&&typeof q.name==='string'&&q.name.length<=100&&Number.isFinite(Number(q.lat))&&Number.isFinite(Number(q.lng))&&Math.abs(Number(q.lat))<=90&&Math.abs(Number(q.lng))<=180}
 function validDays(d){return Array.isArray(d)&&d.length>0&&d.length<=10&&d.every(day=>day&&validPlace(day.origin)&&validPlace(day.destination)&&Array.isArray(day.stops)&&day.stops.length<=300&&day.stops.every(validPlace)&&(!day.unassignedStops||(Array.isArray(day.unassignedStops)&&day.unassignedStops.length<=30&&day.unassignedStops.every(validPlace)))&&/^\d{2}:\d{2}$/.test(day.departure)&&['auto','manual'].includes(day.mode))}
-function normalizeDays(days){return days.map(d=>{const {transport,...data}=d;return {...data,origin:omitStay(data.origin),destination:omitStay(data.destination),stops:data.stops.map(omitStay),unassignedStops:(data.unassignedStops||[]).map(omitStay),result:null};});}
+function validSavedRoute(d){
+ const r=d.result,stops=d.stops||[];
+ if(!r||typeof r!=='object'||!Array.isArray(r.orderIds)||!Array.isArray(r.entries))return null;
+ if(r.orderIds.length!==stops.length||new Set(r.orderIds).size!==stops.length||
+  r.orderIds.some(id=>!stops.some(p=>p.id===id)))return null;
+ if(r.entries.length!==stops.length+2)return null;
+ const seq=[d.origin,...r.orderIds.map(id=>stops.find(p=>p.id===id)),d.destination];
+ if(r.entries.some((entry,i)=>entry?.place?.id!==seq[i]?.id))return null;
+ if(!Number.isFinite(r.drivingMinutes)||!Number.isFinite(r.totalDistanceMeters))return null;
+ return r;
+}
+function normalizeDays(days){return days.map(d=>{const {transport,liveOrigin,...data}=d;
+ const clean={...data,origin:omitStay(data.origin),destination:omitStay(data.destination),stops:data.stops.map(omitStay),unassignedStops:(data.unassignedStops||[]).map(omitStay)};
+ clean.result=validSavedRoute(clean);return clean;});}
 function omitStay(place){const {stayMinutes,...rest}=place;return rest;}
 function loadDays(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));if(validDays(saved))return normalizeDays(saved)}catch{}return freshDays()}
 const state={days:loadDays(),active:0,loading:false,modal:null,mapPicking:false,hadResult:{},dirtyDayIds:new Set()};
@@ -29,9 +42,10 @@ let previousSearchType="";
 const expandedStops=new Set();
 let mapFitQueued=true,selectedMapStop=null,mapLocked=false,markerInfo=null;
 const day=()=>state.days[state.active];
+const liveRoutes=new Map();
 const unassignedStops=()=>state.days[0]?.unassignedStops||[];
 function allStops(){return [...state.days.flatMap(d=>d.stops),...unassignedStops()];}
-function invalidateRoutes(){for(const d of state.days){if(d.result)state.dirtyDayIds.add(d.id);d.result=null;}sceneSignature='';sceneResult=null;mapFitQueued=true;}
+function invalidateRoutes(){for(const d of state.days){liveRoutes.delete(d.id);delete d.liveOrigin;if(d.result)state.dirtyDayIds.add(d.id);d.result=null;}sceneSignature='';sceneResult=null;mapFitQueued=true;}
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3300)}
 function currentRegion(){return day().region||state.days[0].region||DEFAULT_REGION;}
 function setRegion(value){const region=String(value||'').trim().replace(/\s+/g,' ').slice(0,28);if(!region)return false;for(const d of state.days)d.region=region;save();window.TripQuickAdd?.syncRegion?.();return true;}
@@ -102,7 +116,7 @@ function renderEditor(){const d=day();document.body.dataset.stopView='list';
 }
 function renderResult(){const d=day(),r=d.result;document.body.classList.toggle('has-route-result',Boolean(r));$('metric-places').textContent=d.stops.length;
  $('metric-mode-label').textContent='자동차 이동';$('result-alert').classList.add('hidden');$('route-savings').classList.add('hidden');
- $('map-caption').textContent=d.origin.name+' → '+d.destination.name;
+ $('map-caption').textContent=(d.liveOrigin||d.origin).name+' → '+d.destination.name;
  if(!r){const dirty=state.dirtyDayIds.has(d.id);$('result-alert').classList.toggle('hidden',!dirty);if(dirty)$('result-alert').textContent='DAY '+(state.active+1)+' 일정이 변경되었습니다. 최적 동선을 다시 계산해 주세요.';$('result-status').textContent=dirty?'재계산 필요':'계산 전';$('metric-drive').textContent='—';$('metric-distance').textContent='—';$('result-status').textContent=state.dirtyDayIds.has(d.id)?'재계산 필요':'길 찾기 전';$('result-status').className='result-status';$('timeline-note').textContent='장소를 담고 빠른 길 찾기를 눌러주세요';$('timeline').innerHTML='<div class="blank-timeline">방문지를 추가하고<br><strong>동선 계산하기</strong>를 눌러 주세요.</div>';return;}
  const minutes=r.drivingMinutes;$('metric-drive').textContent=readableMinutes(minutes);
  $('metric-distance').textContent=(r.totalDistanceMeters/1000).toFixed(1);
@@ -118,7 +132,7 @@ function renderResult(){const d=day(),r=d.result;document.body.classList.toggle(
   return segment+'<div class="timeline-entry"><div class="timeline-rail"><span class="timeline-dot">'+(i===0?'S':i===r.entries.length-1?'E':i)+'</span></div><div class="timeline-info"><span class="timeline-category" title="'+esc(meta.label)+'" style="color:'+esc(meta.color)+'">'+TripMeta.icon(entry.place,18)+'</span><strong>'+esc(entry.place.name)+'</strong><span class="timeline-kind">'+(entry.kind==='origin'?'출발':entry.kind==='destination'?'도착':'방문지')+'</span></div></div>';
  }).join('');
 }
-function markDirty(shouldRecalculate=true){const d=day(),had=!!d.result;if(had)state.dirtyDayIds.add(d.id);d.result=null;recommendationOpen.clear();recommendationCache.clear();refresh();if(had){window.TripQuickAdd?.setDirty?.(true);$('timeline-note').textContent='방문지가 바뀌었어요. 다시 계산해 주세요.';}document.dispatchEvent(new Event('trip:stops-changed',{bubbles:true}));}
+function markDirty(shouldRecalculate=true){const d=day();liveRoutes.delete(d.id);delete d.liveOrigin;const had=!!d.result;if(had)state.dirtyDayIds.add(d.id);d.result=null;recommendationOpen.clear();recommendationCache.clear();refresh();if(had){window.TripQuickAdd?.setDirty?.(true);$('timeline-note').textContent='방문지가 바뀌었어요. 다시 계산해 주세요.';}document.dispatchEvent(new Event('trip:stops-changed',{bubbles:true}));}
 function makeNextDay(prev){
  const origin=clone(prev.destination),destination=p('도착지 미설정',prev.destination.lat,prev.destination.lng);
  origin.id=uid();
@@ -260,6 +274,43 @@ function moveRouteStop(id,direction){
  d.result=null;sceneSignature='';mapFitQueued=true;refresh();
  document.dispatchEvent(new Event('trip:stops-changed'));return true;
 }
+function applyLiveRoute(dayId,gps,route){
+ const d=state.days.find(item=>item.id===dayId);
+ if(!d||!validPlace(gps)||!route||!Array.isArray(route.orderIds)||!Array.isArray(route.entries))return false;
+ if(route.orderIds.length!==d.stops.length||new Set(route.orderIds).size!==d.stops.length||
+  route.orderIds.some(id=>!d.stops.some(p=>p.id===id)))return false;
+ const seq=[gps,...route.orderIds.map(id=>d.stops.find(p=>p.id===id)),d.destination];
+ if(route.entries.length!==seq.length||route.entries.some((entry,i)=>entry?.place?.id!==seq[i].id))return false;
+ if(!Number.isFinite(route.drivingMinutes)||!Number.isFinite(route.totalDistanceMeters))return false;
+ if(!liveRoutes.has(d.id))liveRoutes.set(d.id,{originalRoute:d.result});
+ d.liveOrigin=structuredClone(gps);d.result={...route,isLiveRoute:true};
+ sceneSignature='';sceneResult=null;mapFitQueued=true;refresh();
+ document.dispatchEvent(new Event('trip:live-route-changed'));
+ return true;
+}
+function restorePlannedRoute(dayId=day()?.id){
+ const old=liveRoutes.get(dayId);if(!old)return false;
+ const d=state.days.find(item=>item.id===dayId);if(!d)return false;
+ d.result=old.originalRoute;delete d.liveOrigin;liveRoutes.delete(dayId);
+ sceneSignature='';sceneResult=null;mapFitQueued=true;refresh();
+ document.dispatchEvent(new Event('trip:live-route-changed'));return true;
+}
+function sampleRoutePath(path,max=22){
+ if(!Array.isArray(path)||path.length<=max)return path;
+ return Array.from({length:max},(_,i)=>path[Math.round(i*(path.length-1)/(max-1))].map(v=>Number(Number(v).toFixed(6))));
+}
+function exportCloudDays(){
+ return state.days.map(d=>{
+  const {liveOrigin,result,...rest}=d,original=liveRoutes.get(d.id)?.originalRoute??result;
+  const output=structuredClone(rest);
+  if(original){
+   output.result=structuredClone(original);
+   delete output.result.isLiveRoute;
+   for(const entry of output.result.entries||[])if(entry.leg?.path)entry.leg.path=sampleRoutePath(entry.leg.path);
+  }
+  return output;
+ });
+}
 function applyDailyRoutes(payload){
  if(!payload||!Array.isArray(payload.days)||payload.days.length!==state.days.length)return false;
  // Atomic validation: never move a visit to another travel date.
@@ -272,6 +323,7 @@ function applyDailyRoutes(payload){
  }
  for(let i=0;i<state.days.length;i++){
   const d=state.days[i],route=payload.days[i].route;
+  liveRoutes.delete(d.id);delete d.liveOrigin;
   if(route&&d.mode==='auto'){
    const byId=new Map(d.stops.map(p=>[p.id,p]));d.stops=route.orderIds.map(id=>byId.get(id));
   }
@@ -496,7 +548,7 @@ function validMapPlace(place){return place&&Number.isFinite(place.lat)&&Number.i
 function routePlaces(){
  const d=day(),byId=new Map(d.stops.map(x=>[x.id,x])),sorted=d.result?.orderIds?d.result.orderIds.map(id=>byId.get(id)).filter(Boolean):d.stops;
  const collecting=document.body.dataset.tripStep==='2';
- const points=collecting?[...d.stops,d.origin,d.destination]:[d.origin,...sorted,d.destination];
+ const points=collecting?[...d.stops,d.origin,d.destination]:[d.liveOrigin||d.origin,...sorted,d.destination];
  const seen=new Set();
  return points.filter(p=>{if(!validMapPlace(p)||/미설정/.test(p.name)||seen.has(p.id))return false;seen.add(p.id);return true;});
 }
@@ -524,7 +576,7 @@ function renderMap(){if(!map)return;const d=day(),places=routePlaces();const r=d
  });
  for(const group of clusters.values()){
   const {place,index}=group[0],multi=group.length>1,
-   start=state.days.some(x=>place.id===x.origin.id),end=state.days.some(x=>place.id===x.destination.id);
+   start=Boolean(place.id===(d.liveOrigin||d.origin).id),end=place.id===d.destination.id;
   const kind=multi?'cluster':start?'origin':end?'destination':collecting?'pending':'stop';
   const stopNumber=d.result?.entries?.findIndex(e=>e.place?.id===place.id);
   const chosen=group.some(x=>x.place.id===selectedMapStop);
@@ -622,8 +674,8 @@ window.TripApp = Object.freeze({
   arranged.splice(position,0,item);d.stops=arranged;d.mode='manual';markDirty(false);return true;
  },
  setActive(index){if(!Number.isInteger(index)||index<0||index>=state.days.length)return;clearTimeout(pendingCalc);state.active=index;mapFitQueued=true;sceneSignature='';selectedMapStop=null;refresh();document.dispatchEvent(new Event('trip:day-changed'));},
- importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);state.days=normalizeDays(days);state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));return true},
- refresh, calculateRoute, openModal, toast, markDirty,
+ importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);liveRoutes.clear();state.days=normalizeDays(days);state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));return true},
+ refresh, calculateRoute, openModal, toast, markDirty,applyLiveRoute,restorePlannedRoute,exportCloudDays,
  resizeMap:()=>resizeMapStable({fit:mapFitQueued}),refreshMap:renderMap,getMap:()=>map,fitMap,focusPlace,setMapLocked,
  setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,unassignedStops,moveUnassignedToActive,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,setRouteStopLocked,moveRouteStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,setEndpointFromSearch,previewPlace,clearPlacePreview,
 });
