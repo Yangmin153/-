@@ -122,8 +122,14 @@ function launch(index){
   const url=naverUrl(part,location.origin);
   window.location.href=url;return;
  }
- // User-initiated click triggers SDK app-to-app navigation after loading.
- loadKakao().then(k=>k.Navi.start(kakaoArguments(part))).catch(e=>explain(e.message));
+ // Call the app-launching SDK synchronously within the click when preloaded;
+ // otherwise load the SDK and request a second direct user tap (mobile gesture requirement).
+ if(root.Kakao?.isInitialized?.()&&root.Kakao?.Navi?.start){
+  try{root.Kakao.Navi.start(kakaoArguments(part));}catch(e){explain(e.message);}
+ }else{
+  explain('카카오내비를 준비하고 있어요. 준비가 되면 다시 실행 버튼을 눌러주세요.');
+  loadKakao().then(()=>explain('카카오내비 준비 완료. 길안내 버튼을 다시 눌러주세요.')).catch(e=>explain(e.message));
+ }
 }
 $('yg-nav-open').addEventListener('click',open);
 $('yg-nav-start').addEventListener('click',()=>launch(0));
@@ -132,7 +138,14 @@ panel.addEventListener('click',e=>{
  if(e.target===panel||e.target.closest('[data-nav-close]'))return close();
  const b=e.target.closest('[data-nav-segment]');if(b)launch(Number(b.dataset.navSegment));
 });
-$('yg-nav-provider').addEventListener('change',e=>{provider=e.target.value;lastOpened=-1;redraw();});
+$('yg-nav-provider').addEventListener('change',e=>{
+ provider=e.target.value;lastOpened=-1;redraw();
+ if(provider==='kakao'){
+  explain('카카오내비 연결을 확인 중이에요…');
+  loadKakao().then(()=>explain('카카오내비 준비 완료. 현재 위치에서 길안내를 시작할 수 있어요.'))
+   .catch(err=>explain(err.message));
+ }
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close();});
 document.addEventListener('trip:day-changed',()=>{if(!panel.hidden)close();redraw();});
 document.addEventListener('trip:stops-changed',()=>{if(!panel.hidden)close();redraw();});
