@@ -70,6 +70,15 @@ test('all four current dialogs use the common owner-based mobile-safe scroll loc
   assert.ok(s.includes("YGScrollLock?.unlock('"+owner+"')"));
  }
 });
+test('legacy place editor unlocks scrolling while selecting a map point, relocks on return',async()=>{
+ const app=await read('public/static/app.js');
+ assert.match(app,/YGScrollLock\?\.lock\('place-editor'\)/);
+ assert.match(app,/YGScrollLock\?\.unlock\('place-editor'\)/);
+ const picking=app.slice(app.indexOf('function startMapPick()'),app.indexOf('// — 지도 —'));
+ assert.match(picking,/mapPicking=true/);
+ assert.match(picking,/unlock\('place-editor'\)/);
+ assert.match(picking,/lock\('place-editor'\)/);
+});
 test('step2 headings share same typographic scale and each task has one short helper',async()=>{
  const [html,css]=await Promise.all([read('public/index.html'),read('public/static/vnext.css')]);
  assert.match(html,/가고 싶은 장소를 검색해 담아보세요/);
