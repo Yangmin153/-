@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 async function navigation(){
- const globals={};globals.globalThis=globals;vm.runInNewContext(await read('public/static/navigation.js'),globals);
+ const globals={URLSearchParams};globals.globalThis=globals;vm.runInNewContext(await read('public/static/navigation.js'),globals);
  return globals.TripNaviPlanner;
 }
 const place=(id,i)=>({id,name:'방문지 '+id,lat:33.3+i*0.01,lng:126.4+i*0.03});
@@ -53,7 +53,7 @@ test('outdated or incomplete calculated routes cannot be transferred to navigati
  const nav=await navigation(),d=makeDay(3);
  d.result.orderIds=[...d.result.orderIds,'missing'];assert.equal(nav.sections(d,'naver').length,0);
  d.result.orderIds=d.result.orderIds.slice(0,-1);d.result.entries[1].place.id='tampered';
- assert.deepEqual(nav.sections(d,'naver'),[]);
+ assert.equal(nav.sections(d,'naver').length,0);
 });
 test('endpoint search uses exact same full-screen screen and retains saved visit markers on selected search candidate',async()=>{
  const [screen,quick,vnext,app]=await Promise.all(['public/static/search-screen.js','public/static/quick-add.js','public/static/vnext.js','public/static/app.js'].map(read));
