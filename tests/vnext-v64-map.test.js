@@ -55,10 +55,8 @@ test('thin single blue Naver segment never adds a second orange navigation outli
 });
 test('saved places bottom sheet freezes background while allowing inside list to scroll',async()=>{
  const [ui,css]=await Promise.all([read('public/static/vnext.js'),read('public/static/vnext.css')]);
- assert.match(ui,/body\.style\.position='fixed'/);
- assert.match(ui,/body\.style\.top='-'\+sheetFreeze\.scrollY\+'px'/);
- assert.match(ui,/window\.scrollTo\(\{top:hold\.scrollY,behavior:'instant'\}\)/);
- assert.match(ui,/if\(!searchOpen\)/);
+ assert.match(ui,/YGScrollLock\?\.lock\('visit-sheet'\)/);
+ assert.match(ui,/YGScrollLock\?\.unlock\('visit-sheet'\)/);
  assert.match(css,/body\.yg-sheet-open \.yg-sheet-list/);
  assert.match(css,/-webkit-overflow-scrolling:touch/);
 });
