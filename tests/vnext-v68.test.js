@@ -47,7 +47,7 @@ test('KakaoNavi GPS navigation uses WGS84 longitude x and latitude y for all 3 w
  assert.equal(data.coordType,'wgs84');assert.equal(data.x,part.destination.lng);
  assert.equal(data.y,part.destination.lat);assert.equal(data.viaPoints.length,3);
  assert.equal(data.viaPoints[0].x,part.via[0].lng);
- assert.equal(data.viaList[0].y,part.via[0].lat);
+ assert.equal(data.viaPoints[0].y,part.via[0].lat);
 });
 test('outdated or incomplete calculated routes cannot be transferred to navigation',async()=>{
  const nav=await navigation(),d=makeDay(3);
