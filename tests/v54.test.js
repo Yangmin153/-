@@ -50,7 +50,7 @@ test('v5.4 search map shows added places distinctly and refreshes selected DAY l
  const js=await read('public/static/search-screen.js'),css=await read('public/static/design-v54.css');
  for(const token of ['function refreshSavedMarkers()','function showSaved(place)','savedPlaces()','trip:stops-changed','trip:day-changed','clearSavedMarkers()'])assert.ok(js.includes(token),token);
  assert.match(js,/isSavedSelection/);
- assert.match(js,/search-picked-add'\)\.disabled=true/);
+ assert.match(js,/search-picked-add'\)\.disabled=!endpointMode\(\)/);
  assert.match(css,/\.search-saved-pin\{/);
 });
 test('v5.4 modified application scripts remain syntactically valid',async()=>{
