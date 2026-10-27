@@ -91,7 +91,7 @@ function moveUnassignedToActive(){
  return {ok:true,count:added.length};
 }
 function save(){const snapshot=state.days.map(({result,...rest})=>rest);try{if(!window.YeoAccount?.isSignedIn?.())localStorage.setItem(STORAGE_KEY,JSON.stringify(snapshot))}catch{if(!save.warned){save.warned=true;toast('브라우저 저장 공간을 사용할 수 없습니다. 일정 저장 파일로 백업해 주세요.')}}}
-function refresh({mapView=true}={}){renderTabs();renderEditor();renderResult();if(mapView)renderMap();save();window.TripUX?.render?.();window.MapWorkspace?.refresh?.()}
+function refresh({mapView=true}={}){for(const d of state.days){if(liveRoutes.has(d.id)&&!d.result?.isLiveRoute){liveRoutes.delete(d.id);delete d.liveOrigin;}}renderTabs();renderEditor();renderResult();if(mapView)renderMap();save();window.TripUX?.render?.();window.MapWorkspace?.refresh?.()}
 function renderTabs(){
  document.body.dataset.singleDay=String(state.days.length===1);
  $('trip-day-count').value=String(state.days.length);
@@ -661,8 +661,8 @@ window.visualViewport?.addEventListener('resize',syncModalViewport);window.visua
 async function boot(){refresh({mapView:false});try{const r=await fetch('/api/config'),c=await r.json();$('api-indicator').textContent=c.directionsReady?'도로 경로 확인 가능':'도로 경로 확인 필요';$('api-indicator').className='api-indicator '+(c.directionsReady?'ready':'not-ready');bootNaverMap(c.mapsKeyId)}catch{$('api-indicator').textContent='연결 상태 확인 중';$('api-indicator').className='api-indicator not-ready'}}
 window.TripApp = Object.freeze({
  getDays:()=>state.days, getDay:day, getActive:()=>state.active,validateDays:validDays,
- restoreGuestDays(){const days=loadDays();clearTimeout(pendingCalc);state.days=days;state.active=0;refresh();document.dispatchEvent(new Event('trip:days-imported'));},
- newTrip(){const region=currentRegion();state.days=freshDays();state.days[0].region=region;state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));},
+ restoreGuestDays(){const days=loadDays();clearTimeout(pendingCalc);liveRoutes.clear();state.days=days;state.active=0;refresh();document.dispatchEvent(new Event('trip:days-imported'));},
+ newTrip(){const region=currentRegion();liveRoutes.clear();state.days=freshDays();state.days[0].region=region;state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));},
 
  insertStopBetween(index,place){
   const d=day(),entries=d.result?.entries;if(!Array.isArray(entries)||index<1||index>=entries.length||d.stops.length>=30||!validPlace(place))return false;
