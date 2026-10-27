@@ -19,22 +19,22 @@
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
   <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
-  <link rel="stylesheet" href="/static/vnext.css?v=7.1.0">
+  <link rel="stylesheet" href="/static/vnext.css?v=7.2.0">
   <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
   <script defer src="/static/route-pins.js?v=6.4.0"></script>
   <script defer src="/static/route-shape.js?v=6.4.0"></script>
   <script defer src="/static/scroll-lock.js?v=7.0.0"></script>
-  <script defer src="/static/app.js?v=6.8.0"></script>
+  <script defer src="/static/app.js?v=7.2.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
   <script type="module" src="/static/quick-add.js?v=6.8.0"></script>
   <script type="module" src="/static/search-screen.js?v=7.0.0"></script>
   <script defer src="/static/map-workspace.js?v=6.7.1"></script>
-  <script type="module" src="/static/accounts.js?v=7.0.0"></script>
+  <script type="module" src="/static/accounts.js?v=7.2.0"></script>
   <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
   <script defer src="/static/vnext.js?v=7.0.0"></script>
-  <script defer src="/static/navigation.js?v=7.1.0"></script>
+  <script defer src="/static/navigation.js?v=7.2.0"></script>
 </head>
 <body data-mobile-view="edit" data-trip-step="1" class="region-ready">
   <div class="app-shell">
@@ -134,7 +134,20 @@
               <select id="map-day-select" class="yg-result-day-native" tabindex="-1" aria-label="지도 날짜 선택" aria-hidden="true"></select>
             </div>
           </div>
-        </div><div class="map-accessories" id="map-accessories"><div id="map-place-preview" class="map-place-preview" hidden aria-live="polite"><div class="map-preview-detail"><strong id="map-preview-name"></strong><small id="map-preview-address"></small></div><div class="map-preview-buttons"><button type="button" id="map-preview-cancel">닫기</button><button type="button" id="map-preview-add">이 장소 추가</button></div></div>
+        </div>
+        <div id="yg-live-controls" class="yg-live-controls" aria-label="현재 위치에서 여행 동선 다시 계산">
+          <button type="button" id="yg-live-optimize" class="yg-live-button">
+            <span aria-hidden="true">◎</span> 현재 위치에서 다시 최적화
+          </button>
+          <p id="yg-live-status" role="status" aria-live="polite" hidden></p>
+          <button type="button" id="yg-live-reset" class="yg-live-reset" hidden>원래 여행길 보기</button>
+          <small>현재 위치 → 등록한 방문지 → 최종 도착지</small>
+        </div>
+        <div class="yg-route-account-actions" id="yg-route-account-actions">
+          <button type="button" id="yg-route-save"><span aria-hidden="true">▣</span> 내 여행 저장</button>
+          <button type="button" id="yg-route-load"><span aria-hidden="true">▤</span> 저장한 여행 불러오기</button>
+        </div>
+        <div class="map-accessories" id="map-accessories"><div id="map-place-preview" class="map-place-preview" hidden aria-live="polite"><div class="map-preview-detail"><strong id="map-preview-name"></strong><small id="map-preview-address"></small></div><div class="map-preview-buttons"><button type="button" id="map-preview-cancel">닫기</button><button type="button" id="map-preview-add">이 장소 추가</button></div></div>
 <div class="map-select-notice hidden" id="map-select-notice"><strong>지도에서 위치를 선택하세요</strong><span>원하는 곳을 지도에서 한 번 눌러주세요</span><button id="btn-cancel-map-pick">취소</button></div></div>
         <div class="map-sheet" id="map-sheet"><button class="map-sheet-toggle" id="map-sheet-toggle" type="button" aria-expanded="false">가는 순서 보기 <span aria-hidden="true">⌃</span></button><div class="map-sheet-list" id="map-sheet-list"></div></div>
         <div class="result-section" id="route-results">
