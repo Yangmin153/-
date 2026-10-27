@@ -7,6 +7,7 @@ test('GPS button is directly below STEP3 result map and before route metrics, no
  const at=x=>html.indexOf('id="'+x+'"');
  assert.ok(at('map-region')<at('yg-live-controls')&&at('yg-live-controls')<at('route-results'));
  assert.match(html,/id="yg-live-optimize"/);
+ assert.match(html,/src="\/static\/live-route\.js\?v=7\.2\.1"/);
  assert.match(html,/id="yg-live-reset"[^>]*hidden/);
  assert.doesNotMatch(html,/방문 완료/);
 });
@@ -52,4 +53,10 @@ test('auth user can save and reopen calculated route as well as dates and visits
  assert.match(server,/750000/);
  assert.match(html,/id="yg-route-save"/);
  assert.match(html,/id="yg-route-load"/);
+});
+
+test('Vercel trip route passes actual environment rather than platform execution context',async()=>{
+ const entry=await read('api/trips.js');
+ assert.match(entry,/const route=request=>handleTrips\(request,process\.env\)/);
+ assert.doesNotMatch(entry,/GET=handleTrips/);
 });
