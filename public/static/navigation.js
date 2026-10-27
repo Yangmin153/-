@@ -63,7 +63,10 @@ function androidNaverIntent(schemeUrl){
   'category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;end';
 }
 function naverLaunchUrl(part,webOrigin,agent,preview=false){
- const scheme=preview?naverRouteUrl(part,webOrigin):naverUrl(part,webOrigin);
+ // NAVER's app sometimes drops waypoints when /navigation is invoked directly.
+ // /route/car officially demonstrates v1...v5 waypoints and lets users verify
+ // them in the route planner before manually pressing Start Guidance.
+ const scheme=(preview||part.via.length>0)?naverRouteUrl(part,webOrigin):naverUrl(part,webOrigin);
  return /Android/i.test(agent||'')?androidNaverIntent(scheme):scheme;
 }
 const planner=Object.freeze({orderedPoints,sections,naverUrl,naverRouteUrl,naverLaunchUrl,androidNaverIntent,kakaoArguments,MAX_VIA});
@@ -91,6 +94,19 @@ function restoreProgress(d){
 function persistProgress(d){
  try{sessionStorage.setItem(storageKey,JSON.stringify({signature:signature(d,provider,travelMode),lastOpened}));}catch{}
 }
+function diagnosticMessage(err){
+ const detail=String(err?.message||err||'').trim();
+ if(/domain|origin|site|auth|service|unauthorized|forbidden|403|invalid.key/i.test(detail))
+  return '카카오내비 인증 또는 JavaScript SDK 도메인 설정을 확인해 주세요. '+detail;
+ return detail||'카카오내비 앱 연결 실패. 앱 및 카카오 개발자 설정을 확인해 주세요.';
+}
+function showKakaoHelp(){
+ const help=$('yg-kakao-navi-help');if(!help)return;
+ help.hidden=provider!=='kakao';
+ if(provider==='kakao'){
+  $('yg-kakao-navi-domain').textContent=location.origin;
+ }
+}
 function close(){
  if(panel.hidden)return;
  panel.hidden=true;document.body.classList.remove('yg-nav-open');
@@ -108,7 +124,11 @@ function redraw(){
     (ready?'방문지 '+(selected?.result?.orderIds?.length||0)+'곳':'동선 계산 필요');
  const complete=ready&&lastOpened>=parts.length-1&&lastOpened>=0;
  $('yg-nav-start').textContent=!ready?'동선 계산 후 시작':complete?'처음부터 다시 안내':
-  lastOpened>=0?'다음 길안내':'길안내 시작';
+  lastOpened>=0?'다음 길안내':provider==='naver'&&travelMode==='via'&&parts[0]?.via.length?
+   '경유지 포함 길찾기 열기':'길안내 시작';
+ const retry=$('yg-nav-retry');
+ if(retry){retry.hidden=!(lastOpened>=0&&parts.length);retry.disabled=!ready;}
+ showKakaoHelp();
  if(!ready){
   content.innerHTML='';
   explain(travelMode==='via'?'방문지 동선을 먼저 계산해 주세요.':'이날의 도착지를 먼저 설정해 주세요.');
@@ -117,7 +137,9 @@ function redraw(){
  const left=parts.length-1-next;
  const rows=[...part.via,part.destination];
  const label=travelMode==='direct'?'현재 위치에서 도착지로 바로 안내해요.':
-  (parts.length>1?'방문 순서 그대로 안내해요. 정차 후 다음 길안내를 눌러주세요.':'방문 순서 그대로 경유지로 안내해요.');
+  provider==='naver'&&part.via.length?
+    '네이버지도 자동차 길찾기에서 경유지를 확인한 후 ‘안내 시작’을 눌러 주세요. 경유지 적용 전 자동 안내를 시작하지 않아요.':
+    (parts.length>1?'방문 순서대로 경유해요. 정차 후 다음 길안내를 눌러 주세요.':'방문 순서대로 경유지에 들러요.');
  explain(label);
  content.innerHTML='<div class="yg-nav-next-preview">'+
   '<strong>'+(lastOpened>=0&&!complete?'다음 이동':'이번에 안내할 길')+'</strong>'+
@@ -176,18 +198,19 @@ function launch(index,preview=false){
  if(provider==='naver'){
   const url=naverLaunchUrl(part,location.origin,navigator.userAgent,preview);
   lastOpened=index;persistProgress(selected);redraw();
-  // Official Naver scheme: no slat/slng => device's current GPS location.
+  // /route/car with waypoints opens the route planning screen, not guaranteed auto-guidance.
+  // No slat/slng means the device's current location is requested.
   window.location.href=url;return;
  }
  if(root.Kakao?.isInitialized?.()&&root.Kakao?.Navi?.start){
   try{
    root.Kakao.Navi.start(kakaoArguments(part));
    lastOpened=index;persistProgress(selected);redraw();
-  }catch(e){explain('카카오내비를 열지 못했어요. '+e.message);}
+  }catch(e){explain('카카오내비를 열지 못했어요. '+diagnosticMessage(e));}
  }else{
   explain('카카오내비 연결 중이에요. 완료 안내가 나오면 한 번 더 눌러주세요.');
   loadKakao().then(()=>explain('카카오내비 연결 완료. 이제 길안내를 눌러주세요.'))
-   .catch(e=>explain(e.message));
+   .catch(e=>explain(diagnosticMessage(e)));
  }
 }
 $('yg-nav-open').addEventListener('click',open);
@@ -196,6 +219,10 @@ $('yg-nav-start').addEventListener('click',()=>{
  if(!parts.length)return;
  launch(nextIndex(parts));
 });
+$('yg-nav-retry')?.addEventListener('click',()=>{
+ const parts=sections(day(),provider,travelMode);
+ if(lastOpened>=0&&parts[lastOpened])launch(lastOpened);
+});
 $('yg-nav-close').addEventListener('click',close);
 panel.addEventListener('click',e=>{if(e.target===panel||e.target.closest('[data-nav-close]'))close();});
 panel.querySelectorAll('[name="yg-nav-provider-choice"]').forEach(input=>input.addEventListener('change',()=>{
@@ -203,7 +230,7 @@ panel.querySelectorAll('[name="yg-nav-provider-choice"]').forEach(input=>input.a
  if(provider==='kakao'){
   explain('카카오내비 연결 중이에요…');
   loadKakao().then(()=>explain('카카오내비 연결 완료. 길안내를 시작할 수 있어요.'))
-   .catch(err=>explain(err.message));
+   .catch(err=>explain(diagnosticMessage(err)));
  }
 }));
 panel.querySelectorAll('[name="yg-nav-mode-choice"]').forEach(input=>input.addEventListener('change',()=>{
