@@ -152,7 +152,7 @@ function show(kind='stop'){
  $('search-screen-region').textContent=(window.YeoNext?.dateLabel?.()||'오늘')+' · '+(searchKind==='origin'?'출발지 검색':searchKind==='destination'?'도착지 검색':'방문지 추가');
  $('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';
  screen.hidden=false;screen.querySelector('#search-screen-form-mount').append(form);resultMount.append(results);
- document.documentElement.style.overflow='hidden';document.body.style.position='fixed';document.body.style.top='-'+previousScroll+'px';document.body.style.width='100%';document.body.classList.add('search-open');
+ window.YGScrollLock?.lock('search-screen');document.body.classList.add('search-open');
  updateSize();showMode('map');
  const region=String(window.TripApp?.getDay?.()?.id||'');
  if(searchMap&&lastChosenRegion!==region){const [lat,lng]=mapCenter();searchMap.setCenter(new window.naver.maps.LatLng(lat,lng));searchMap.setZoom(11);paintMarkers();}
@@ -165,8 +165,7 @@ function hide(fromPopstate=false){
  opened=false;selected=null;items=[];searchKind='stop';clearMarkers();clearSavedMarkers();savedSignature='';input.blur();
  original.insertBefore(results,original.firstChild);original.insertBefore(form,$('quick-feedback'));
  screen.hidden=true;mapStage.hidden=false;resultMount.hidden=true;results.hidden=true;
- document.body.classList.remove('search-open');document.body.style.position='';document.body.style.top='';document.body.style.width='';document.documentElement.style.overflow='';
- window.scrollTo(0,previousScroll);
+ document.body.classList.remove('search-open');window.YGScrollLock?.unlock('search-screen');
  clearTimeout(feedbackTimer);feedback.hidden=true;picked.hidden=true;
  if(!fromPopstate&&historyEntry&&history.state?.yeohaenggilSearch)history.back();
  historyEntry=false;
