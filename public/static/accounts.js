@@ -59,7 +59,7 @@ async function initApi(){
  api=window.supabase.createClient(config.supabaseUrl,config.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  api.auth.onAuthStateChange((event,newSession)=>queueMicrotask(()=>{
   applySession(newSession);
-  if(event==='PASSWORD_RECOVERY'){panel.hidden=false;document.body.classList.add('account-open');setView('recovery');$('account-auth-form').hidden=false;$('account-signed').hidden=true;}
+  if(event==='PASSWORD_RECOVERY'){panel.hidden=false;document.body.classList.add('account-open');window.YGScrollLock?.lock('account');setView('recovery');$('account-auth-form').hidden=false;$('account-signed').hidden=true;}
   else if(event==='SIGNED_IN'&&authView==='verify'&&newSession?.user)notice('이메일 인증이 완료됐어요.');
  }));
  return api;
@@ -99,8 +99,8 @@ function applySession(next){
  $('cloud-save').hidden=!loggedIn();
  // The former account-guest element was removed from the current 3-step layout.
 }
-function open(){panel.hidden=false;document.body.classList.add('account-open');if(!loggedIn()&&authView==='recovery'&&!session)setView('welcome');if(loggedIn())void loadTrips();else if(api)void refreshOAuthProviders();}
-function close(){panel.hidden=true;document.body.classList.remove('account-open');}
+function open(){panel.hidden=false;document.body.classList.add('account-open');window.YGScrollLock?.lock('account');if(!loggedIn()&&authView==='recovery'&&!session)setView('welcome');if(loggedIn())void loadTrips();else if(api)void refreshOAuthProviders();}
+function close(){panel.hidden=true;document.body.classList.remove('account-open');window.YGScrollLock?.unlock('account');}
 async function request(path,method='GET',payload){
  if(!loggedIn())throw Error('로그인이 필요합니다.');
  const r=await fetch('/api/trips'+path,{method,headers:{Authorization:'Bearer '+session.access_token,...(payload?{'content-type':'application/json'}:{})},...(payload?{body:JSON.stringify(payload)}:{})});
