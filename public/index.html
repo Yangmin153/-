@@ -19,20 +19,21 @@
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
   <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
-  <link rel="stylesheet" href="/static/vnext.css?v=6.7.1">
+  <link rel="stylesheet" href="/static/vnext.css?v=6.8.0">
   <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
   <script defer src="/static/route-pins.js?v=6.4.0"></script>
   <script defer src="/static/route-shape.js?v=6.4.0"></script>
-  <script defer src="/static/app.js?v=6.6.0"></script>
+  <script defer src="/static/app.js?v=6.8.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
-  <script type="module" src="/static/quick-add.js?v=6.6.0"></script>
-  <script type="module" src="/static/search-screen.js?v=6.6.0"></script>
+  <script type="module" src="/static/quick-add.js?v=6.8.0"></script>
+  <script type="module" src="/static/search-screen.js?v=6.8.0"></script>
   <script defer src="/static/map-workspace.js?v=6.7.1"></script>
   <script type="module" src="/static/accounts.js?v=6.7.1"></script>
   <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
-  <script defer src="/static/vnext.js?v=6.6.0"></script>
+  <script defer src="/static/vnext.js?v=6.8.0"></script>
+  <script defer src="/static/navigation.js?v=6.8.0"></script>
 </head>
 <body data-mobile-view="edit" data-trip-step="1" class="region-ready">
   <div class="app-shell">
@@ -139,6 +140,10 @@
           <div class="result-title"><div><div class="section-kicker">MY ROUTE</div><h2>오늘 얼마나 이동하나요?</h2></div><span class="result-status" id="result-status">계산 전</span></div>
           <div class="metrics"><div class="metric"><span>방문 장소</span><strong id="metric-places">—</strong><small>곳</small></div><div class="metric"><span id="metric-mode-label">자동차 이동</span><strong id="metric-drive">—</strong><small>분</small></div><div class="metric"><span>이동 거리</span><strong id="metric-distance">—</strong><small>km</small></div></div>
           <p id="route-savings" class="route-savings hidden" aria-live="polite"></p><div id="result-alert" class="result-alert hidden" role="status"></div>
+          <div class="yg-nav-entry">
+            <div><strong>완성한 여행길로 이동하기</strong><small>내비 출발지는 현재 위치로 설정돼요.</small></div>
+            <button id="yg-nav-open" type="button">내비게이션 시작 <span aria-hidden="true">›</span></button>
+          </div>
           <div class="result-head"><h3>계산된 방문 순서</h3><span id="timeline-note">최적 동선을 계산하면 표시됩니다.</span></div>
           <div class="result-edit-actions" hidden><button type="button" id="btn-result-add">+ 방문지 추가</button><button type="button" id="btn-result-recalc">최적 동선 다시 계산</button></div>
           <div id="timeline" class="timeline"><div class="blank-timeline">방문할 곳을 담고<br><strong>빠른 길 찾기</strong>를 눌러주세요.</div></div>
@@ -166,6 +171,22 @@
     <footer class="footer"><span>여행길 · 더 편리한 여행 일정</span><span>실제 자동차 이동시간은 네이버 길찾기로 확인합니다.</span></footer>
   </div>
 
+  <div id="yg-nav-modal" class="yg-nav-modal" role="dialog" aria-modal="true" aria-label="내비게이션 실행" hidden>
+    <div class="yg-nav-backdrop" data-nav-close></div>
+    <section class="yg-nav-panel">
+      <div class="yg-nav-header"><div><strong>내비게이션 시작</strong><p>현재 위치에서 여행길 방문 순서대로 안내해요.</p></div><button type="button" id="yg-nav-close" aria-label="닫기">✕</button></div>
+      <label class="yg-nav-provider-select">사용할 내비게이션
+        <select id="yg-nav-provider" aria-label="내비게이션 선택">
+          <option value="naver">네이버지도 내비게이션</option><option value="kakao">카카오내비</option>
+        </select>
+      </label>
+      <div class="yg-nav-summary"><strong id="yg-nav-provider-name">네이버지도 내비게이션</strong><span id="yg-nav-segment-count"></span></div>
+      <p id="yg-nav-status" class="yg-nav-status" role="status"></p>
+      <div id="yg-nav-segments" class="yg-nav-segments"></div>
+      <button id="yg-nav-start" class="yg-nav-primary" type="button">첫 구간 길안내 시작</button>
+      <small class="yg-nav-disclaimer">주행 중 조작하지 마세요. 다음 구간은 정차한 후 실행하세요.</small>
+    </section>
+  </div>
   <div id="yg-place-sheet" class="yg-place-sheet" hidden aria-label="담은 장소 목록" role="dialog" aria-modal="true"><div class="yg-sheet-shade" data-close-sheet></div><section class="yg-sheet-panel"><div class="yg-sheet-head"><div><strong>담은 장소 <span id="yg-sheet-count">0</span>곳</strong><p id="yg-sheet-date">선택한 날짜의 방문지</p></div><button type="button" data-close-sheet aria-label="목록 닫기">✕</button></div><div id="yg-sheet-list" class="yg-sheet-list"></div><button class="yg-outline" type="button" id="yg-sheet-map">+ 장소 더 담기</button></section></div>
   <div class="mobile-bottom-actions" id="mobile-bottom-actions" aria-label="일정 빠른 실행">
         <div id="quick-results" class="quick-results" role="listbox" aria-label="장소 검색 결과" hidden></div>
