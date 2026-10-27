@@ -16,11 +16,12 @@ function orderedPoints(day){
  if(!Array.isArray(entries)||entries.length!==visits.length+2||
     entries.slice(1,-1).some((entry,i)=>entry.place?.id!==visits[i].id))return null;
  const currentDestination=day.destination;
- if(!valid(currentDestination)||!valid(day.origin)||[...visits].some(x=>!valid(x)))return null;
+ const expectedOrigin=day.liveOrigin||day.origin;
+ if(!valid(currentDestination)||!valid(expectedOrigin)||[...visits].some(x=>!valid(x)))return null;
  const last=entries.at(-1)?.place,first=entries[0]?.place;
  if(!valid(first)||!valid(last)||Number(last.lat)!==Number(currentDestination.lat)||
- Number(last.lng)!==Number(currentDestination.lng)||Number(first.lat)!==Number(day.origin.lat)||
- Number(first.lng)!==Number(day.origin.lng))return null;
+ Number(last.lng)!==Number(currentDestination.lng)||Number(first.lat)!==Number(expectedOrigin.lat)||
+ Number(first.lng)!==Number(expectedOrigin.lng))return null;
  return [...visits,currentDestination];
 }
 function sections(day,provider,mode='via'){
