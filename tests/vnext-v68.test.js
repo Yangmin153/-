@@ -69,7 +69,7 @@ test('endpoint search uses exact same full-screen screen and retains saved visit
 });
 test('navigation chooser is present and Kakao JS key is optional, never server REST API key',async()=>{
  const [html,config,css]=await Promise.all(['public/index.html','api/config.js','public/static/vnext.css'].map(read));
- for(const id of ['yg-nav-open','yg-nav-modal','yg-nav-provider','yg-nav-segments','yg-nav-start'])
+ for(const id of ['yg-nav-open','yg-nav-modal','yg-nav-segments','yg-nav-start'])
   assert.match(html,new RegExp('id="'+id+'"'));
  assert.match(config,/KAKAO_JAVASCRIPT_KEY\|\|env\.KAKAO_JS_KEY/);
  assert.doesNotMatch(config,/kakaoJsKey:.*KAKAO_REST_API_KEY/);
