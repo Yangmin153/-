@@ -39,7 +39,7 @@
   if(!busy){
    if(!d?.stops?.length)message('방문지를 추가하면 현재 위치에서 최적화할 수 있어요.');
    else if(active)message('현재 위치에서 새로 계산한 동선이에요. 원래 계획은 그대로 보관돼요.');
-   else message('');
+   else if(status.dataset.error!=='true'&&!status.textContent.includes('원래 여행 계획'))message('');
   }
  }
  async function start(){
@@ -82,8 +82,8 @@
   if(app()?.restorePlannedRoute?.()){message('원래 여행 계획으로 돌아왔어요.');app().toast('원래 계획으로 돌아왔어요.');}
   show();
  });
- document.addEventListener('trip:day-changed',()=>{run++;show();});
- document.addEventListener('trip:days-imported',()=>{run++;show();});
+ document.addEventListener('trip:day-changed',()=>{run++;message('');show();});
+ document.addEventListener('trip:days-imported',()=>{run++;message('');show();});
  document.addEventListener('trip:routes-ready',show);
  document.addEventListener('trip:live-route-changed',show);
  document.addEventListener('trip:stops-changed',show);
