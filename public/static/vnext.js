@@ -90,32 +90,16 @@ function renderSheet(){
 }
 function openSheet(){
  if(sheetOpen)return;
- const searchOpen=Boolean(window.YeoSearch?.isOpen?.());
  document.activeElement?.blur?.();
- const body=document.body,html=document.documentElement;
- sheetFreeze={
-  searchOpen,scrollY:window.scrollY,
-  bodyPosition:body.style.position,bodyTop:body.style.top,bodyWidth:body.style.width,
-  bodyOverflow:body.style.overflow,htmlOverflow:html.style.overflow
- };
- if(!searchOpen){
-  // iOS Safari needs a fixed body; overflow:hidden alone still allows background touch scrolling.
-  body.style.position='fixed';body.style.top='-'+sheetFreeze.scrollY+'px';
-  body.style.width='100%';body.style.overflow='hidden';html.style.overflow='hidden';
- }
- sheetOpen=true;renderSheet();$('yg-place-sheet').hidden=false;body.classList.add('yg-sheet-open');
+ sheetOpen=true;renderSheet();$('yg-place-sheet').hidden=false;
+ document.body.classList.add('yg-sheet-open');
+ window.YGScrollLock?.lock('visit-sheet');
 }
 function closeSheet(){
  if(!sheetOpen)return;
- sheetOpen=false;$('yg-place-sheet').hidden=true;document.body.classList.remove('yg-sheet-open');
- const hold=sheetFreeze;sheetFreeze=null;
- if(hold&&!hold.searchOpen){
-  const body=document.body,html=document.documentElement;
-  body.style.position=hold.bodyPosition;body.style.top=hold.bodyTop;
-  body.style.width=hold.bodyWidth;body.style.overflow=hold.bodyOverflow;
-  html.style.overflow=hold.htmlOverflow;
-  window.scrollTo({top:hold.scrollY,behavior:'instant'});
- }
+ sheetOpen=false;$('yg-place-sheet').hidden=true;
+ document.body.classList.remove('yg-sheet-open');
+ window.YGScrollLock?.unlock('visit-sheet');
 }
 function go(next){
  if(next===2&&!days().every(d=>Number.isFinite(ms(d.date)))){error('출발일과 돌아오는 날을 먼저 선택해 주세요.');currentStep=1;document.body.dataset.tripStep='1';return;}
