@@ -38,12 +38,12 @@ test('Naver navigation has waypoints 1-5 and starts from current location',async
  assert.equal(preview.pathname,'/car');
  assert.equal(preview.searchParams.get('v1name'),'장소3');
  const intent=p.naverLaunchUrl(parts[0],'https://example.com','Mozilla/5.0 (Linux; Android 14)');
- assert.match(intent,/^intent:\/\/navigation\?/);
+ assert.match(intent,/^intent:\/\/route\/car\?/);
  assert.match(intent,/v1name=%EC%9E%A5%EC%86%8C3/);
  assert.match(intent,/v4lat=/);
  assert.match(intent,/#Intent;scheme=nmap;action=android\.intent\.action\.VIEW;/);
  assert.match(intent,/package=com\.nhn\.android\.nmap;end$/);
- assert.equal(p.naverLaunchUrl(parts[0],'https://example.com','iPhone').startsWith('nmap://navigation?'),true);
+ assert.equal(p.naverLaunchUrl(parts[0],'https://example.com','iPhone').startsWith('nmap://route/car?'),true);
 });
 test('search marker renderer always rehydrates saved pins, without stale signature cache',async()=>{
  const src=await read('public/static/search-screen.js');
