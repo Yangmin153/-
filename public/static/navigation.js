@@ -23,8 +23,9 @@ function orderedPoints(day){
  Number(first.lng)!==Number(day.origin.lng))return null;
  return [...visits,currentDestination];
 }
-function sections(day,provider){
- const points=orderedPoints(day);if(!points||!MAX_VIA[provider])return [];
+function sections(day,provider,mode='via'){
+ const points=mode==='direct'?(valid(day?.destination)?[day.destination]:null):orderedPoints(day);
+ if(!points||!MAX_VIA[provider])return [];
  const limit=MAX_VIA[provider]+1,out=[];
  for(let i=0;i<points.length;i+=limit){
   const parts=points.slice(i,i+limit);
@@ -68,33 +69,65 @@ function naverLaunchUrl(part,webOrigin,agent,preview=false){
 const planner=Object.freeze({orderedPoints,sections,naverUrl,naverRouteUrl,naverLaunchUrl,androidNaverIntent,kakaoArguments,MAX_VIA});
 root.TripNaviPlanner=planner;
 if(!root.document||!$('yg-nav-open'))return;
-let provider='naver',config=null,loadPromise=null,activeDayId='',lastOpened=-1;
+let provider='naver',travelMode='via',config=null,loadPromise=null,activeDayId='',lastOpened=-1;
 const panel=$('yg-nav-modal'),content=$('yg-nav-segments'),status=$('yg-nav-status');
 const app=()=>root.TripApp,day=()=>app()?.getDay?.();
 const explain=msg=>{status.textContent=msg;status.hidden=!msg;};
-function close(){
- panel.hidden=true;document.body.classList.remove('yg-nav-open');
+const storageKey='yeohaenggil.navigation.v7';
+let locked=false,previousFocus=null;
+function signature(d,p,m){
+ if(!d)return '';
+ const places=sections(d,p,m);
+ if(!places.length)return '';
+ return JSON.stringify([d.id,p,m,d.destination?.id,d.destination?.lat,d.destination?.lng,
+  places.flatMap(part=>[...part.via,part.destination].map(x=>[x.id,x.lat,x.lng]))]);
 }
+function restoreProgress(d){
+ lastOpened=-1;const sign=signature(d,provider,travelMode);if(!sign)return;
+ try{const stored=JSON.parse(sessionStorage.getItem(storageKey)||'null');
+  if(stored?.signature===sign&&Number.isInteger(stored.lastOpened))lastOpened=stored.lastOpened;
+ }catch{}
+}
+function persistProgress(d){
+ try{sessionStorage.setItem(storageKey,JSON.stringify({signature:signature(d,provider,travelMode),lastOpened}));}catch{}
+}
+function close(){
+ if(panel.hidden)return;
+ panel.hidden=true;document.body.classList.remove('yg-nav-open');
+ if(locked){root.YGScrollLock?.unlock('navigation');locked=false;}
+ previousFocus?.focus?.({preventScroll:true});previousFocus=null;
+}
+function nextIndex(parts){return lastOpened>=parts.length-1?0:Math.max(0,lastOpened+1);}
 function redraw(){
- const selected=day(),parts=sections(selected,provider);
- const unready=!parts.length;
- $('yg-nav-start').disabled=unready;
- $('yg-nav-open').disabled=unready;
- $('yg-nav-provider-name').textContent=provider==='naver'?'네이버지도 내비게이션':'카카오내비';
- content.innerHTML=parts.map(part=>'<div class="yg-nav-segment">'+
-  '<div class="yg-nav-segment-top"><strong>'+(part.index+1)+'구간</strong><span>'+
-   safe(part.startHint)+' → '+safe(part.destination.name)+'</span></div>'+
-  (part.via.length?'<small>앱에 전달할 경유지 '+part.via.length+'곳: '+part.via.map((p,i)=>(i+1)+'. '+safe(p.name)).join(' → ')+'</small>':'<small>경유지 없이 목적지로 이동</small>')+
-  '<button type="button" data-nav-segment="'+part.index+'">'+(part.index===0?'길안내 시작':'이 구간 실행')+'</button>'+
-  (provider==='naver'&&part.via.length?'<button type="button" data-nav-preview="'+part.index+'" class="yg-nav-preview">경유지 포함 경로 먼저 확인</button>':'')+'</div>').join('');
- $('yg-nav-segment-count').textContent=parts.length?parts.length+'개 구간':'계산 결과 없음';
- explain(unready?'이 날짜의 동선을 먼저 계산해 주세요.':(parts.length>1?'한 구간을 마친 뒤 여행길로 돌아와 다음 구간을 실행하세요. ':'')+
- (provider==='kakao'?'카카오내비에는 최대 3개 경유지를 직접 전달합니다. ':'네이버지도에는 최대 5개 경유지를 직접 전달합니다. ')+
- '내비게이션은 현재 위치에서 시작하며, 실제 도로 경로는 내비 앱이 다시 계산합니다.');
- if(parts.length&&lastOpened>=0&&activeDayId===selected.id){
-  const upcoming=content.querySelector('[data-nav-segment="'+Math.min(lastOpened+1,parts.length-1)+'"]');
-  if(upcoming)upcoming.classList.add('yg-nav-next');
+ const selected=day(),parts=sections(selected,provider,travelMode),next=nextIndex(parts);
+ const ready=parts.length>0,part=parts[next];
+ $('yg-nav-open').disabled=!(valid(selected?.destination));
+ $('yg-nav-start').disabled=!ready;
+ $('yg-nav-provider-name').textContent=provider==='naver'?'네이버지도':'카카오내비';
+ $('yg-nav-segment-count').textContent=travelMode==='direct'?'목적지로 바로 이동':
+    (ready?'방문지 '+(selected?.result?.orderIds?.length||0)+'곳':'동선 계산 필요');
+ const complete=ready&&lastOpened>=parts.length-1&&lastOpened>=0;
+ $('yg-nav-start').textContent=!ready?'동선 계산 후 시작':complete?'처음부터 다시 안내':
+  lastOpened>=0?'다음 길안내':'길안내 시작';
+ if(!ready){
+  content.innerHTML='';
+  explain(travelMode==='via'?'방문지 동선을 먼저 계산해 주세요.':'이날의 도착지를 먼저 설정해 주세요.');
+  return;
  }
+ const left=parts.length-1-next;
+ const rows=[...part.via,part.destination];
+ const label=travelMode==='direct'?'현재 위치에서 도착지로 바로 안내해요.':
+  (parts.length>1?'방문 순서 그대로 안내해요. 정차 후 다음 길안내를 눌러주세요.':'방문 순서 그대로 경유지로 안내해요.');
+ explain(label);
+ content.innerHTML='<div class="yg-nav-next-preview">'+
+  '<strong>'+(lastOpened>=0&&!complete?'다음 이동':'이번에 안내할 길')+'</strong>'+
+  '<p>현재 위치 → '+rows.map((p,i)=>safe(p.name)+(i<rows.length-1?' (경유)':'')).join(' → ')+'</p>'+
+  (part.via.length?'<small>경유지 '+part.via.length+'곳 · 마지막 '+safe(part.destination.name)+'</small>':
+   '<small>목적지 '+safe(part.destination.name)+'</small>')+
+  (parts.length>1?'<small>남은 길안내 '+(parts.length-next)+'회</small>':'')+
+  '</div>';
+ // Keep the existing event interface available for previously bound integrations.
+ if(!ready)return;
 }
 async function getConfig(){
  if(config)return config;
@@ -106,12 +139,12 @@ async function loadKakao(){
  if(loadPromise)return loadPromise;
  loadPromise=(async()=>{
   const c=await getConfig(),key=String(c.kakaoJsKey||'');
-  if(!key)throw Error('카카오내비 연동용 JavaScript 키가 아직 설정되지 않았어요. Vercel에 KAKAO_JAVASCRIPT_KEY를 등록해 주세요.');
+  if(!key)throw Error('카카오내비 연결 설정을 확인해 주세요. Vercel Preview의 JavaScript 키가 필요합니다.');
   if(!root.Kakao){
    await new Promise((resolve,reject)=>{
     const el=document.createElement('script');
     el.src='https://t1.kakaocdn.net/kakao_js_sdk/2.8.4/kakao.min.js';
-    el.async=true;el.onload=resolve;el.onerror=()=>reject(Error('카카오 SDK를 불러오지 못했어요.'));
+    el.async=true;el.onload=resolve;el.onerror=()=>reject(Error('카카오 내비 SDK를 불러오지 못했어요.'));
     document.head.appendChild(el);
    });
   }
@@ -122,54 +155,67 @@ async function loadKakao(){
  return loadPromise;
 }
 function open(){
- const d=day(),points=orderedPoints(d);
- if(!points){app()?.toast?.('동선을 계산하거나 최신 결과로 다시 계산해 주세요.');return;}
- activeDayId=d.id;lastOpened=-1;provider='naver';$('yg-nav-provider').value=provider;
- panel.hidden=false;document.body.classList.add('yg-nav-open');redraw();
+ const d=day();
+ if(!valid(d?.destination)){
+  app()?.toast?.('이날의 도착지를 먼저 설정해 주세요.');return;
+ }
+ previousFocus=document.activeElement;activeDayId=d.id;provider='naver';
+ travelMode=orderedPoints(d)&&d.stops.length?'via':'direct';
+ panel.querySelector('[name="yg-nav-provider-choice"][value="naver"]').checked=true;
+ panel.querySelector('[name="yg-nav-mode-choice"][value="'+travelMode+'"]').checked=true;
+ restoreProgress(d);
+ panel.hidden=false;document.body.classList.add('yg-nav-open');
+ root.YGScrollLock?.lock('navigation');locked=true;
+ redraw();$('yg-nav-close')?.focus?.({preventScroll:true});
 }
 function launch(index,preview=false){
- const selected=day(),parts=sections(selected,provider),part=parts[index];
- if(!part){explain('최신 동선으로 다시 계산한 뒤 내비게이션을 시작해 주세요.');return;}
- // Validate again at the exact moment navigation is opened.
- if(activeDayId!==selected.id||!orderedPoints(selected)){explain('일정이 변경됐어요. 다시 계산해 주세요.');return;}
- lastOpened=index;redraw();
+ const selected=day(),parts=sections(selected,provider,travelMode),part=parts[index];
+ if(!part){explain('일정이 변경됐어요. 최신 동선을 확인해 주세요.');return;}
+ if(activeDayId!==selected.id){explain('날짜가 바뀌었어요. 다시 선택해 주세요.');return;}
+ if(travelMode==='via'&&!orderedPoints(selected)){explain('방문지 동선을 다시 계산해 주세요.');return;}
  if(provider==='naver'){
-  // Direct, trusted Naver official scheme. The external app uses GPS as origin.
   const url=naverLaunchUrl(part,location.origin,navigator.userAgent,preview);
+  lastOpened=index;persistProgress(selected);redraw();
+  // Official Naver scheme: no slat/slng => device's current GPS location.
   window.location.href=url;return;
  }
- // Call the app-launching SDK synchronously within the click when preloaded;
- // otherwise load the SDK and request a second direct user tap (mobile gesture requirement).
  if(root.Kakao?.isInitialized?.()&&root.Kakao?.Navi?.start){
-  try{root.Kakao.Navi.start(kakaoArguments(part));}catch(e){explain(e.message);}
+  try{
+   root.Kakao.Navi.start(kakaoArguments(part));
+   lastOpened=index;persistProgress(selected);redraw();
+  }catch(e){explain('카카오내비를 열지 못했어요. '+e.message);}
  }else{
-  explain('카카오내비를 준비하고 있어요. 준비가 되면 다시 실행 버튼을 눌러주세요.');
-  loadKakao().then(()=>explain('카카오내비 준비 완료. 길안내 버튼을 다시 눌러주세요.')).catch(e=>explain(e.message));
+  explain('카카오내비 연결 중이에요. 완료 안내가 나오면 한 번 더 눌러주세요.');
+  loadKakao().then(()=>explain('카카오내비 연결 완료. 이제 길안내를 눌러주세요.'))
+   .catch(e=>explain(e.message));
  }
 }
 $('yg-nav-open').addEventListener('click',open);
-$('yg-nav-start').addEventListener('click',()=>launch(0));
-$('yg-nav-close').addEventListener('click',close);
-panel.addEventListener('click',e=>{
- if(e.target===panel||e.target.closest('[data-nav-close]'))return close();
- const preview=e.target.closest('[data-nav-preview]');
- if(preview)return launch(Number(preview.dataset.navPreview),true);
- const b=e.target.closest('[data-nav-segment]');if(b)launch(Number(b.dataset.navSegment));
+$('yg-nav-start').addEventListener('click',()=>{
+ const parts=sections(day(),provider,travelMode);
+ if(!parts.length)return;
+ launch(nextIndex(parts));
 });
-$('yg-nav-provider').addEventListener('change',e=>{
- provider=e.target.value;lastOpened=-1;redraw();
+$('yg-nav-close').addEventListener('click',close);
+panel.addEventListener('click',e=>{if(e.target===panel||e.target.closest('[data-nav-close]'))close();});
+panel.querySelectorAll('[name="yg-nav-provider-choice"]').forEach(input=>input.addEventListener('change',()=>{
+ if(!input.checked)return;provider=input.value;restoreProgress(day());redraw();
  if(provider==='kakao'){
-  explain('카카오내비 연결을 확인 중이에요…');
-  loadKakao().then(()=>explain('카카오내비 준비 완료. 현재 위치에서 길안내를 시작할 수 있어요.'))
+  explain('카카오내비 연결 중이에요…');
+  loadKakao().then(()=>explain('카카오내비 연결 완료. 길안내를 시작할 수 있어요.'))
    .catch(err=>explain(err.message));
  }
-});
+}));
+panel.querySelectorAll('[name="yg-nav-mode-choice"]').forEach(input=>input.addEventListener('change',()=>{
+ if(!input.checked)return;travelMode=input.value;restoreProgress(day());redraw();
+}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close();});
-document.addEventListener('trip:day-changed',()=>{if(!panel.hidden)close();redraw();});
-document.addEventListener('trip:stops-changed',()=>{if(!panel.hidden)close();redraw();});
-document.addEventListener('trip:endpoint-changed',()=>{if(!panel.hidden)close();redraw();});
-document.addEventListener('trip:routes-ready',redraw);
-document.addEventListener('trip:routes-cleared',redraw);
+document.addEventListener('trip:day-changed',()=>{if(!panel.hidden)close();else redraw();});
+document.addEventListener('trip:stops-changed',()=>{if(!panel.hidden)close();else redraw();});
+document.addEventListener('trip:endpoint-changed',()=>{if(!panel.hidden)close();else redraw();});
+document.addEventListener('trip:routes-ready',()=>{if(!panel.hidden){restoreProgress(day());redraw();}});
+document.addEventListener('trip:routes-cleared',()=>{if(!panel.hidden)close();else redraw();});
 redraw();
+
 root.TripNavigation=Object.freeze({open,close});
 })(globalThis);
