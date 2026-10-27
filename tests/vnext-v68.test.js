@@ -18,7 +18,7 @@ test('external navigation starts at GPS and follows the calculated visit order, 
  const nav=await navigation(),d=makeDay(12);
  for(const provider of ['naver','kakao']){
   const parts=nav.sections(d,provider),flattened=parts.flatMap(p=>[...p.via,p.destination]);
-  assert.deepEqual(flattened.map(x=>x.id),[...d.result.orderIds,'end']);
+  assert.deepEqual(JSON.parse(JSON.stringify(flattened.map(x=>x.id))),[...d.result.orderIds,'end']);
   assert.ok(parts.every(p=>p.via.length<=nav.MAX_VIA[provider]));
   assert.equal(parts.at(-1).destination.id,'end');
   assert.equal(parts[0].startHint,'현재 위치');
@@ -28,12 +28,12 @@ test('external navigation starts at GPS and follows the calculated visit order, 
 });
 test('when route has 0 visits, only the actual planned endpoint becomes navigation destination',async()=>{
  const nav=await navigation(),d=makeDay(0),parts=nav.sections(d,'naver');
- assert.equal(parts.length,1);assert.equal(parts[0].destination.id,'end');assert.deepEqual([...parts[0].via],[]);
+ assert.equal(parts.length,1);assert.equal(parts[0].destination.id,'end');assert.equal(parts[0].via.length,0);
 });
 test('NAVER navigation URI contains 1..5 waypoints and omits explicit origin coordinates',async()=>{
  const nav=await navigation(),d=makeDay(12),first=nav.sections(d,'naver')[0];
  const uri=nav.naverUrl(first,'https://example.vercel.app'),u=new URL(uri);
- assert.equal(u.protocol,'nmap:');assert.equal(u.pathname,'/navigation');
+ assert.equal(u.protocol,'nmap:');assert.equal(u.hostname,'navigation');
  assert.equal(u.searchParams.get('slat'),null);assert.equal(u.searchParams.get('slng'),null);
  assert.equal(u.searchParams.get('dlat'),String(first.destination.lat));
  assert.equal(u.searchParams.get('dlng'),String(first.destination.lng));
@@ -51,7 +51,7 @@ test('KakaoNavi GPS navigation uses WGS84 longitude x and latitude y for all 3 w
 });
 test('outdated or incomplete calculated routes cannot be transferred to navigation',async()=>{
  const nav=await navigation(),d=makeDay(3);
- d.result.orderIds=[...d.result.orderIds,'missing'];assert.deepEqual(nav.sections(d,'naver'),[]);
+ d.result.orderIds=[...d.result.orderIds,'missing'];assert.equal(nav.sections(d,'naver').length,0);
  d.result.orderIds=d.result.orderIds.slice(0,-1);d.result.entries[1].place.id='tampered';
  assert.deepEqual(nav.sections(d,'naver'),[]);
 });
