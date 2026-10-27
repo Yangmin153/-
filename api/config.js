@@ -14,6 +14,9 @@ export function GET(){
   supabaseAnonKey:configured?rawKey:'',
   supabaseReady:configured,
   supabaseError:configured?'':!validUrl?'Supabase 프로젝트 URL 설정을 확인해 주세요.':'Supabase 공개용 API 키 설정을 확인해 주세요.',
-  version:'6.5.0'
+  // Kakao JavaScript key is a public browser key, NOT the server-side REST API key.
+  // Configure allowed web domains in Kakao Developers before enabling KakaoNavi.
+  kakaoJsKey:String(env.KAKAO_JAVASCRIPT_KEY||env.KAKAO_JS_KEY||'').trim(),
+  version:'6.8.0'
  });
 }
