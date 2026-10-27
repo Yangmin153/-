@@ -35,6 +35,25 @@ function invalidateRoutes(){for(const d of state.days){if(d.result)state.dirtyDa
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3300)}
 function currentRegion(){return day().region||state.days[0].region||DEFAULT_REGION;}
 function setRegion(value){const region=String(value||'').trim().replace(/\s+/g,' ').slice(0,28);if(!region)return false;for(const d of state.days)d.region=region;save();window.TripQuickAdd?.syncRegion?.();return true;}
+function setEndpointFromSearch(kind,item){
+ if(!['origin','destination'].includes(kind)||!validPlace(item))return false;
+ const d=day(),previous=d[kind];
+ const place={
+  id:previous.id,
+  name:String(item.name).slice(0,100),lat:Number(item.lat),lng:Number(item.lng),
+  address:String(item.address||'').slice(0,250),
+  category:TripMeta.infer({categoryName:item.category,name:item.name}),
+  sourceId:String(item.id||'')
+ };
+ d[kind]=place;
+ if(kind==='origin'&&state.active>0)d.originMode='custom';
+ if(kind==='destination')syncLinkedOrigins(state.active+1);
+ if(d.result)state.dirtyDayIds.add(d.id);
+ d.result=null;sceneSignature='';sceneResult=null;mapFitQueued=true;
+ refresh();
+ document.dispatchEvent(new Event('trip:endpoint-changed'));
+ return true;
+}
 function addQuickStop(item,allowDuplicate=false){
  if(!validPlace(item))return {ok:false,error:'올바른 장소를 선택해 주세요.'};
  const d=day();
@@ -606,6 +625,6 @@ window.TripApp = Object.freeze({
  importDays(days){if(!validDays(days))return false;clearTimeout(pendingCalc);state.days=normalizeDays(days);state.active=0;state.dirtyDayIds.clear();refresh();document.dispatchEvent(new Event('trip:days-imported'));return true},
  refresh, calculateRoute, openModal, toast, markDirty,
  resizeMap:()=>resizeMapStable({fit:mapFitQueued}),refreshMap:renderMap,getMap:()=>map,fitMap,focusPlace,setMapLocked,
- setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,unassignedStops,moveUnassignedToActive,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,setRouteStopLocked,moveRouteStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,previewPlace,clearPlacePreview,
+ setDayCount,setTravelDates,syncLinkedOrigins,setStopFixedDate,allStops,unassignedStops,moveUnassignedToActive,removeStop,clearComputed,applyMultiRoutes,applyDailyRoutes,setRouteMode,setDayOriginMode,reorderStop,setRouteStopLocked,moveRouteStop,centerMapAtRegion,getMapDiagnostics:()=>({created:mapCreateCount,resizes:mapResizeCount,overlays:overlayRenderCount,ready:!!map,visible:mapHasArea()}),getRegion:currentRegion,setRegion,addQuickStop,setEndpointFromSearch,previewPlace,clearPlacePreview,
 });
 boot();
