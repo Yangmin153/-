@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const example=(i)=>({id:'place'+i,name:'장소'+i,lat:33.4+i*.01,lng:126.3+i*.02});
 async function planner(){
- const root={URLSearchParams};root.globalThis=root;
+ const root={URLSearchParams,URL};root.globalThis=root;
  vm.runInNewContext(await read('public/static/navigation.js'),root);
  return root.TripNaviPlanner;
 }
