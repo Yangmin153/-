@@ -49,7 +49,7 @@ function naverUrl(part,webOrigin){
 }
 function kakaoArguments(part){
  return {name:part.destination.name,x:Number(part.destination.lng),y:Number(part.destination.lat),
- coordType:'wgs84',viaList:part.via.map(p=>({name:p.name,x:Number(p.lng),y:Number(p.lat)}))};
+ coordType:'wgs84',viaPoints:part.via.map(p=>({name:p.name,x:Number(p.lng),y:Number(p.lat)}))};
 }
 const planner=Object.freeze({orderedPoints,sections,naverUrl,kakaoArguments,MAX_VIA});
 root.TripNaviPlanner=planner;
@@ -70,10 +70,11 @@ function redraw(){
  content.innerHTML=parts.map(part=>'<div class="yg-nav-segment">'+
   '<div class="yg-nav-segment-top"><strong>'+(part.index+1)+'구간</strong><span>'+
    safe(part.startHint)+' → '+safe(part.destination.name)+'</span></div>'+
-  (part.via.length?'<small>경유지 '+part.via.length+'곳: '+part.via.map(p=>safe(p.name)).join(' → ')+'</small>':'<small>경유지 없이 목적지로 이동</small>')+
+  (part.via.length?'<small>앱에 전달할 경유지 '+part.via.length+'곳: '+part.via.map((p,i)=>(i+1)+'. '+safe(p.name)).join(' → ')+'</small>':'<small>경유지 없이 목적지로 이동</small>')+
   '<button type="button" data-nav-segment="'+part.index+'">'+(part.index===0?'길안내 시작':'이 구간 실행')+'</button></div>').join('');
  $('yg-nav-segment-count').textContent=parts.length?parts.length+'개 구간':'계산 결과 없음';
  explain(unready?'이 날짜의 동선을 먼저 계산해 주세요.':(parts.length>1?'한 구간을 마친 뒤 여행길로 돌아와 다음 구간을 실행하세요. ':'')+
+ (provider==='kakao'?'카카오내비에는 최대 3개 경유지를 직접 전달합니다. ':'네이버지도에는 최대 5개 경유지를 직접 전달합니다. ')+
  '내비게이션은 현재 위치에서 시작하며, 실제 도로 경로는 내비 앱이 다시 계산합니다.');
  if(parts.length&&lastOpened>=0&&activeDayId===selected.id){
   const upcoming=content.querySelector('[data-nav-segment="'+Math.min(lastOpened+1,parts.length-1)+'"]');
@@ -94,7 +95,7 @@ async function loadKakao(){
   if(!root.Kakao){
    await new Promise((resolve,reject)=>{
     const el=document.createElement('script');
-    el.src='https://t1.kakaocdn.net/kakao_js_sdk/2.8.1/kakao.min.js';
+    el.src='https://t1.kakaocdn.net/kakao_js_sdk/2.8.4/kakao.min.js';
     el.async=true;el.onload=resolve;el.onerror=()=>reject(Error('카카오 SDK를 불러오지 못했어요.'));
     document.head.appendChild(el);
    });
