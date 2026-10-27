@@ -29,7 +29,7 @@ function render(next){
   categoryIcon.innerHTML=window.TripMeta?.icon?.(item,19)||'';
   preview.append(categoryIcon,info);
   preview.addEventListener('click',()=>{if(window.YeoSearch?.isOpen?.()){window.YeoSearch.preview(item);return;}selectedPreview=item;app.previewPlace(item);input.blur();setSearchActive(false);document.getElementById('map-region').scrollIntoView({behavior:'smooth',block:'start'});});
-  const addButton=document.createElement('button');addButton.type='button';addButton.className='quick-direct-add';addButton.textContent='+ 추가';addButton.setAttribute('aria-label',item.name+' 방문지 추가');addButton.addEventListener('click',()=>add(item,addButton));
+  const addButton=document.createElement('button');addButton.type='button';addButton.className='quick-direct-add';addButton.textContent=window.YeoSearch?.isEndpointMode?.()?'선택':'+ 추가';addButton.setAttribute('aria-label',item.name+' 장소 선택');addButton.addEventListener('click',()=>add(item,addButton));
   row.append(preview,addButton);results.append(row);
  }
  window.YeoSearch?.onResults?.(next);
@@ -42,6 +42,8 @@ function render(next){
 async function search(force=false){const text=cleanQuery(input.value);if(text.length<2){cancel();if(text)setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;return;}const region=window.YeoNext?.searchRegion?.()??app.getRegion();const key=region+'::'+text;if(!force&&key===lastKey&&lastItems.length){render(lastItems);return;}cancel();const current=sequence;abort=new AbortController();const signal=abort.signal;setMessage('장소를 검색하고 있어요…',false,true);setSearchActive(true);try{let found=[];for(const q of searchTerms(text,region)){const result=await request(q,signal);if(current!==sequence)return;found=result.items||[];if(found.length)break;}if(current!==sequence)return;lastKey=key;lastItems=rankResults(found,region);render(lastItems);}catch(e){if(signal.aborted||current!==sequence)return;setMessage('검색에 실패했어요: '+e.message,true);}finally{if(current===sequence)abort=null;}}
 function feedback(msg){const el=$('quick-feedback');el.hidden=false;el.textContent=msg;clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.hidden=true,2300);app.toast(msg);}
 function add(item,button=null){
+ if(window.YeoSearch?.isOpen?.()&&window.YeoSearch?.isEndpointMode?.())
+  return window.YeoSearch.completeEndpoint(item);
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return false;
  const duplicate=app.getDay().stops.some(x=>samePlace(x,item));
  if(duplicate){feedback('이미 담은 장소예요. 중복으로 추가하지 않았어요.');return false;}
