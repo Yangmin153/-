@@ -66,7 +66,7 @@ test('buildPlan 6+ stops samples directed road times and never changes destinati
   assert.equal(result.entries[0].place.id,'origin');
   assert.equal(result.entries.at(-1).place.id,'end');
   assert.equal(result.orderIds.length,6);
-  assert.equal(new Set(result.orderIds).size,5);
+  assert.equal(new Set(result.orderIds).size,6);
   assert.equal(result.orderIds.at(-1),'near-end');
   assert.ok(result.apiLegs>=6);
   assert.equal(result.status,'road_order');
