@@ -62,7 +62,7 @@ test('GPS -> actual road API -> nav chooser with original day visits and origin 
  assert.equal(JSON.stringify(v.d.stops),v.oldStops);
  assert.deepEqual(v.d.result.orderIds,['s2','s1']);
  assert.equal(v.calls.navigatorOpened,0);
- assert.match(v.dom.get('yg-live-status').textContent,/현재 위치에서 동선을 다시 계산/);
+ assert.match(v.dom.get('yg-live-status').textContent,/현재 위치에서 새로 계산한 동선/);
  assert.ok(v.d.liveOrigin);
 });
 test('GPS denied does not call routing, change itinerary or open navigation',async()=>{
