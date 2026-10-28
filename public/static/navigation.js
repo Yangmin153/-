@@ -24,8 +24,10 @@ function orderedPoints(day){
  Number(first.lng)!==Number(expectedOrigin.lng))return null;
  return [...visits,currentDestination];
 }
-function sections(day,provider,mode='via'){
- const points=mode==='direct'?(valid(day?.destination)?[day.destination]:null):orderedPoints(day);
+function sections(day,provider,mode='via',targetId=''){
+ const points=mode==='single'?
+  (Array.isArray(day?.stops)&&day.stops.some(p=>p.id===targetId&&valid(p))?[day.stops.find(p=>p.id===targetId)]:null):
+  mode==='direct'?(valid(day?.destination)?[day.destination]:null):orderedPoints(day);
  if(!points||!MAX_VIA[provider])return [];
  const limit=MAX_VIA[provider]+1,out=[];
  for(let i=0;i<points.length;i+=limit){
@@ -73,7 +75,7 @@ function naverLaunchUrl(part,webOrigin,agent,preview=false){
 const planner=Object.freeze({orderedPoints,sections,naverUrl,naverRouteUrl,naverLaunchUrl,androidNaverIntent,kakaoArguments,MAX_VIA});
 root.TripNaviPlanner=planner;
 if(!root.document||!$('yg-nav-open'))return;
-let provider='naver',travelMode='via',config=null,loadPromise=null,activeDayId='',lastOpened=-1;
+let provider='naver',travelMode='via',targetId='',config=null,loadPromise=null,activeDayId='',lastOpened=-1;
 const panel=$('yg-nav-modal'),content=$('yg-nav-segments'),status=$('yg-nav-status');
 const app=()=>root.TripApp,day=()=>app()?.getDay?.();
 const explain=msg=>{status.textContent=msg;status.hidden=!msg;};
@@ -81,7 +83,7 @@ const storageKey='yeohaenggil.navigation.v7';
 let locked=false,previousFocus=null;
 function signature(d,p,m){
  if(!d)return '';
- const places=sections(d,p,m);
+ const places=sections(d,p,m,targetId);
  if(!places.length)return '';
  return JSON.stringify([d.id,p,m,d.destination?.id,d.destination?.lat,d.destination?.lng,
   places.flatMap(part=>[...part.via,part.destination].map(x=>[x.id,x.lat,x.lng]))]);
@@ -115,42 +117,55 @@ function close(){
  previousFocus?.focus?.({preventScroll:true});previousFocus=null;
 }
 function nextIndex(parts){return lastOpened>=parts.length-1?0:Math.max(0,lastOpened+1);}
+function targetChoices(d){
+ const stops=Array.isArray(d?.stops)?d.stops:[];
+ const order=d?.result?.orderIds||stops.map(p=>p.id);
+ const byId=new Map(stops.map(p=>[p.id,p]));
+ const ordered=order.map(id=>byId.get(id)).filter(p=>p&&valid(p));
+ const chosen=ordered.find(p=>p.id===targetId);
+ if(!chosen)targetId=ordered[0]?.id||'';
+ const selector=$('yg-nav-single-target');
+ const key=ordered.map(p=>p.id+'@'+p.name).join('|');
+ if(selector.dataset.targets!==key){
+  selector.replaceChildren(...ordered.map((p,i)=>{
+   const option=document.createElement('option');
+   option.value=p.id;option.textContent=(i+1)+'. '+p.name;return option;
+  }));
+  selector.dataset.targets=key;
+ }
+ selector.value=targetId;
+ $('yg-nav-single-target-wrap').hidden=travelMode!=='single';
+}
 function redraw(){
- const selected=day(),parts=sections(selected,provider,travelMode),next=nextIndex(parts);
+ const d=day();
+ targetChoices(d);
+ const parts=sections(d,provider,travelMode,targetId),next=nextIndex(parts);
  const ready=parts.length>0,part=parts[next];
- $('yg-nav-open').disabled=!(valid(selected?.destination));
+ $('yg-nav-open').disabled=!(valid(d?.destination));
  $('yg-nav-start').disabled=!ready;
  $('yg-nav-provider-name').textContent=provider==='naver'?'네이버지도':'카카오내비';
- $('yg-nav-segment-count').textContent=travelMode==='direct'?'목적지로 바로 이동':
-    (ready?'방문지 '+(selected?.result?.orderIds?.length||0)+'곳':'동선 계산 필요');
+ $('yg-nav-segment-count').textContent=travelMode==='single'?
+  (ready?'방문지 한 곳으로 안내':'안내할 방문지가 없어요'):
+  (ready?'방문지 '+(d?.result?.orderIds?.length||0)+'곳':'동선 계산 필요');
  const complete=ready&&lastOpened>=parts.length-1&&lastOpened>=0;
  $('yg-nav-start').textContent=!ready?'동선 계산 후 시작':complete?'처음부터 다시 안내':
-  lastOpened>=0?'다음 길안내':provider==='naver'&&travelMode==='via'&&parts[0]?.via.length?
-   '경유지 포함 길찾기 열기':'길안내 시작';
+  lastOpened>=0?'다음 길안내':'길안내 시작';
  const retry=$('yg-nav-retry');
- if(retry){retry.hidden=!(lastOpened>=0&&parts.length);retry.disabled=!ready;}
+ if(retry){retry.hidden=!(lastOpened>=0&&ready);retry.disabled=!ready;}
  showKakaoHelp();
+ // No redundant '이번에 안내할 길' card: selected target is visible in the field above.
+ content.replaceChildren();
+ content.hidden=true;
  if(!ready){
-  content.innerHTML='';
-  explain(travelMode==='via'?'방문지 동선을 먼저 계산해 주세요.':'이날의 도착지를 먼저 설정해 주세요.');
+  explain(travelMode==='single'?'안내할 방문지를 선택해 주세요.':'방문지 동선을 먼저 계산해 주세요.');
   return;
  }
- const left=parts.length-1-next;
- const rows=[...part.via,part.destination];
- const label=travelMode==='direct'?'현재 위치에서 도착지로 바로 안내해요.':
-  provider==='naver'&&part.via.length?
-    '네이버지도 자동차 길찾기에서 경유지를 확인한 후 ‘안내 시작’을 눌러 주세요. 경유지 적용 전 자동 안내를 시작하지 않아요.':
-    (parts.length>1?'방문 순서대로 경유해요. 정차 후 다음 길안내를 눌러 주세요.':'방문 순서대로 경유지에 들러요.');
- explain(label);
- content.innerHTML='<div class="yg-nav-next-preview">'+
-  '<strong>'+(lastOpened>=0&&!complete?'다음 이동':'이번에 안내할 길')+'</strong>'+
-  '<p>현재 위치 → '+rows.map((p,i)=>safe(p.name)+(i<rows.length-1?' (경유)':'')).join(' → ')+'</p>'+
-  (part.via.length?'<small>경유지 '+part.via.length+'곳 · 마지막 '+safe(part.destination.name)+'</small>':
-   '<small>목적지 '+safe(part.destination.name)+'</small>')+
-  (parts.length>1?'<small>남은 길안내 '+(parts.length-next)+'회</small>':'')+
-  '</div>';
- // Keep the existing event interface available for previously bound integrations.
- if(!ready)return;
+ if(travelMode==='single'){explain('');return;}
+ if(provider==='naver'&&part.via.length){
+  explain('네이버지도에서 경유지를 확인한 후 안내 시작을 눌러주세요.');
+ }else if(parts.length>1){
+  explain('모든 방문지는 순서대로 나뉘어 안내돼요. 정차한 후 다음 길안내를 눌러주세요.');
+ }else explain('');
 }
 async function getConfig(){
  if(config)return config;
@@ -183,7 +198,8 @@ function open(){
   app()?.toast?.('이날의 도착지를 먼저 설정해 주세요.');return;
  }
  previousFocus=document.activeElement;activeDayId=d.id;provider='naver';
- travelMode=orderedPoints(d)&&d.stops.length?'via':'direct';
+ travelMode=orderedPoints(d)&&d.stops.length?'via':'single';
+ targetId=d.result?.orderIds?.[0]||d.stops?.[0]?.id||'';
  panel.querySelector('[name="yg-nav-provider-choice"][value="naver"]').checked=true;
  panel.querySelector('[name="yg-nav-mode-choice"][value="'+travelMode+'"]').checked=true;
  restoreProgress(d);
@@ -192,7 +208,7 @@ function open(){
  redraw();$('yg-nav-close')?.focus?.({preventScroll:true});
 }
 function launch(index,preview=false){
- const selected=day(),parts=sections(selected,provider,travelMode),part=parts[index];
+ const selected=day(),parts=sections(selected,provider,travelMode,targetId),part=parts[index];
  if(!part){explain('일정이 변경됐어요. 최신 동선을 확인해 주세요.');return;}
  if(activeDayId!==selected.id){explain('날짜가 바뀌었어요. 다시 선택해 주세요.');return;}
  if(travelMode==='via'&&!orderedPoints(selected)){explain('방문지 동선을 다시 계산해 주세요.');return;}
@@ -216,12 +232,12 @@ function launch(index,preview=false){
 }
 $('yg-nav-open').addEventListener('click',open);
 $('yg-nav-start').addEventListener('click',()=>{
- const parts=sections(day(),provider,travelMode);
+ const parts=sections(day(),provider,travelMode,targetId);
  if(!parts.length)return;
  launch(nextIndex(parts));
 });
 $('yg-nav-retry')?.addEventListener('click',()=>{
- const parts=sections(day(),provider,travelMode);
+ const parts=sections(day(),provider,travelMode,targetId);
  if(lastOpened>=0&&parts[lastOpened])launch(lastOpened);
 });
 $('yg-nav-close').addEventListener('click',close);
@@ -237,6 +253,9 @@ panel.querySelectorAll('[name="yg-nav-provider-choice"]').forEach(input=>input.a
 panel.querySelectorAll('[name="yg-nav-mode-choice"]').forEach(input=>input.addEventListener('change',()=>{
  if(!input.checked)return;travelMode=input.value;restoreProgress(day());redraw();
 }));
+$('yg-nav-single-target').addEventListener('change',e=>{
+ targetId=e.target.value;restoreProgress(day());redraw();
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close();});
 document.addEventListener('trip:day-changed',()=>{if(!panel.hidden)close();else redraw();});
 document.addEventListener('trip:stops-changed',()=>{if(!panel.hidden)close();else redraw();});
