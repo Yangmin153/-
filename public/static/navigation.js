@@ -153,7 +153,7 @@ function redraw(){
  const retry=$('yg-nav-retry');
  if(retry){retry.hidden=!(lastOpened>=0&&ready);retry.disabled=!ready;}
  showKakaoHelp();
- // No redundant '이번에 안내할 길' card: selected target is visible in the field above.
+ // No redundant route-preview card: the target picker and route mode communicate the choice.
  content.replaceChildren();
  content.hidden=true;
  if(!ready){
