@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
   <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
-  <link rel="stylesheet" href="/static/vnext.css?v=7.3.0">
+  <link rel="stylesheet" href="/static/vnext.css?v=7.4.0">
   <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
@@ -34,7 +34,7 @@
   <script type="module" src="/static/accounts.js?v=7.3.0"></script>
   <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
   <script defer src="/static/vnext.js?v=7.0.0"></script>
-  <script defer src="/static/navigation.js?v=7.3.0"></script>
+  <script defer src="/static/navigation.js?v=7.4.0"></script>
   <script defer src="/static/live-route.js?v=7.3.0"></script>
 </head>
 <body data-mobile-view="edit" data-trip-step="1" class="region-ready">
@@ -198,9 +198,11 @@
         <legend>어디로 안내할까요?</legend>
         <label class="yg-nav-mode-choice"><input type="radio" name="yg-nav-mode-choice" value="single"><span><strong>방문지 한 곳으로 안내</strong><small>선택한 장소까지 바로 길안내해요.</small></span></label>
         <label class="yg-nav-mode-choice"><input type="radio" name="yg-nav-mode-choice" value="via" checked><span><strong>모든 방문지 순서대로 안내</strong><small>계산한 순서대로 경유해 최종 도착지로 가요.</small></span></label>
-        <label class="yg-nav-single-target" id="yg-nav-single-target-wrap" hidden>안내할 방문지
-          <select id="yg-nav-single-target" aria-label="안내할 방문지 선택"></select>
-        </label>
+        <div class="yg-nav-single-target" id="yg-nav-single-target-wrap" hidden>
+          <div class="yg-nav-places-title"><strong>목적지를 선택하세요</strong><small>현재 위치에서 선택한 장소로 바로 이동해요.</small></div>
+          <div id="yg-nav-place-list" class="yg-nav-place-list" role="group" aria-label="방문지 중 안내할 장소"></div>
+          <select id="yg-nav-single-target" aria-label="안내할 방문지 선택" hidden tabindex="-1" aria-hidden="true"></select>
+        </div>
       </fieldset>
       <div class="yg-nav-summary"><strong id="yg-nav-provider-name">네이버지도</strong><span id="yg-nav-segment-count">방문지 0곳</span></div>
       <p id="yg-nav-status" class="yg-nav-status" role="status" aria-live="polite"></p>
