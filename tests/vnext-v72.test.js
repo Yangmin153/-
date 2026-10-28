@@ -7,7 +7,7 @@ test('GPS button is directly below STEP3 result map and before route metrics, no
  const at=x=>html.indexOf('id="'+x+'"');
  assert.ok(at('map-region')<at('yg-live-controls')&&at('yg-live-controls')<at('route-results'));
  assert.match(html,/id="yg-live-optimize"/);
- assert.match(html,/src="\/static\/live-route\.js\?v=7\.2\.1"/);
+ assert.match(html,/src="\/static\/live-route\.js\?v=7\.3\.0"/);
  assert.match(html,/id="yg-live-reset"[^>]*hidden/);
  assert.doesNotMatch(html,/방문 완료/);
 });
@@ -19,7 +19,7 @@ test('current position is requested only on user action and is used as origin of
  assert.match(src,/fetch\('\/api\/route'/);
  assert.match(src,/body:JSON\.stringify\(body\)/);
  assert.match(src,/app\(\)\.applyLiveRoute\(id,gps,route\)/);
- assert.match(src,/root\.TripNavigation\?\.open\?\.\(\)/);
+ assert.doesNotMatch(src,/root\.TripNavigation\?\.open\?\.\(\)/);
  assert.doesNotMatch(src,/completedStops|visitedStops|markVisited|autoComplete/);
 });
 test('original planned stops, origin and route are preserved separately from the live computed route',async()=>{
@@ -49,10 +49,11 @@ test('auth user can save and reopen calculated route as well as dates and visits
  assert.match(account,/app\(\)\.exportCloudDays\?\.\(\)/);
  assert.match(account,/app\(\)\.importDays\(trip\.days\)/);
  assert.match(account,/window\.YeoNext\.go\(3\)/);
- assert.match(account,/id="yg-route-save"|\$\('yg-route-save'\)/);
+ assert.match(account,/saveCurrent/);
  assert.match(server,/750000/);
- assert.match(html,/id="yg-route-save"/);
- assert.match(html,/id="yg-route-load"/);
+ assert.doesNotMatch(html,/id="yg-route-save"/);
+ assert.doesNotMatch(html,/id="yg-route-load"/);
+ assert.match(html,/id="account-button"/);
 });
 
 test('Vercel trip route passes actual environment rather than platform execution context',async()=>{
