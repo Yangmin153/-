@@ -50,10 +50,10 @@ test('road-time refiner moves the cheap-to-destination visit to the end without 
   assert.ok(fake.count()<=56,'within 48 optional plus 8 baseline route calls');
  }finally{globalThis.fetch=previous;}
 });
-test('buildPlan 5+ stops samples directed road times and never changes destination or stop set',async()=>{
+test('buildPlan 6+ stops samples directed road times and never changes destination or stop set',async()=>{
  const origin=point('origin',33.5,126.5),stops=[
   point('s1',33.55,126.55),point('s2',33.52,126.6),
-  point('s3',33.53,126.7),point('s4',33.56,126.8),
+  point('s3',33.53,126.7),point('s4',33.56,126.8),point('s5',33.59,126.85),
   point('near-end',33.51,126.9)
  ],destination=point('end',33.5,126.901);
  const all=[origin,...stops,destination],fake=syntheticRoadMock(all,'near-end'),previous=globalThis.fetch;
@@ -65,12 +65,30 @@ test('buildPlan 5+ stops samples directed road times and never changes destinati
   });
   assert.equal(result.entries[0].place.id,'origin');
   assert.equal(result.entries.at(-1).place.id,'end');
-  assert.equal(result.orderIds.length,5);
+  assert.equal(result.orderIds.length,6);
   assert.equal(new Set(result.orderIds).size,5);
   assert.equal(result.orderIds.at(-1),'near-end');
   assert.ok(result.apiLegs>=6);
   assert.equal(result.status,'road_order');
   assert.ok(result.warnings.some(x=>x.includes('자동차 이동시간')));
+ }finally{globalThis.fetch=previous;}
+});
+test('five stops use exhaustive directed road-time matrix by default',async()=>{
+ const origin=point('origin',33.5,126.5),stops=[
+  point('s1',33.51,126.55),point('s2',33.52,126.6),
+  point('s3',33.53,126.7),point('s4',33.54,126.8),
+  point('near-end',33.51,126.89)
+ ],destination=point('end',33.5,126.9);
+ const fake=syntheticRoadMock([origin,...stops,destination],'near-end'),previous=globalThis.fetch;
+ try{
+  globalThis.fetch=fake.fetch;
+  const result=await buildPlan({origin,destination,stops,mode:'auto',departure:'09:00'},
+   {NAVER_MAPS_CLIENT_ID:'public-test-id',NAVER_MAPS_CLIENT_SECRET:'private-test-secret'});
+  assert.equal(result.status,'road_exact');
+  assert.equal(result.orderIds.length,5);
+  assert.equal(result.orderIds.at(-1),'near-end');
+  assert.equal(result.estimatedLegs,0);
+  assert.ok(fake.count()<=30);
  }finally{globalThis.fetch=previous;}
 });
 test('navigation destination cards replace dropdown with named selectable list and no unsafe name HTML',async()=>{
