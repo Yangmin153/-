@@ -122,18 +122,33 @@ function targetChoices(d){
  const order=d?.result?.orderIds||stops.map(p=>p.id);
  const byId=new Map(stops.map(p=>[p.id,p]));
  const ordered=order.map(id=>byId.get(id)).filter(p=>p&&valid(p));
- const chosen=ordered.find(p=>p.id===targetId);
- if(!chosen)targetId=ordered[0]?.id||'';
- const selector=$('yg-nav-single-target');
- const key=ordered.map(p=>p.id+'@'+p.name).join('|');
+ if(!ordered.some(p=>p.id===targetId))targetId=ordered[0]?.id||'';
+ const selector=$('yg-nav-single-target'),list=$('yg-nav-place-list');
+ const key=ordered.map(p=>p.id+'@'+p.name+'@'+(p.address||'')).join('|');
  if(selector.dataset.targets!==key){
   selector.replaceChildren(...ordered.map((p,i)=>{
    const option=document.createElement('option');
    option.value=p.id;option.textContent=(i+1)+'. '+p.name;return option;
   }));
+  list.replaceChildren(...ordered.map((p,i)=>{
+   const btn=document.createElement('button');btn.type='button';
+   btn.className='yg-nav-place-option';btn.dataset.navTarget=p.id;
+   const num=document.createElement('span');num.className='yg-nav-place-num';num.textContent=String(i+1);
+   const info=document.createElement('span');info.className='yg-nav-place-info';
+   const name=document.createElement('strong');name.textContent=p.name;
+   const sub=document.createElement('small');sub.textContent=p.address||'방문지';
+   info.append(name,sub);
+   const check=document.createElement('span');check.className='yg-nav-place-check';check.setAttribute('aria-hidden','true');check.textContent='✓';
+   btn.append(num,info,check);return btn;
+  }));
   selector.dataset.targets=key;
  }
  selector.value=targetId;
+ list.querySelectorAll('[data-nav-target]').forEach(button=>{
+  const selected=button.dataset.navTarget===targetId;
+  button.setAttribute('aria-pressed',String(selected));
+  button.classList.toggle('is-active',selected);
+ });
  $('yg-nav-single-target-wrap').hidden=travelMode!=='single';
 }
 function redraw(){
@@ -256,6 +271,11 @@ panel.querySelectorAll('[name="yg-nav-mode-choice"]').forEach(input=>input.addEv
 }));
 $('yg-nav-single-target').addEventListener('change',e=>{
  targetId=e.target.value;restoreProgress(day());redraw();
+});
+$('yg-nav-place-list').addEventListener('click',event=>{
+ const item=event.target.closest('[data-nav-target]');
+ if(!item||!event.currentTarget.contains(item))return;
+ targetId=item.dataset.navTarget;restoreProgress(day());redraw();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close();});
 document.addEventListener('trip:day-changed',()=>{if(!panel.hidden)close();else redraw();});
