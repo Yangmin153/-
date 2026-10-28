@@ -3,7 +3,7 @@
  'use strict';
  const $=id=>document.getElementById(id);
  if(!root.document||!$('yg-live-optimize'))return;
- const button=$('yg-live-optimize'),status=$('yg-live-status'),reset=$('yg-live-reset');
+ const button=$('yg-live-optimize'),status=$('yg-live-status');
  const app=()=>root.TripApp;
  let busy=false,run=0;
  const message=(text,error=false)=>{
@@ -33,7 +33,6 @@
  function show(){
   const d=app()?.getDay?.();
   const active=Boolean(d?.liveOrigin&&d?.result?.isLiveRoute);
-  reset.hidden=!active;
   button.textContent=busy?'현재 위치로 계산 중…':'◎ 현재 위치에서 다시 최적화';
   button.disabled=busy||!d||!d.stops?.length||!d.date;
   if(!busy){
@@ -70,18 +69,13 @@
     throw new Error('계산 중 여행 일정이 변경됐어요. 다시 시도해 주세요.');
    if(!app().applyLiveRoute(id,gps,route))
     throw new Error('동선 결과와 저장된 방문지가 일치하지 않아요.');
-   message('현재 위치에서 새 동선을 만들었어요. 내비게이션을 선택해 주세요.');
+   message('현재 위치에서 동선을 다시 계산했어요. 아래 방문 순서를 확인해 주세요.');
    app().toast('현재 위치 기준으로 동선을 다시 계산했어요.');
-   // User deliberately started reoptimization; show the navigation choice only after success.
-   root.TripNavigation?.open?.();
+   // Reoptimization updates only the map/timeline. Navigation is a separate user action.
   }catch(error){message(locationError(error),true);}
   finally{busy=false;show();}
  }
  button.addEventListener('click',start);
- reset.addEventListener('click',()=>{
-  if(app()?.restorePlannedRoute?.()){message('원래 여행 계획으로 돌아왔어요.');app().toast('원래 계획으로 돌아왔어요.');}
-  show();
- });
  document.addEventListener('trip:day-changed',()=>{run++;message('');show();});
  document.addEventListener('trip:days-imported',()=>{run++;message('');show();});
  document.addEventListener('trip:routes-ready',show);
