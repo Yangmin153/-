@@ -8,7 +8,7 @@ test('GPS button is directly below STEP3 result map and before route metrics, no
  assert.ok(at('map-region')<at('yg-live-controls')&&at('yg-live-controls')<at('route-results'));
  assert.match(html,/id="yg-live-optimize"/);
  assert.match(html,/src="\/static\/live-route\.js\?v=7\.3\.0"/);
- assert.match(html,/id="yg-live-reset"[^>]*hidden/);
+ assert.doesNotMatch(html,/id="yg-live-reset"/);
  assert.doesNotMatch(html,/방문 완료/);
 });
 test('current position is requested only on user action and is used as origin of a real route request',async()=>{
