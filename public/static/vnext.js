@@ -115,7 +115,7 @@ function go(next){
  if(next===2||next===3)requestAnimationFrame(()=>setTimeout(()=>{app.resizeMap();app.refreshMap();},130));
 }
 function renderWarnings(){
- const notReady=days().filter(d=>!d.result).length,estimated=days().filter(d=>d.result&&d.result.status!=='road_exact').length;
+ const notReady=days().filter(d=>!d.result).length,estimated=days().filter(d=>d.result&&['estimated','mixed','road_partial'].includes(d.result.status)).length;
  const messages=[...new Set([...lastWarnings,...days().flatMap(d=>d.result?.warnings||[])])].filter(Boolean);
  if(notReady)messages.unshift('아직 동선을 만들지 않은 날짜가 '+notReady+'일 있어요.');
  if(estimated)messages.unshift('도로 경로 일부에 근사 계산 또는 추정 구간이 포함될 수 있습니다.');
