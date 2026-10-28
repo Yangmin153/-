@@ -896,3 +896,115 @@ body[data-trip-step="3"] .yg-live-button:focus-visible{outline:3px solid #8fbeff
  body[data-trip-step="3"] #yg-route-account-actions button{font-size:11px}
  body[data-trip-step="3"] #yg-live-controls{padding:0 8px 10px}
 }
+
+/* v7.3 — focused first step, compact STEP3 map actions and no duplicate account controls. */
+body[data-trip-step="1"] #yg-step-one{
+ display:flex!important;flex-direction:column;justify-content:center;align-items:center;
+ width:100%;max-width:690px;
+ min-height:clamp(330px,calc(100dvh - 295px),670px);
+ padding:20px 12px 38px!important;margin:0 auto!important
+}
+body[data-trip-step="1"] #yg-step-one .yg-step-intro{
+ width:100%;max-width:500px;margin:0 auto 12px!important;text-align:center
+}
+body[data-trip-step="1"] #yg-step-one .yg-step-intro h1{
+ font-size:clamp(23px,4.8vw,32px);margin:8px 0 0;line-height:1.3
+}
+body[data-trip-step="1"] #yg-step-one .yg-date-card{
+ width:100%;max-width:500px;margin:8px auto 0!important;
+ padding:20px 18px!important;border-radius:18px
+}
+body[data-trip-step="1"] #yg-step-one #yg-stage-one-error{
+ width:100%;max-width:500px;margin:12px auto
+}
+body[data-trip-step="1"] #yg-step-one .yg-step-actions{
+ width:100%;max-width:500px;margin:17px auto 0
+}
+body[data-trip-step="3"] #trip-workspace #map-control-bar{
+ position:relative!important;display:flex!important;align-items:center!important;
+ min-height:0!important;width:100%!important;margin:0 0 7px!important;
+ padding:2px 0 4px!important;border:0!important;box-shadow:none!important;
+ background:transparent!important;overflow:visible!important
+}
+body[data-trip-step="3"] #trip-workspace #map-overlay-controls{
+ position:static!important;left:auto!important;top:auto!important;right:auto!important;
+ width:100%!important;max-width:100%!important;padding:0!important;margin:0!important;
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ gap:0!important;pointer-events:auto!important
+}
+body[data-trip-step="3"] #trip-workspace #map-overlay-controls .map-control-buttons{
+ display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
+ justify-content:flex-end!important;width:auto!important;max-width:100%!important;
+ gap:5px!important;margin:0!important;padding:0!important;
+ border:0!important;box-shadow:none!important;background:transparent!important;
+ overflow:visible!important
+}
+body[data-trip-step="3"] #trip-workspace #map-overlay-controls .map-control-buttons button{
+ margin:0!important;padding:7px 9px!important;flex:0 0 auto!important;
+ min-height:42px!important;height:42px!important;min-width:42px!important;
+ border-radius:10px!important;font-size:12px!important;
+ background:#fff!important;border:1px solid #dae6f4!important;color:#3b618a!important;
+ box-shadow:none!important
+}
+body[data-trip-step="3"] #trip-workspace #map-overlay-controls #yg-route-fit{
+ min-width:84px!important;width:auto!important;padding:7px 10px!important
+}
+body[data-trip-step="3"] #trip-workspace #map-overlay-controls #map-maximize{
+ min-width:80px!important;width:auto!important;padding:7px 10px!important
+}
+body[data-trip-step="3"] #map-overlay-controls #map-lock{display:none!important}
+body[data-trip-step="3"] .timeline-entry{grid-template-columns:54px 36px minmax(0,1fr)}
+body[data-trip-step="3"] .timeline-entry .timeline-rail{min-width:34px}
+body[data-trip-step="3"] .timeline-entry .timeline-dot{
+ display:grid!important;place-items:center!important;
+ width:33px!important;height:33px!important;min-width:33px!important;
+ font-size:10px!important;letter-spacing:-.4px!important;line-height:1!important;
+ border-radius:50%!important
+}
+body[data-trip-step="3"] .timeline-entry:not(:last-child) .timeline-rail:after{
+ left:16px;top:34px
+}
+body[data-trip-step="3"] .timeline-dot-start{background:#e3f0ff!important;color:#1966bd!important}
+body[data-trip-step="3"] .timeline-dot-end{background:#fff0e6!important;color:#c35c24!important}
+body[data-trip-step] #yg-route-account-actions{display:none!important}
+body[data-trip-step] .yg-nav-single-target[hidden]{display:none!important}
+body[data-trip-step] .yg-nav-single-target:not([hidden]){
+ display:grid;gap:8px;grid-column:1/-1;
+ font-size:12px;font-weight:800;color:#4a6689;margin:0 0 2px
+}
+body[data-trip-step] #yg-nav-single-target{
+ display:block;min-height:48px;width:100%;max-width:100%;
+ border:1px solid #cbdff6;border-radius:12px;
+ color:#1f5a9f;background:#f7fbff;padding:11px 12px;
+ font-size:14px;font-weight:800;text-overflow:ellipsis
+}
+body[data-trip-step] #yg-nav-segments{display:none!important}
+body[data-trip-step] .yg-nav-summary{gap:8px}
+body[data-trip-step] .yg-nav-provider-choices legend,
+body[data-trip-step] .yg-nav-mode-choices legend{font-size:12px}
+@media(max-width:768px){
+ body[data-trip-step="1"] #yg-step-one{
+  min-height:clamp(310px,calc(100dvh - 265px),590px);
+  padding:10px 6px 98px!important
+ }
+ body[data-trip-step="1"] #yg-step-one .yg-date-card{padding:16px 12px!important}
+ body[data-trip-step="3"] #trip-workspace #map-overlay-controls{
+  justify-content:center!important
+ }
+ body[data-trip-step="3"] #trip-workspace #map-overlay-controls .map-control-buttons{
+  justify-content:center!important
+ }
+ body[data-trip-step="3"] .timeline-entry .timeline-rail{
+  position:static!important;flex:0 0 34px!important;min-width:34px!important;
+  width:34px!important;height:34px!important
+ }
+ body[data-trip-step="3"] .timeline-entry .timeline-dot{
+  height:32px!important;width:32px!important;min-width:32px!important;
+  font-size:9.5px!important
+ }
+}
+@media(max-width:350px){
+ body[data-trip-step="3"] #trip-workspace #map-overlay-controls .map-control-buttons{gap:4px!important}
+ body[data-trip-step="3"] #trip-workspace #map-overlay-controls #yg-route-fit{min-width:76px!important;padding:7px 8px!important;font-size:11px!important}
+ body[data-trip-step="3"] #trip-workspace #map-overlay-controls #map-maximize{min-width:75px!important;padding:7px 8px!important;font-size:11px!important}
+}
