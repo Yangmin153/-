@@ -50,8 +50,8 @@ test('Kakao Navi uses viaPoints and direct user click rather than async SDK auto
 });
 test('new navigation popup supports only two choices and an uncomplicated next-guidance control',async()=>{
  const [html,nav,css]=await Promise.all([read('public/index.html'),read('public/static/navigation.js'),read('public/static/vnext.css')]);
- assert.match(html,/바로 도착지로 가기/);
- assert.match(html,/방문지 들렀다 가기/);
+ assert.match(html,/방문지 한 곳으로 안내/);
+ assert.match(html,/모든 방문지 순서대로 안내/);
  assert.match(html,/yg-nav-choice--naver/);
  assert.match(html,/yg-nav-choice--kakao/);
  assert.doesNotMatch(html,/<option value="naver">/);
