@@ -148,10 +148,11 @@ function redraw(){
   (ready?'방문지 한 곳으로 안내':'안내할 방문지가 없어요'):
   (ready?'방문지 '+(d?.result?.orderIds?.length||0)+'곳':'동선 계산 필요');
  const complete=ready&&lastOpened>=parts.length-1&&lastOpened>=0;
- $('yg-nav-start').textContent=!ready?'동선 계산 후 시작':complete?'처음부터 다시 안내':
-  lastOpened>=0?'다음 길안내':'길안내 시작';
+ $('yg-nav-start').textContent=!ready?'동선 계산 후 시작':
+  travelMode==='single'?'길안내 시작':
+  complete?'처음부터 다시 안내':lastOpened>=0?'다음 길안내':'길안내 시작';
  const retry=$('yg-nav-retry');
- if(retry){retry.hidden=!(lastOpened>=0&&ready);retry.disabled=!ready;}
+ if(retry){retry.hidden=!(travelMode==='via'&&lastOpened>=0&&ready&&parts.length>1);retry.disabled=!ready;}
  showKakaoHelp();
  // No redundant route-preview card: the target picker and route mode communicate the choice.
  content.replaceChildren();
