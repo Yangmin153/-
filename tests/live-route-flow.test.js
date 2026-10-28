@@ -61,11 +61,9 @@ test('GPS -> actual road API -> nav chooser with original day visits and origin 
  assert.deepEqual(v.d.origin,v.oldOrigin);
  assert.equal(JSON.stringify(v.d.stops),v.oldStops);
  assert.deepEqual(v.d.result.orderIds,['s2','s1']);
- assert.equal(v.calls.navigatorOpened,1);
- assert.equal(v.dom.get('yg-live-reset').hidden,false);
- v.listeners.get('yg-live-reset:click')();
- assert.strictEqual(v.d.result,v.oldResult);
- assert.equal(v.d.liveOrigin,undefined);
+ assert.equal(v.calls.navigatorOpened,0);
+ assert.match(v.dom.get('yg-live-status').textContent,/현재 위치에서 동선을 다시 계산/);
+ assert.ok(v.d.liveOrigin);
 });
 test('GPS denied does not call routing, change itinerary or open navigation',async()=>{
  const v=makeHarness({permissionDenied:true});
