@@ -90,7 +90,9 @@ async function search(force=false,all=false){
   // Search context from the itinerary recovers a missing nearby POI without hiding
   // other cities. Run only if the national list lacks a close matching result.
   if(anchor&&!nationwide&&city){
-   const nearbyMatch=found.some(p=>p.name&&String(p.name).replace(/\s/g,'').includes(text.replace(/\s/g,''))&&distanceKm(anchor,p)<=30);
+   const nearbyMatch=found.some(p=>p.name&&distanceKm(anchor,p)<=30&&(
+    intent==='subway'?(p.categoryGroupCode==='SW8'||/지하철역|전철역|철도역/.test(String(p.category||''))):String(p.name).replace(/\s/g,'').toLowerCase()===text.replace(/\s/g,'').toLowerCase()
+   ));
    if(!nearbyMatch){
     const contextualQuery=[city,district,text].filter(Boolean).join(' ');
     try{
