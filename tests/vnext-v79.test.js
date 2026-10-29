@@ -60,5 +60,5 @@ test('search UI strings are explicit and buttons have minimum 44px target',async
 
 test('pagination does not steal focus from an actively selected map preview',async()=>{
  const js=await read('public/static/search-screen.js');
- assert.match(js,/if\\(opened&&input\\.value\\.trim\\(\\)\\.length>=2&&!selected\\)showMode\\('list'\\)/);
+ assert.ok(js.includes("if(opened&&input.value.trim().length>=2&&!selected)showMode('list')"));
 });
