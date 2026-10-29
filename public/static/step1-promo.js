@@ -34,7 +34,6 @@
  video.addEventListener('playing',()=>{if(loaded)toggle.textContent='일시정지';});
  toggle.addEventListener('click',()=>{
   if(!loaded)return;
-  userPaused=!video.paused;
   if(!video.paused){userPaused=true;pause();}
   else {userPaused=false;const p=video.play();if(p?.catch)p.catch(()=>{userPaused=true;pause();});}
  });
