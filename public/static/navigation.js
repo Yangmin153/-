@@ -150,6 +150,9 @@ function targetChoices(d){
   button.classList.toggle('is-active',selected);
  });
  $('yg-nav-single-target-wrap').hidden=travelMode!=='single';
+  const scrollHint=$('yg-nav-scroll-hint');
+  if(scrollHint){scrollHint.hidden=travelMode!=='single'||ordered.length<=4;scrollHint.textContent=ordered.length>4?'전체 '+ordered.length+'곳 · 목록을 아래로 스크롤해 나머지 방문지를 확인하세요.':'';}
+  
 }
 function redraw(){
  const d=day();
