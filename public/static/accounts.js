@@ -116,7 +116,8 @@ function close(){panel.hidden=true;document.body.classList.remove('account-open'
 async function request(path,method='GET',payload){
  if(!loggedIn())throw Error('로그인이 필요합니다.');
  const owner=user.id,access=session.access_token,controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),16000);
+ // Server verifies authentication (9s) and database access (12s) sequentially in the worst case.
+ const timeout=setTimeout(()=>controller.abort(),26000);
  try{
   const r=await fetch('/api/trips'+path,{
    method,headers:{Authorization:'Bearer '+access,...(payload?{'content-type':'application/json'}:{})},
