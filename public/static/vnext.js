@@ -71,7 +71,8 @@ function renderAdjustment(){
    '<span class="yg-adjust-icon">'+icon+'</span><div class="yg-adjust-name"><strong>'+name+'</strong><small>'+(fixed?'이 순서 고정':'자동 최적화 대상')+'</small></div>'+
    '<label class="yg-adjust-lock"><input type="checkbox" data-route-lock="'+escape(p.id)+'" '+(fixed?'checked':'')+'><span>고정</span></label>'+
    '<div class="yg-adjust-move"><button type="button" data-route-up="'+escape(p.id)+'" aria-label="'+name+' 한 칸 위로" '+(i===0?'disabled':'')+'>▲</button>'+
-   '<button type="button" data-route-down="'+escape(p.id)+'" aria-label="'+name+' 한 칸 아래로" '+(i===ordered.length-1?'disabled':'')+'>▼</button></div></div>';
+   '<button type="button" data-route-down="'+escape(p.id)+'" aria-label="'+name+' 한 칸 아래로" '+(i===ordered.length-1?'disabled':'')+'>▼</button></div>'+ 
+   '<button type="button" class="yg-adjust-delete" data-adjust-remove="'+escape(p.id)+'" aria-label="'+name+' 방문지 삭제" title="이 방문지 삭제">×</button></div>';
  }).join(''):'<p class="yg-adjust-empty">방문지를 추가하면 순서를 조정할 수 있어요.</p>';
 }
 function renderSheet(){
@@ -194,7 +195,7 @@ $('yg-back-dates').addEventListener('click',()=>go(1));
 $('yg-back-places').addEventListener('click',()=>go(2));
 $('yg-calculate').addEventListener('click',calculate);
 $('yg-three-recalc').addEventListener('click',calculate);
-$('yg-three-add').addEventListener('click',()=>{go(2);openSearch();});
+$('yg-three-add').addEventListener('click',()=>openSearch());
 $('yg-open-stops').addEventListener('click',openSheet);
 $('yg-three-list').addEventListener('click',openSheet);
 $('yg-route-mode').addEventListener('change',e=>{
@@ -213,6 +214,13 @@ $('yg-place-sheet').addEventListener('click',e=>{
 });
 
 $('yg-adjust-list').addEventListener('click',e=>{
+ const remove=e.target.closest('[data-adjust-remove]');
+ if(remove){
+  const id=remove.dataset.adjustRemove;
+  if(!day().stops.some(p=>p.id===id))return;
+  if(app.removeStop(id)){renderDaily();app.toast('방문지를 삭제했어요. 다시 최적화해 주세요.');}
+  return;
+ }
  const up=e.target.closest('[data-route-up]'),down=e.target.closest('[data-route-down]');
  if(up){app.moveRouteStop(up.dataset.routeUp,-1);renderDaily();}
  else if(down){app.moveRouteStop(down.dataset.routeDown,1);renderDaily();}
@@ -221,10 +229,7 @@ $('yg-adjust-list').addEventListener('change',e=>{
  const checkbox=e.target.closest('[data-route-lock]');if(checkbox){app.setRouteStopLocked(checkbox.dataset.routeLock,checkbox.checked);renderDaily();}
 });
 $('yg-sheet-map').addEventListener('click',()=>{closeSheet();openSearch();});
-$('yg-delete-routes').addEventListener('click',()=>{
- if(!confirm('동선만 삭제할까요? 여행 날짜와 출발지, 도착지, 방문지는 그대로 남습니다.'))return;
- app.clearComputed();go(2);app.toast('계산 결과만 삭제했습니다.');
-});
+
 const sheetHeader=$('yg-place-sheet').querySelector('.yg-sheet-head');
 sheetHeader.addEventListener('touchstart',e=>{dragStartY=e.touches[0]?.clientY||0;},{passive:true});
 sheetHeader.addEventListener('touchend',e=>{if((e.changedTouches[0]?.clientY||0)-dragStartY>85)closeSheet();},{passive:true});
