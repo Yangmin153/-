@@ -47,7 +47,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git add public/media/yeohaenggil-step1-guide.mp4
           git commit -m "media: add actual browser recording for STEP1" || exit 0
-          git push
+          # Other feature commits can land while the browser records. Rebase the
+          # generated media-only commit so that this push never discards them.
+          for attempt in 1 2 3; do
+            git fetch origin feature/vnext-three-step-trip
+            git rebase origin/feature/vnext-three-step-trip
+            if git push origin HEAD:feature/vnext-three-step-trip; then exit 0; fi
+          done
+          exit 1
       - name: Upload diagnostic screenshot if capture fails
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
