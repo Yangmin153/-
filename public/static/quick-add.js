@@ -1,8 +1,8 @@
 /** Modal-free, continuous place collection; existing itinerary schema stays intact. */
-import {cleanQuery,searchTerms,rankResults,samePlace,splitPaste} from './region-search.js';
+import {cleanQuery,searchTerms,rankResults,samePlace,splitPaste,tripSearchAnchor,isRegionQualified} from './region-search.js';
 const $=id=>document.getElementById(id),app=window.TripApp;
 const input=$('quick-input'),results=$('quick-results'),form=$('quick-form'),region=$('trip-region');
-let selectedPreview=null,timer=null,abort=null,sequence=0,items=[],lastKey='',lastItems=[],dirty=false,feedbackTimer=0,composing=false;
+let selectedPreview=null,timer=null,abort=null,sequence=0,items=[],lastKey='',lastItems=[],dirty=false,feedbackTimer=0,composing=false,nationwide=false;
 const cache=new Map(),TTL=45000,LIMIT=36,metrics={requests:0,cacheHits:0,aborts:0,latencies:[],renderCount:0};
 function setMessage(text,retry=false,loading=false){results.replaceChildren();const node=document.createElement('div');node.className='quick-result-message'+(loading?' is-loading':'');node.setAttribute('role','status');node.setAttribute('aria-live','polite');node.textContent=text;if(loading)window.YeoSearch?.searchStarted?.();if(retry){const b=document.createElement('button');b.textContent='다시 검색';b.type='button';b.addEventListener('click',()=>search(true));node.append(document.createElement('br'),b);}results.append(node);results.hidden=false;}
 function syncRegion(){const v=app.getRegion();if(!document.body.classList.contains('region-needs-choice'))region.value=v;$('quick-region-label').textContent=v;}
@@ -13,7 +13,7 @@ function setSearchActive(on){document.body.classList.toggle('quick-search-active
 function syncView(view){if(view==='map')setSearchActive(false);else sync();}
 function cancel(){clearTimeout(timer);++sequence;if(abort){metrics.aborts++;abort.abort();abort=null;}}
 function cached(path){const hit=cache.get(path);if(hit&&Date.now()-hit.at<TTL){metrics.cacheHits++;cache.delete(path);cache.set(path,hit);return hit.data;}cache.delete(path);return null;}
-async function request(term,signal){const path='/api/places?'+new URLSearchParams({q:term,size:'8'}),hit=cached(path);if(hit)return hit;metrics.requests++;const start=performance.now();const response=await fetch(path,{signal,headers:{accept:'application/json'}});const data=await response.json();metrics.latencies.push(Math.round(performance.now()-start));if(!response.ok)throw Error(data?.detail||'장소 검색을 완료할 수 없습니다.');if(signal.aborted)throw new DOMException('검색 취소','AbortError');cache.set(path,{at:Date.now(),data});while(cache.size>LIMIT)cache.delete(cache.keys().next().value);return data;}
+async function request(term,signal,anchor){const params=new URLSearchParams({q:term,size:'15'});if(anchor){params.set('bias','1');params.set('lat',String(anchor.lat));params.set('lng',String(anchor.lng));}const path='/api/places?'+params,hit=cached(path);if(hit)return hit;metrics.requests++;const start=performance.now();const response=await fetch(path,{signal,headers:{accept:'application/json'}});const data=await response.json();metrics.latencies.push(Math.round(performance.now()-start));if(!response.ok)throw Error(data?.detail||'장소 검색을 완료할 수 없습니다.');if(signal.aborted)throw new DOMException('검색 취소','AbortError');cache.set(path,{at:Date.now(),data});while(cache.size>LIMIT)cache.delete(cache.keys().next().value);return data;}
 function render(next){
  metrics.renderCount++;items=next;results.replaceChildren();
  for(const item of next.slice(0,8)){
@@ -23,7 +23,7 @@ function render(next){
   const heading=document.createElement('span');heading.className='quick-result-heading';
   const title=document.createElement('strong');title.textContent=item.name;
   const category=document.createElement('span');category.className='quick-result-category';category.textContent=String(item.category||'장소').split('>').at(-1).trim();
-  const address=document.createElement('small');address.textContent=item.address||'주소 정보 없음';
+  const address=document.createElement('small');address.textContent=(item.address||'주소 정보 없음')+(item._distanceKm!==null&&item._distanceKm!==undefined&&item._distanceKm<75?' · 동선 주변':'');
   heading.append(title,category);info.append(heading,address);
   const categoryIcon=document.createElement('span');categoryIcon.className='yg-search-category-icon';
   categoryIcon.innerHTML=window.TripMeta?.icon?.(item,19)||'';
@@ -39,7 +39,36 @@ function render(next){
   selectedPreview=next[0];app.previewPlace(next[0]);
  }
 }
-async function search(force=false){const text=cleanQuery(input.value);if(text.length<2){cancel();if(text)setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;return;}const region=window.YeoNext?.searchRegion?.()??app.getRegion();const key=region+'::'+text;if(!force&&key===lastKey&&lastItems.length){render(lastItems);return;}cancel();const current=sequence;abort=new AbortController();const signal=abort.signal;setMessage('장소를 검색하고 있어요…',false,true);setSearchActive(true);try{let found=[];for(const q of searchTerms(text,region)){const result=await request(q,signal);if(current!==sequence)return;found=result.items||[];if(found.length)break;}if(current!==sequence)return;lastKey=key;lastItems=rankResults(found,region);render(lastItems);}catch(e){if(signal.aborted||current!==sequence)return;setMessage('검색에 실패했어요: '+e.message,true);}finally{if(current===sequence)abort=null;}}
+async function search(force=false,all=false){
+ if(all)nationwide=true;
+ const text=cleanQuery(input.value);
+ if(text.length<2){cancel();if(text)setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;return;}
+ const anchor=!nationwide&&!isRegionQualified(text)?tripSearchAnchor(app.getDay()):null;
+ const scope=$('search-scope-note'),globalButton=$('search-global-results');
+ if(scope)scope.textContent=anchor?anchor.name+' 주변 검색 결과부터 보여드려요.':nationwide?'전국 검색 결과예요.':'지역 이름과 가게 이름을 함께 입력하면 더 정확해요.';
+ if(globalButton)globalButton.hidden=!anchor;
+ const key=(anchor?anchor.lat.toFixed(3)+','+anchor.lng.toFixed(3):'all')+'::'+text;
+ if(!force&&key===lastKey&&lastItems.length){render(lastItems);return;}
+ cancel();const current=sequence;abort=new AbortController();const signal=abort.signal;
+ setMessage('장소를 검색하고 있어요…',false,true);setSearchActive(true);
+ try{
+  let found=[];
+  for(const q of searchTerms(text,'')){
+   const result=await request(q,signal,anchor);
+   if(current!==sequence)return;
+   found=result.items||[];
+   if(!found.length&&anchor){
+    const wider=await request(q,signal,null);if(current!==sequence)return;
+    found=wider.items||[];
+   }
+   if(found.length)break;
+  }
+  if(current!==sequence)return;
+  lastKey=key;lastItems=rankResults(found,'',anchor);render(lastItems);
+ }catch(e){if(signal.aborted||current!==sequence)return;setMessage('검색에 실패했어요: '+e.message,true);}
+ finally{if(current===sequence)abort=null;}
+}
+
 function feedback(msg){const el=$('quick-feedback');el.hidden=false;el.textContent=msg;clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.hidden=true,2300);app.toast(msg);}
 function add(item,button=null){
  if(window.YeoSearch?.isOpen?.()&&window.YeoSearch?.isEndpointMode?.())
@@ -68,9 +97,9 @@ function add(item,button=null){
  }
  return true;
 }
-function init(){if(!app||!form)return;sync();
+function init(){if(!app||!form)return;sync();$('search-global-results')?.addEventListener('click',()=>search(true,true));document.addEventListener('trip:day-changed',()=>{lastKey='';lastItems=[];nationwide=false;});
  $('map-preview-cancel').addEventListener('click',()=>{selectedPreview=null;app.clearPlacePreview();});
  $('map-preview-add').addEventListener('click',()=>{if(selectedPreview)add(selectedPreview);});region.addEventListener('change',()=>{if(app.setRegion(region.value)){lastKey='';lastItems=[];cancel();if(input.value.trim().length>=2)search();else sync();}});form.addEventListener('submit',e=>{e.preventDefault();search(true);});input.addEventListener('focus',()=>{setSearchActive(true);if(input.value.trim().length>=2)search();});input.addEventListener('compositionstart',()=>{composing=true;cancel();});
  input.addEventListener('compositionend',()=>{composing=false;cancel();if(cleanQuery(input.value).length>=2){setMessage('장소를 검색하고 있어요…',false,true);timer=setTimeout(()=>search(),280);}});
- input.addEventListener('input',e=>{cancel();lastKey='';lastItems=[];setSearchActive(true);const term=cleanQuery(input.value);if(term.length>=2){setMessage('장소를 검색하고 있어요…',false,true);if(!composing&&!e.isComposing)timer=setTimeout(()=>search(),280);}else if(term)setMessage('두 글자 이상 입력해 주세요.');else {results.hidden=true;window.YeoSearch?.onResults?.([]);}});input.addEventListener('paste',e=>{const lines=splitPaste(e.clipboardData?.getData('text/plain')||'');if(lines.length<=1)return;e.preventDefault();input.value=lines[0];feedback(lines.length+'개 줄을 찾았어요. 각 장소를 확인해 추가해 주세요.');search();});input.addEventListener('keydown',e=>{if(e.key==='Escape'){setSearchActive(false);input.blur();}if(e.key==='Enter'){e.preventDefault();search(true);}});document.addEventListener('pointerdown',e=>{if(window.YeoSearch?.isOpen?.())return;if(!e.target.closest('#mobile-bottom-actions')&&!e.target.closest('#trip-region'))setSearchActive(false);});window.visualViewport?.addEventListener('resize',adjustViewport);window.visualViewport?.addEventListener('scroll',adjustViewport);window.addEventListener('resize',adjustViewport);$('mobile-route').addEventListener('click',()=>setDirty(false));adjustViewport();}
+ input.addEventListener('input',e=>{cancel();lastKey='';lastItems=[];nationwide=false;setSearchActive(true);const term=cleanQuery(input.value);if(term.length>=2){setMessage('장소를 검색하고 있어요…',false,true);if(!composing&&!e.isComposing)timer=setTimeout(()=>search(),280);}else if(term)setMessage('두 글자 이상 입력해 주세요.');else {results.hidden=true;window.YeoSearch?.onResults?.([]);}});input.addEventListener('paste',e=>{const lines=splitPaste(e.clipboardData?.getData('text/plain')||'');if(lines.length<=1)return;e.preventDefault();input.value=lines[0];feedback(lines.length+'개 줄을 찾았어요. 각 장소를 확인해 추가해 주세요.');search();});input.addEventListener('keydown',e=>{if(e.key==='Escape'){setSearchActive(false);input.blur();}if(e.key==='Enter'){e.preventDefault();search(true);}});document.addEventListener('pointerdown',e=>{if(window.YeoSearch?.isOpen?.())return;if(!e.target.closest('#mobile-bottom-actions')&&!e.target.closest('#trip-region'))setSearchActive(false);});window.visualViewport?.addEventListener('resize',adjustViewport);window.visualViewport?.addEventListener('scroll',adjustViewport);window.addEventListener('resize',adjustViewport);$('mobile-route').addEventListener('click',()=>setDirty(false));adjustViewport();}
 window.TripQuickAdd={sync,syncRegion,syncView,setDirty,addPlace:add,getMetrics:()=>({...metrics,cacheSize:cache.size,map:app?.getMapDiagnostics?.()})};init();
