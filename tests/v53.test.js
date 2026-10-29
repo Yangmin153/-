@@ -33,7 +33,7 @@ test('v5.3 map search has map, toggleable large list, visible pin and continuous
  const [html,js,quick]=await Promise.all(['public/index.html','public/static/search-screen.js','public/static/quick-add.js'].map(read));
  for(const id of ['search-naver-map','search-map-stage','search-screen-results-mount','search-list-toggle','search-picked','search-picked-add'])
   assert.match(html,new RegExp('id="'+id+'"'));
- for(const token of ['new maps.Map','YeoPins?.marker','function onResults(next)','function preview(item)','function showMode(next)','function addSuccess(message)'])
+ for(const token of ['new maps.Map','YeoPins?.marker','function onResults(next)',"function preview(item,source='result')",'function showMode(next)','function addSuccess(message,place=null)'])
   assert.ok(js.includes(token),token);
  assert.match(quick,/window\.YeoSearch\?\.onResults\?\.\(next\)/);
  assert.match(quick,/if\(duplicate\)\{feedback/);
