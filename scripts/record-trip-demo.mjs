@@ -47,10 +47,19 @@ async function searchAndAdd(name,kind='stop'){
   }else{
     // Inspect the actual result on the map, then confirm from the preview panel.
     await choose.locator('.quick-result').click();
-    await sleep(300);
+    await sleep(450);
     if(!(await page.locator('#search-picked-add').isVisible())){
-      if(await page.locator('#search-list-toggle').isVisible())await page.locator('#search-list-toggle').click();
-      await choose.locator('.quick-result').click().catch(()=>{});
+      const state=await page.evaluate(()=>({
+        mode:document.querySelector('#search-screen')?.dataset.searchMode,
+        previewHidden:document.querySelector('#search-picked')?.hidden,
+        previewButtonHidden:document.querySelector('#search-picked-add')?.hidden,
+        picker:window.YeoSearch?.mode?.(),
+        opened:window.YeoSearch?.isOpen?.()
+      }));
+      console.log('ENDPOINT_PREVIEW_DIAGNOSTICS',JSON.stringify(state));
+      if(state.mode==='list'){
+        await page.locator('#quick-results .quick-result').first().click();
+      }
     }
     await at('#search-picked-add');
     await page.locator('#search-picked-add').click();
