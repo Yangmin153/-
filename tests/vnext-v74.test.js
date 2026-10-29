@@ -100,5 +100,5 @@ test('navigation destination cards replace dropdown with named selectable list a
  assert.match(js,/btn\.dataset\.navTarget=p\.id/);
  assert.match(js,/aria-pressed/);
  assert.match(css,/yg-nav-place-option\[aria-pressed="true"\]/);
- assert.match(html,/navigation\.js\?v=7\.5\.0/);
+ assert.match(html,/navigation\.js\?v=7\.6\.0/);
 });
