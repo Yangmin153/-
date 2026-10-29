@@ -46,6 +46,7 @@
   const d=app()?.getDay?.();
   if(!d||!d.stops?.length)return app()?.toast?.('먼저 방문지를 추가해 주세요.');
   if(!d.destination||/미설정/.test(d.destination.name||''))return app().toast('최종 도착지를 먼저 설정해 주세요.');
+  if(!root.confirm('현재 위치에서 방문지와 최종 도착지까지 동선을 다시 계산할까요?\n위치 권한을 요청할 수 있으며 기존에 입력한 장소는 유지됩니다.'))return;
   const id=d.id,original=fingerprint(d),requestId=++run;
   busy=true;show();
   try{
