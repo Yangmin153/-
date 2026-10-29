@@ -52,7 +52,11 @@ test('3rd step groups recalculation after adjustments, and long destination list
  assert.equal((html.match(/id="yg-three-recalc"/g)||[]).length,1);
  assert.match(html,/id="yg-nav-scroll-hint"/);
  assert.match(nav,/ordered.length<=4/);
- assert.match(css,/overflow-y:scroll!important/);
+ assert.match(css,/grid-template-rows:auto minmax\(0,1fr\) auto/);
+ assert.match(html,/class="yg-nav-body"/);
+ assert.match(html,/class="yg-nav-footer"/);
+ assert.match(css,/overflow-y:auto;overflow-x:hidden/);
+ assert.doesNotMatch(html,/id="yg-delete-routes"/);
  assert.match(account,/request\('\?summary=1'\)/);
  assert.match(account,/request\('\?id='\+encodeURIComponent\(trip.id\)\)/);
  assert.match(account,/setView\('signin'\)/);
