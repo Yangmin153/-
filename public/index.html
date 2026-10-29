@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
   <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
-  <link rel="stylesheet" href="/static/vnext.css?v=7.5.0">
+  <link rel="stylesheet" href="/static/vnext.css?v=7.6.0">
   <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
@@ -29,12 +29,12 @@
   <script defer src="/static/app.js?v=7.3.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
   <script type="module" src="/static/quick-add.js?v=7.5.0"></script>
-  <script type="module" src="/static/search-screen.js?v=7.5.0"></script>
+  <script type="module" src="/static/search-screen.js?v=7.6.0"></script>
   <script defer src="/static/map-workspace.js?v=6.7.1"></script>
-  <script type="module" src="/static/accounts.js?v=7.5.0"></script>
+  <script type="module" src="/static/accounts.js?v=7.6.0"></script>
   <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
-  <script defer src="/static/vnext.js?v=7.5.0"></script>
-  <script defer src="/static/navigation.js?v=7.5.0"></script>
+  <script defer src="/static/vnext.js?v=7.6.0"></script>
+  <script defer src="/static/navigation.js?v=7.6.0"></script>
   <script defer src="/static/live-route.js?v=7.5.0"></script>
 </head>
 <body data-mobile-view="edit" data-trip-step="1" class="region-ready">
@@ -158,7 +158,7 @@
                 <select id="yg-route-mode" aria-label="경로 계산 방식"><option value="auto">자동 최적화</option><option value="manual">내 순서 유지</option></select>
               </label>
               <div id="yg-adjust-list" aria-label="방문지 순서와 고정 설정"></div>
-              <div class="yg-adjust-secondary"><button type="button" id="yg-three-list">담은 장소 보기</button><button type="button" id="yg-delete-routes" class="yg-danger">동선 삭제</button></div>
+              <div class="yg-adjust-secondary"><button type="button" id="yg-three-list">담은 장소 보기</button></div>
             </div>
           </details>
           <section id="yg-live-controls" class="yg-live-controls" aria-label="여행 동선 재계산">
@@ -186,6 +186,7 @@
         <div><strong>내비게이션 시작</strong><p>현재 위치에서 출발해요.</p></div>
         <button type="button" id="yg-nav-close" aria-label="내비게이션 창 닫기">✕</button>
       </div>
+      <div class="yg-nav-body" id="yg-nav-body" tabindex="0">
       <fieldset class="yg-nav-provider-choices">
         <legend>어떤 내비게이션으로 갈까요?</legend>
         <label class="yg-nav-choice yg-nav-choice--naver"><input type="radio" name="yg-nav-provider-choice" value="naver" checked><span class="yg-nav-brand-dot">N</span><strong>네이버지도</strong><span class="yg-nav-check">✓</span></label>
@@ -203,10 +204,7 @@
         </div>
       </fieldset>
       <div class="yg-nav-summary"><strong id="yg-nav-provider-name">네이버지도</strong><span id="yg-nav-segment-count">방문지 0곳</span></div>
-      <p id="yg-nav-status" class="yg-nav-status" role="status" aria-live="polite"></p>
       <div id="yg-nav-segments" class="yg-nav-segments" hidden></div>
-      <button id="yg-nav-start" class="yg-nav-primary" type="button">길안내 시작</button>
-      <button id="yg-nav-retry" type="button" class="yg-nav-retry" hidden>방금 길안내 다시 열기</button>
       <details id="yg-kakao-navi-help" class="yg-kakao-navi-help" hidden>
         <summary>카카오내비에서 서비스 오류가 뜨나요?</summary>
         <p>카카오 디벨로퍼스 → 앱 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 아래 주소를 등록해 주세요.</p>
@@ -214,7 +212,13 @@
         <p>JavaScript 키가 발급된 앱과 실제 사용 앱이 같아야 합니다. 등록 후에도 실패하면 카카오내비를 최신 버전으로 업데이트하고 앱을 다시 실행해 보세요.</p>
         <p>SDK 초기화가 성공해도 카카오내비 앱의 인증 성공을 보장하지는 않습니다.</p>
       </details>
-      <small class="yg-nav-disclaimer">다음 길안내는 안전하게 정차한 뒤 실행해 주세요.</small>
+      </div>
+      <div class="yg-nav-footer" id="yg-nav-footer">
+        <p id="yg-nav-status" class="yg-nav-status" role="status" aria-live="polite"></p>
+        <button id="yg-nav-start" class="yg-nav-primary" type="button">길안내 시작</button>
+        <button id="yg-nav-retry" type="button" class="yg-nav-retry" hidden>방금 길안내 다시 열기</button>
+        <small class="yg-nav-disclaimer">다음 길안내는 안전하게 정차한 뒤 실행해 주세요.</small>
+      </div>
     </section>
   </div>
   <div id="yg-place-sheet" class="yg-place-sheet" hidden aria-label="담은 장소 목록" role="dialog" aria-modal="true"><div class="yg-sheet-shade" data-close-sheet></div><section class="yg-sheet-panel"><div class="yg-sheet-head"><div><strong>담은 장소 <span id="yg-sheet-count">0</span>곳</strong><p id="yg-sheet-date">선택한 날짜의 방문지</p></div><button type="button" data-close-sheet aria-label="목록 닫기">✕</button></div><div id="yg-sheet-list" class="yg-sheet-list"></div><button class="yg-outline" type="button" id="yg-sheet-map">+ 장소 더 담기</button></section></div>
