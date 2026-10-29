@@ -87,12 +87,19 @@ try{
   await searchAndAdd('북촌한옥마을');
   await searchAndAdd('광화문광장');
   await record('방문지 세 곳 담기',750);
-  await searchAndAdd('광화문광장','origin');
-  await searchAndAdd('서울역','destination');
-  await page.locator('#yg-calculate').click();
-  await page.waitForFunction(()=>document.body.dataset.tripStep==='3',{timeout:70000});
-  await record('최적화된 동선과 지도',1600);
-  console.log('LIVE_ROUTE_SUCCESS',await page.locator('body').getAttribute('data-trip-step'));
+  // Record only verified guest interactions by default. Don't show a simulated route.
+  if(process.env.YG_DEMO_FULL_ROUTE==='1'){
+    await searchAndAdd('광화문광장','origin');
+    await searchAndAdd('서울역','destination');
+    await page.locator('#yg-calculate').click();
+    await page.waitForFunction(()=>document.body.dataset.tripStep==='3',null,{timeout:70000});
+    await record('최적화된 동선과 지도',1600);
+  }else{
+    await page.locator('#yg-fit-all').click().catch(()=>{});
+    await page.locator('#map-region').scrollIntoViewIfNeeded().catch(()=>{});
+    await record('담은 방문지 지도 확인',1800);
+  }
+  console.log('LIVE_CAPTURE_SUCCESS',await page.locator('body').getAttribute('data-trip-step'));
 }catch(error){
   console.error('LIVE_CAPTURE_FAILED',error?.stack||String(error));
   await page.screenshot({path:path.join(work,'yg-capture-error.png'),fullPage:false}).catch(()=>{});
