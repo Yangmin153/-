@@ -58,8 +58,10 @@ body.search-open{overscroll-behavior:none;touch-action:auto}
 .search-map-message{position:absolute;top:50%;left:20px;right:20px;transform:translateY(-50%);
  text-align:center;background:#ffffffec;color:#526986;border:1px solid #dae6f6;border-radius:14px;
  padding:16px;font-size:12px;pointer-events:none}
-.search-map-hint{position:absolute;left:12px;right:12px;top:10px;text-align:center;font-size:11px;
- padding:7px 9px;background:#ffffffd9;border-radius:9px;color:#5d728e;pointer-events:none}
+.search-map-hint{position:static;max-width:100%;margin:0;font-size:11px;line-height:1.4;
+ padding:0;background:none;color:#617993;pointer-events:none}
+.search-screen[data-search-mode="list"] #search-map-hint{display:none!important}
+.search-screen[data-search-mode="map"] #search-scope-note{display:none!important}
 .search-picked{flex:0 0 auto;padding:12px 13px calc(12px + env(safe-area-inset-bottom,0px));
  display:flex;align-items:center;gap:9px;border-top:1px solid #e2e9f4;background:white;
  box-shadow:0 -4px 22px #173c6214;z-index:20}
