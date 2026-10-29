@@ -161,7 +161,7 @@ function show(kind='stop'){
  searchDayId=window.TripApp?.getDay?.()?.id||null;
  $('search-list-toggle').hidden=true;
   $('search-global-results').hidden=true;
-  $('search-scope-note').textContent='방문지를 담으면 해당 지역부터 우선 검색해요. 처음에는 지역명과 장소명을 함께 입력해 보세요.';
+  $('search-scope-note').textContent='전국에서 검색하고, 방문지 주변 결과를 우선 보여줘요. 다른 지역도 검색할 수 있어요.';
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  opened=true;historyEntry=true;previousFocus=document.activeElement;previousScroll=window.scrollY;
  feedback.hidden=true;picked.hidden=true;selected=null;items=[];isSavedSelection=false;input.value='';results.replaceChildren();results.hidden=true;
