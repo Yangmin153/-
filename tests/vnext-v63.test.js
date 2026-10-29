@@ -60,14 +60,14 @@ test('STEP2 collection sheet hides date choice and only supports deletion',async
  const start=html.indexOf('id="yg-endpoint-section"'),map=html.indexOf('id="map-region"');
  assert.ok(start>=0&&map>=0&&start<map);
 });
-test('STEP3 footer has exactly three actions; route order adjustment is inline after timeline',async()=>{
+test('STEP3 footer keeps visit navigation and both recalc actions live beneath visit adjustment',async()=>{
  const [html,app,ui,css]=await Promise.all([read('public/index.html'),read('public/static/app.js'),read('public/static/vnext.js'),read('public/static/vnext.css')]);
  const start=html.indexOf('id="yg-step-three-actions"'),end=html.indexOf('class="footer"',start);
  const foot=html.slice(start,end);
- assert.equal((foot.match(/<button /g)||[]).length,3);
+ assert.equal((foot.match(/<button /g)||[]).length,2);
  assert.match(foot,/id="yg-back-places"/);
  assert.match(foot,/id="yg-three-add"/);
- assert.match(foot,/id="yg-three-recalc"/);
+ assert.match(html,/id="yg-three-recalc"/);\n assert.match(html,/id="yg-live-optimize"/);
  assert.match(html,/id="yg-route-adjust"/);
  assert.match(ui,/app\.moveRouteStop\(/);
  assert.match(ui,/app\.setRouteStopLocked\(/);
