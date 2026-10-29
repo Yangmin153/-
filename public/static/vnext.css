@@ -1194,3 +1194,41 @@ body[data-trip-step="3"] .yg-adjust-delete:focus-visible{outline:2px solid #ae51
  body[data-trip-step="3"] .yg-adjust-lock{margin-left:auto}
  body[data-trip-step="3"] .yg-adjust-move{margin-left:4px}
 }
+
+/* v7.7 — full-screen place search is not part of the STEP3 map-mode quick-search dock. */
+body.search-open #search-screen{
+ position:fixed!important;left:0!important;right:0!important;overflow:hidden!important;
+ overscroll-behavior:contain;touch-action:auto;isolation:isolate
+}
+body.search-open #search-screen #search-screen-results-mount{
+ display:block;flex:1 1 auto;min-width:0;min-height:0;width:100%;
+ overflow-y:auto!important;overflow-x:hidden!important;
+ overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y
+}
+body.search-open #search-screen #search-screen-results-mount[hidden]{display:none!important}
+body.search-open #search-screen #search-screen-results-mount #quick-results{
+ display:block!important;position:static!important;
+ width:100%!important;min-width:0!important;max-width:none!important;
+ max-height:none!important;height:auto!important;overflow:visible!important;
+ padding:0!important;transform:none!important;white-space:normal!important
+}
+body.search-open #search-screen #search-screen-results-mount #quick-results[hidden]{display:none!important}
+body.search-open #search-screen #search-screen-results-mount .quick-result-row{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;min-width:0!important;width:100%!important;
+ max-width:100%!important;min-height:65px!important;height:auto!important;
+ overflow:hidden;gap:8px!important;padding:7px 5px!important
+}
+body.search-open #search-screen #search-screen-results-mount .quick-result{
+ display:flex!important;flex:1 1 0!important;min-width:0!important;
+ max-width:none!important;align-items:center!important
+}
+body.search-open #search-screen #search-screen-results-mount .quick-result-info{
+ display:flex!important;flex-direction:column!important;min-width:0!important;max-width:100%
+}
+body.search-open #search-screen #search-screen-results-mount .quick-direct-add{
+ flex:0 0 52px!important;min-width:52px!important;max-width:52px!important
+}
+body.search-open #search-screen .search-screen-top,
+body.search-open #search-screen .search-screen-form-mount{flex:0 0 auto;min-width:0}
+body.search-open #search-screen .search-area-tools{flex:0 0 auto;min-width:0}
