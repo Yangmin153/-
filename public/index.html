@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="/static/design-v53.css?v=7.9.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
   <link rel="stylesheet" href="/static/vnext.css?v=7.9.0">
+  <link rel="stylesheet" href="/static/step1-promo.css?v=1.0.0">
   <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
@@ -34,6 +35,7 @@
   <script type="module" src="/static/accounts.js?v=7.6.0"></script>
   <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
   <script defer src="/static/vnext.js?v=7.6.0"></script>
+  <script defer src="/static/step1-promo.js?v=1.0.0"></script>
   <script defer src="/static/navigation.js?v=7.6.0"></script>
   <script defer src="/static/live-route.js?v=7.5.0"></script>
 </head>
@@ -59,6 +61,24 @@
     <nav id="yg-progress" class="yg-progress" aria-label="여행 계획 진행 단계. 각 단계를 눌러 이동할 수 있습니다"><button type="button" data-yg-step="1" aria-current="step"><span>1</span>여행 일정</button><i></i><button type="button" data-yg-step="2"><span>2</span>장소 담기</button><i></i><button type="button" data-yg-step="3"><span>3</span>나의 여행길</button></nav><p class="yg-progress-help" id="yg-progress-help">위의 단계를 누르면 원하는 화면으로 이동할 수 있어요.</p>
     <section id="yg-step-one" class="yg-step-one" aria-labelledby="yg-when-heading">
       <div class="yg-step-intro"><span>STEP 1 · 여행 일정 정하기</span><h1 id="yg-when-heading">언제 여행을 떠나시나요?</h1></div>
+      <section id="yg-step1-promo" class="yg-step1-promo" aria-label="여행길 사용 방법 미리보기" data-video-src="/media/yeohaenggil-step1-guide.mp4">
+        <div class="yg-promo-copy">
+          <span class="yg-promo-eyebrow">여행길 사용 방법 · 10초 미리보기</span>
+          <strong>가고 싶은 곳을 담으면, 동선은 여행길이 정리해요.</strong>
+        </div>
+        <div class="yg-promo-stage">
+          <div id="yg-step1-video-fallback" class="yg-promo-fallback" role="img" aria-label="가고 싶은 장소를 담고, 동선을 최적화한 뒤 지도에서 확인하는 여행길 사용 순서">
+            <div class="yg-promo-steps" aria-hidden="true">
+              <div class="yg-promo-step"><span>1</span><strong>장소 담기</strong></div>
+              <div class="yg-promo-step"><span>2</span><strong>동선 최적화</strong></div>
+              <div class="yg-promo-step"><span>3</span><strong>지도 확인</strong></div>
+            </div>
+            <small>장소만 담으면 이동 순서를 한 번에 정리해요.</small>
+          </div>
+          <video id="yg-step1-video" class="yg-promo-video" aria-label="실제 여행길 사용 화면" muted playsinline loop preload="none" hidden></video>
+          <button type="button" id="yg-step1-video-toggle" class="yg-promo-control" aria-label="홍보 영상 재생 및 일시정지" hidden>일시정지</button>
+        </div>
+      </section>
       <div class="yg-date-card"><div class="yg-date-fields"><label>출발일<input type="date" id="yg-start-date" aria-label="출발일"></label><label>돌아오는 날<input type="date" id="yg-end-date" aria-label="돌아오는 날"></label></div><strong id="yg-duration" role="status">날짜를 선택해 주세요</strong></div>
       
       <div id="yg-stage-one-error" class="yg-error" role="status" hidden></div>
