@@ -157,7 +157,9 @@ function searchStarted(){if(!opened)return;showMode('list');}
 function onResults(next){
  items=Array.isArray(next)?next:[];
  paintMarkers();
- if(opened&&input.value.trim().length>=2)showMode('list');
+ // Pagination can finish after a place was tapped. Do not hide the selected
+ // map preview (and its confirm/cancel actions) behind the results list.
+ if(opened&&input.value.trim().length>=2&&!selected)showMode('list');
 }
 function rememberCamera(){
  if(previewCamera||!searchMap)return;
