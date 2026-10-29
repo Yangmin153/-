@@ -19,7 +19,7 @@ export function distanceKm(a,b){
  const h=Math.sin(dlat/2)**2+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dlng/2)**2;
  return 6371*2*Math.asin(Math.min(1,Math.sqrt(h)));
 }
-export function isRegionQualified(query){return /(?:^|\\s)(?:서울|부산|인천|대구|대전|광주|울산|세종|제주|경기|강원|충북|충남|전북|전남|경북|경남|수원|강릉|경주|속초|여수|전주|포항|춘천|청주|천안|안동|통영|거제|진주|목포|서귀포|제주시)(?:시|도|군|구|특별시|광역시|특별자치도)?(?:\\s|$)/.test(String(query||''));}
+export function isRegionQualified(query){return /(?:^|\s)(?:서울|부산|인천|대구|대전|광주|울산|세종|제주|경기|강원|충북|충남|전북|전남|경북|경남|수원|강릉|경주|속초|여수|전주|포항|춘천|청주|천안|안동|통영|거제|진주|목포|서귀포|제주시)(?:시|도|군|구|특별시|광역시|특별자치도)?(?:\s|$)/.test(String(query||''));}
 export function rankResults(items,region,anchor=null){
  const r=String(region||'').trim();
  return (Array.isArray(items)?items:[]).map((item,i)=>{
