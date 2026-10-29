@@ -2,12 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
-test('GPS button is directly below STEP3 result map and before route metrics, not STEP2',async()=>{
+test('GPS and ordinary recalc actions appear together directly after visit adjustments in STEP3',async()=>{
  const html=await read('public/index.html');
  const at=x=>html.indexOf('id="'+x+'"');
- assert.ok(at('map-region')<at('yg-live-controls')&&at('yg-live-controls')<at('route-results'));
+ assert.ok(at('map-region')<at('route-results')&&at('route-results')<at('yg-route-adjust')&&at('yg-route-adjust')<at('yg-live-controls'));
+ assert.ok(at('yg-live-controls')<at('yg-step-three-actions'));
  assert.match(html,/id="yg-live-optimize"/);
- assert.match(html,/src="\/static\/live-route\.js\?v=7\.3\.0"/);
+ assert.match(html,/id="yg-three-recalc"/);
+ assert.match(html,/src="\/static\/live-route\.js\?v=7\.5\.0"/);
  assert.doesNotMatch(html,/id="yg-live-reset"/);
  assert.doesNotMatch(html,/방문 완료/);
 });
@@ -47,7 +49,7 @@ test('auth user can save and reopen calculated route as well as dates and visits
  assert.match(app,/function validSavedRoute\(d\)/);
  assert.match(app,/clean\.result=validSavedRoute\(clean\)/);
  assert.match(account,/app\(\)\.exportCloudDays\?\.\(\)/);
- assert.match(account,/app\(\)\.importDays\(trip\.days\)/);
+ assert.match(account,/app\(\)\.importDays\(full\.days\)/);
  assert.match(account,/window\.YeoNext\.go\(3\)/);
  assert.match(account,/saveCurrent/);
  assert.match(server,/750000/);
