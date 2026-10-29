@@ -25,5 +25,5 @@
       ]
     }
   ],
-  "buildCommand": "node --test tests/vnext-v75.test.js tests/vnext-v76.test.js"
+  "buildCommand": "node --test tests/vnext-v63.test.js tests/vnext-v72.test.js tests/vnext-v74.test.js tests/auth-v65.test.js tests/live-route-flow.test.js"
 }
