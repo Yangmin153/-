@@ -25,15 +25,30 @@ function updateSize(){
  screen.style.setProperty('--search-top',Math.round(viewport?.offsetTop||0)+'px');
  if(searchMap&&opened&&mode==='map')requestAnimationFrame(()=>window.naver?.maps?.Event?.trigger(searchMap,'resize'));
 }
-function mapCenter(){
+// A new traveler has no chosen destination yet. Never infer Jeju (or any other
+// region) from the legacy default region or from the background map camera.
+const KOREA_CENTER=[36.35,127.9],KOREA_ZOOM=6;
+function chosenPlace(){
  const d=window.TripApp?.getDay?.();
- const place=[d?.origin,...(d?.stops||[]),d?.destination].find(p=>p&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&!/미설정/.test(p.name||''));
- if(place)return [place.lat,place.lng];
+ return [...(d?.stops||[]),d?.origin,d?.destination].find(p=>
+  p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&!/미설정/.test(String(p.name||''))
+ )||null;
+}
+function mapCenter(){
+ const place=chosenPlace();
+ if(place)return [Number(place.lat),Number(place.lng)];
  const region=window.YeoNext?.searchRegion?.()||'';
  if(centers[region])return centers[region];
- const naverMap=window.TripApp?.getMap?.();
- const c=naverMap?.getCenter?.();
- return c?[c.lat(),c.lng()]:[36.35,127.9];
+ return KOREA_CENTER;
+}
+function mapStartZoom(){
+ if(chosenPlace())return 12;
+ const region=window.YeoNext?.searchRegion?.()||'';
+ return centers[region]?11:KOREA_ZOOM;
+}
+function mapViewKey(){
+ const d=window.TripApp?.getDay?.(),place=chosenPlace();
+ return [d?.id||'',place?.id||'',place?.lat||'',place?.lng||'',window.YeoNext?.searchRegion?.()||''].join('|');
 }
 function maybeMap(){
  if(!opened)return;
@@ -45,7 +60,7 @@ function maybeMap(){
  }
  try{
   const c=mapCenter();
-  searchMap=new maps.Map(mapNode,{center:new maps.LatLng(c[0],c[1]),zoom:11,minZoom:6,maxZoom:20,zoomControl:false,mapDataControl:false,scaleControl:false,logoControl:true});
+  searchMap=new maps.Map(mapNode,{center:new maps.LatLng(c[0],c[1]),zoom:mapStartZoom(),minZoom:6,maxZoom:20,zoomControl:false,mapDataControl:false,scaleControl:false,logoControl:true});
   $('search-map-message').hidden=true;
   maps.Event.addListener(searchMap,'click',e=>{
    const latitude=e.coord.lat(),longitude=e.coord.lng();
@@ -206,9 +221,13 @@ function show(kind='stop'){
  screen.hidden=false;screen.querySelector('#search-screen-form-mount').append(form);resultMount.append(results);
  window.YGScrollLock?.lock('search-screen');document.body.classList.add('search-open');lockBackground();
  updateSize();showMode('map');
- const region=String(window.TripApp?.getDay?.()?.id||'');
- if(searchMap&&lastChosenRegion!==region){const [lat,lng]=mapCenter();searchMap.setCenter(new window.naver.maps.LatLng(lat,lng));searchMap.setZoom(11);paintMarkers();}
- lastChosenRegion=region;
+ const viewKey=mapViewKey();
+ if(searchMap&&lastChosenRegion!==viewKey){
+  const [lat,lng]=mapCenter();
+  searchMap.setCenter(new window.naver.maps.LatLng(lat,lng));
+  searchMap.setZoom(mapStartZoom());paintMarkers();
+ }
+ lastChosenRegion=viewKey;
  history.pushState({...history.state,yeohaenggilSearch:true},'',location.href);
  requestAnimationFrame(()=>input.focus({preventScroll:true}));
 }
