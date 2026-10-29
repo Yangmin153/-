@@ -106,6 +106,9 @@ function go(next){
  if(next===3&&!days().some(d=>d.result)){app.toast('먼저 동선을 계산해 주세요.');return;}
  closeSheet();window.YeoSearch?.hide?.();
  currentStep=next;document.body.dataset.tripStep=String(next);
+  const help=$('yg-progress-help');
+  if(help)help.textContent=next===3?'날짜나 방문지를 수정하려면 위의 ① 여행 일정 · ② 장소 담기를 눌러 이동하세요.':'위의 단계 이름을 누르면 언제든 해당 화면으로 이동할 수 있어요.';
+  
  document.querySelectorAll('[data-yg-step]').forEach(b=>b.setAttribute('aria-current',Number(b.dataset.ygStep)===next?'step':'false'));
  window.TripUX?.switchView?.(next===3?'map':'edit');
  if(next===1)renderDates();if(next===2||next===3)renderDaily();
