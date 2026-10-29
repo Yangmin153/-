@@ -13,10 +13,10 @@ function setSearchActive(on){document.body.classList.toggle('quick-search-active
 function syncView(view){if(view==='map')setSearchActive(false);else sync();}
 function cancel(){clearTimeout(timer);++sequence;if(abort){metrics.aborts++;abort.abort();abort=null;}}
 function cached(path){const hit=cache.get(path);if(hit&&Date.now()-hit.at<TTL){metrics.cacheHits++;cache.delete(path);cache.set(path,hit);return hit.data;}cache.delete(path);return null;}
-async function request(term,signal,anchor){const params=new URLSearchParams({q:term,size:'15'});if(anchor){params.set('bias','1');params.set('lat',String(anchor.lat));params.set('lng',String(anchor.lng));}const path='/api/places?'+params,hit=cached(path);if(hit)return hit;metrics.requests++;const start=performance.now();const response=await fetch(path,{signal,headers:{accept:'application/json'}});const data=await response.json();metrics.latencies.push(Math.round(performance.now()-start));if(!response.ok)throw Error(data?.detail||'장소 검색을 완료할 수 없습니다.');if(signal.aborted)throw new DOMException('검색 취소','AbortError');cache.set(path,{at:Date.now(),data});while(cache.size>LIMIT)cache.delete(cache.keys().next().value);return data;}
+async function request(term,signal,page=1){const params=new URLSearchParams({q:term,page:String(page)});const path='/api/places?'+params,hit=cached(path);if(hit)return hit;metrics.requests++;const start=performance.now();const response=await fetch(path,{signal,headers:{accept:'application/json'}});const data=await response.json();metrics.latencies.push(Math.round(performance.now()-start));if(!response.ok)throw Error(data?.detail||'장소 검색을 완료할 수 없습니다.');if(signal.aborted)throw new DOMException('검색 취소','AbortError');cache.set(path,{at:Date.now(),data});while(cache.size>LIMIT)cache.delete(cache.keys().next().value);return data;}
 function render(next){
  metrics.renderCount++;items=next;results.replaceChildren();
- for(const item of next.slice(0,8)){
+ for(const item of next.slice(0,30)){
   const row=document.createElement('div');row.className='quick-result-row';
   const preview=document.createElement('button');preview.className='quick-result';preview.type='button';preview.setAttribute('aria-label',item.name+' 지도에서 확인');
   const info=document.createElement('span');info.className='quick-result-info';
@@ -43,28 +43,34 @@ async function search(force=false,all=false){
  if(all)nationwide=true;
  const text=cleanQuery(input.value);
  if(text.length<2){cancel();if(text)setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;return;}
- const anchor=!nationwide&&!isRegionQualified(text)?tripSearchAnchor(app.getDay()):null;
+ // The server always searches nationally by relevance; already collected stops affect display order only.
+ const anchor=!isRegionQualified(text)?tripSearchAnchor(app.getDay()):null;
  const scope=$('search-scope-note'),globalButton=$('search-global-results');
- if(scope)scope.textContent=anchor?anchor.name+' 주변 검색 결과부터 보여드려요.':nationwide?'전국 검색 결과예요.':'지역 이름과 가게 이름을 함께 입력하면 더 정확해요.';
- if(globalButton)globalButton.hidden=!anchor;
- const key=(anchor?anchor.lat.toFixed(3)+','+anchor.lng.toFixed(3):'all')+'::'+text;
+ if(scope)scope.textContent=anchor&&!nationwide?'전국에서 찾은 결과 중 동선 주변을 우선 보여줘요.':'전국 검색 결과를 관련도순으로 보여줘요.';
+ if(globalButton){globalButton.hidden=!anchor;globalButton.textContent=nationwide?'동선 주변 우선':'관련도순 보기';}
+ const key=(nationwide?'relevance':'nearby')+'::'+(anchor?anchor.lat.toFixed(3)+','+anchor.lng.toFixed(3):'all')+'::'+text;
  if(!force&&key===lastKey&&lastItems.length){render(lastItems);return;}
  cancel();const current=sequence;abort=new AbortController();const signal=abort.signal;
- setMessage('장소를 검색하고 있어요…',false,true);setSearchActive(true);
+ setMessage('전국에서 장소를 검색하고 있어요…',false,true);setSearchActive(true);
  try{
   let found=[];
   for(const q of searchTerms(text,'')){
-   const result=await request(q,signal,anchor);
+   const first=await request(q,signal,1);
    if(current!==sequence)return;
-   found=result.items||[];
-   if(!found.length&&anchor){
-    const wider=await request(q,signal,null);if(current!==sequence)return;
-    found=wider.items||[];
+   found=Array.isArray(first.items)?first.items.slice():[];
+   // A ranked first page is not an exhaustive answer for common business names.
+   if(first.hasNext){
+    try{
+     const second=await request(q,signal,2);
+     if(current!==sequence)return;
+     const seen=new Set(found.map(p=>p.id));
+     for(const item of second.items||[])if(!seen.has(item.id)){found.push(item);seen.add(item.id);}
+    }catch(e){if(signal.aborted||current!==sequence)return;/* Keep first-page results on a partial page error. */}
    }
    if(found.length)break;
   }
   if(current!==sequence)return;
-  lastKey=key;lastItems=rankResults(found,'',anchor);render(lastItems);
+  lastKey=key;lastItems=rankResults(found,'',nationwide?null:anchor,text);render(lastItems);
  }catch(e){if(signal.aborted||current!==sequence)return;setMessage('검색에 실패했어요: '+e.message,true);}
  finally{if(current===sequence)abort=null;}
 }
@@ -97,7 +103,7 @@ function add(item,button=null){
  }
  return true;
 }
-function init(){if(!app||!form)return;sync();$('search-global-results')?.addEventListener('click',()=>search(true,true));document.addEventListener('trip:day-changed',()=>{lastKey='';lastItems=[];nationwide=false;});
+function init(){if(!app||!form)return;sync();$('search-global-results')?.addEventListener('click',()=>{nationwide=!nationwide;search(true);});document.addEventListener('trip:day-changed',()=>{lastKey='';lastItems=[];nationwide=false;});
  $('map-preview-cancel').addEventListener('click',()=>{selectedPreview=null;app.clearPlacePreview();});
  $('map-preview-add').addEventListener('click',()=>{if(selectedPreview)add(selectedPreview);});region.addEventListener('change',()=>{if(app.setRegion(region.value)){lastKey='';lastItems=[];cancel();if(input.value.trim().length>=2)search();else sync();}});form.addEventListener('submit',e=>{e.preventDefault();search(true);});input.addEventListener('focus',()=>{setSearchActive(true);if(input.value.trim().length>=2)search();});input.addEventListener('compositionstart',()=>{composing=true;cancel();});
  input.addEventListener('compositionend',()=>{composing=false;cancel();if(cleanQuery(input.value).length>=2){setMessage('장소를 검색하고 있어요…',false,true);timer=setTimeout(()=>search(),280);}});
