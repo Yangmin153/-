@@ -25,5 +25,5 @@
       ]
     }
   ],
-  "buildCommand": "node --test tests/vnext-v64-map.test.js tests/vnext-v66.test.js tests/vnext-v67.test.js tests/vnext-v68.test.js tests/vnext-v69.test.js tests/vnext-v70.test.js tests/vnext-v71.test.js tests/vnext-v73.test.js"
+  "buildCommand": "node --test tests/vnext-collect.test.js tests/vnext-daily.test.js tests/vnext.test.js"
 }
