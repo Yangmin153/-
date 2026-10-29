@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../public/static/live-route.js',import.meta.url),'utf8');
-function makeHarness({permissionDenied=false}={}){
+function makeHarness({permissionDenied=false,approved=true}={}){
  const listeners=new Map(),dom=new Map();
  for(const id of ['yg-live-optimize','yg-live-status','yg-live-reset']){
   dom.set(id,{hidden:false,disabled:false,textContent:'',dataset:{},addEventListener(type,fn){listeners.set(id+':'+type,fn)}});
@@ -17,9 +17,10 @@ function makeHarness({permissionDenied=false}={}){
    orderIds:['s1','s2'],entries:[],drivingMinutes:70,totalDistanceMeters:28000
   }};
  const oldOrigin={...d.origin},oldStops=JSON.stringify(d.stops),oldResult=d.result;
- const calls={requests:[],navigatorOpened:0,toasts:[],apply:0};
+ const calls={requests:[],navigatorOpened:0,toasts:[],apply:0,confirmations:[]};
  const root={
   isSecureContext:true,
+  confirm(message){calls.confirmations.push(message);return approved;},
   navigator:{geolocation:{getCurrentPosition(ok,fail){
    if(permissionDenied)fail({code:1});
    else ok({coords:{latitude:37.5665,longitude:126.9780}});
@@ -73,4 +74,13 @@ test('GPS denied does not call routing, change itinerary or open navigation',asy
  assert.equal(v.calls.apply,0);
  assert.strictEqual(v.d.result,v.oldResult);
  assert.match(v.dom.get('yg-live-status').textContent,/위치 권한/);
+});
+
+test('canceling GPS reoptimization prevents location request and preserves route',async()=>{
+ const v=makeHarness({approved:false});
+ await v.listeners.get('yg-live-optimize:click')();
+ assert.equal(v.calls.confirmations.length,1);
+ assert.equal(v.calls.requests.length,0);
+ assert.equal(v.calls.apply,0);
+ assert.strictEqual(v.d.result,v.oldResult);
 });
