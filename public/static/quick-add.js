@@ -58,7 +58,8 @@ async function search(force=false,all=false){
    const first=await request(q,signal,1);
    if(current!==sequence)return;
    found=Array.isArray(first.items)?first.items.slice():[];
-   // A ranked first page is not an exhaustive answer for common business names.
+   // Reveal the first nationwide page without waiting for slower subsequent pages.
+   if(found.length){lastKey=key;lastItems=rankResults(found,'',nationwide?null:anchor,text);render(lastItems);}
    if(first.hasNext){
     try{
      const second=await request(q,signal,2);
