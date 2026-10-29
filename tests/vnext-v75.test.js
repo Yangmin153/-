@@ -34,7 +34,7 @@ test('trip summary list omits bulky route detail but exact itinerary GET keeps i
   const url=new URL(input);
   if(url.pathname.endsWith('/auth/v1/user'))return new Response(JSON.stringify({id}),{status:200});
   requested.push(url.searchParams.get('select'));
-  return new Response(JSON.stringify([]),{status:200});
+  return new Response(JSON.stringify(url.searchParams.has('id')?[{id,name:'테스트 여행',days:[]}]:[]),{status:200});
  };
  const env={SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test'};
  for(const q of ['?summary=1','?id='+id]){
