@@ -110,8 +110,10 @@ async function search(force=false,all=false){
 
 function feedback(msg){const el=$('quick-feedback');el.hidden=false;el.textContent=msg;clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.hidden=true,2300);app.toast(msg);}
 function add(item,button=null){
- if(window.YeoSearch?.isOpen?.()&&window.YeoSearch?.isEndpointMode?.())
-  return window.YeoSearch.completeEndpoint(item);
+ if(window.YeoSearch?.isOpen?.()&&window.YeoSearch?.isEndpointMode?.()){
+  window.YeoSearch.preview(item);
+  return true;
+ }
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return false;
  const duplicate=app.getDay().stops.some(x=>samePlace(x,item));
  if(duplicate){feedback('이미 담은 장소예요. 중복으로 추가하지 않았어요.');return false;}
@@ -125,14 +127,15 @@ function add(item,button=null){
  const message=item.name+' 추가 완료 · 총 '+total+'곳';
  feedback(message);selectedPreview=null;app.clearPlacePreview();
  if(isFullSearch){
-  window.YeoSearch?.addSuccess?.(item.name+' 추가 완료 · 총 '+total+'곳');
+  window.YeoSearch?.addSuccess?.(item.name+'을(를) 담았어요. · '+total+'곳',item);
   // Leave the pressed result visibly confirmed for 450ms, without blocking the next input.
   const completed=sequence;
   setTimeout(()=>{if(sequence===completed&&!input.value.trim()){results.hidden=true;results.replaceChildren();}},450);
-  requestAnimationFrame(()=>input.focus({preventScroll:true}));
+  // Keep the map visible after adding; the search input remains available for the next place.
  }else{
   setSearchActive(false);
-  input.focus({preventScroll:true});
+  app.previewPlace(item);
+  input.blur();
  }
  return true;
 }
