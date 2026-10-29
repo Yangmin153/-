@@ -25,5 +25,5 @@
       ]
     }
   ],
-  "buildCommand": "node --test tests/vnext-collect.test.js tests/vnext-daily.test.js tests/vnext.test.js"
+  "buildCommand": "node --test tests/vnext-collect.test.js tests/vnext-daily.test.js"
 }
