@@ -23,6 +23,6 @@ test('장소 추가 중복을 확인하고 전체화면 검색은 유지',async(
  const quick=await read('public/static/quick-add.js'),search=await read('public/static/search-screen.js');
  assert.match(quick,/if\(duplicate\)\{feedback/);
  assert.match(quick,/return true;/);
- assert.match(search,/function addSuccess\(message\)/);
+ assert.match(search,/function addSuccess\(message,place=null\)/);
  assert.match(search,/function showMode\(next\)/);
 });
