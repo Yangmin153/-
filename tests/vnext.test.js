@@ -47,7 +47,9 @@ test('Kakao y latitude and x longitude keep Naver LatLng position correct',async
 });
 test('wizard screens and real calendar date picker are wired',async()=>{
  const html=await read('public/index.html'),app=await read('public/static/app.js'),wiz=await read('public/static/vnext.js');
- for(const id of ['yg-start-date','yg-end-date','yg-add-visit','yg-next-places','yg-place-sheet','yg-calculate','yg-three-recalc','yg-delete-routes'])assert.match(html,new RegExp('id="'+id+'"'));
+ for(const id of ['yg-start-date','yg-end-date','yg-add-visit','yg-next-places','yg-place-sheet','yg-calculate','yg-three-recalc'])assert.match(html,new RegExp('id="'+id+'"'));
+ assert.doesNotMatch(html,/id="yg-delete-routes"/);
+ assert.match(wiz,/data-adjust-remove/);
  assert.match(app,/function syncLinkedOrigins\(from=1\)/);
  assert.match(app,/function setTravelDates\(start,end\)/);
  assert.match(wiz,/function calculate\(\)/);
