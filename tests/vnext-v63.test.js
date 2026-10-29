@@ -67,7 +67,8 @@ test('STEP3 footer keeps visit navigation and both recalc actions live beneath v
  assert.equal((foot.match(/<button /g)||[]).length,2);
  assert.match(foot,/id="yg-back-places"/);
  assert.match(foot,/id="yg-three-add"/);
- assert.match(html,/id="yg-three-recalc"/);\n assert.match(html,/id="yg-live-optimize"/);
+ assert.match(html,/id="yg-three-recalc"/);
+ assert.match(html,/id="yg-live-optimize"/);
  assert.match(html,/id="yg-route-adjust"/);
  assert.match(ui,/app\.moveRouteStop\(/);
  assert.match(ui,/app\.setRouteStopLocked\(/);
