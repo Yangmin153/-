@@ -727,8 +727,9 @@ body[data-trip-step] .yg-nav-modal[hidden]{display:none!important}
 body[data-trip-step] .yg-nav-modal{position:fixed;inset:0;z-index:1200;display:flex;align-items:flex-end;justify-content:center}
 body[data-trip-step] .yg-nav-backdrop{position:absolute;inset:0;background:#0c1f39a8}
 body[data-trip-step] .yg-nav-panel{
- position:relative;z-index:2;width:100%;max-width:610px;max-height:min(89dvh,780px);
- display:flex;flex-direction:column;gap:12px;padding:20px 17px calc(18px + env(safe-area-inset-bottom,0px));
+ position:relative;z-index:2;width:100%;max-width:610px;max-height:min(92dvh,780px);
+ display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:0;padding:0;
+ overflow:hidden;min-height:0;box-sizing:border-box;
  background:#fff;color:#1c3450;border-radius:21px 21px 0 0;box-shadow:0 -8px 35px #0c25502a
 }
 body[data-trip-step] .yg-nav-header{display:flex;justify-content:space-between;align-items:start;gap:15px}
@@ -782,8 +783,7 @@ body[data-trip-step="2"] #yg-endpoint-section .yg-endpoint-section-title p{
 }
 body[data-trip-step="2"] #yg-step-two-intro p{font-size:12px;color:#78889e}
 /* Nav chooser — radio-button cards, never stacked jargon or repeated launch controls. */
-body[data-trip-step] .yg-nav-panel{gap:13px;overflow-y:auto;overscroll-behavior:contain;
- -webkit-overflow-scrolling:touch;touch-action:pan-y}
+body[data-trip-step] .yg-nav-panel{touch-action:pan-y}
 body[data-trip-step] .yg-nav-provider-choices,body[data-trip-step] .yg-nav-mode-choices{
  border:0;margin:0;padding:0;min-width:0;display:grid;gap:9px
 }
@@ -831,7 +831,7 @@ body.yg-nav-open,body.yg-sheet-open,body.search-open,body.account-open{
 @media(max-width:365px){
  body[data-trip-step] .yg-nav-choice{gap:6px;padding:9px 7px}
  body[data-trip-step] .yg-nav-choice strong{font-size:12px}
- body[data-trip-step] .yg-nav-panel{padding-left:12px;padding-right:12px}
+ body[data-trip-step] .yg-nav-body{padding-left:12px;padding-right:12px}
 }
 
 /* 7.1: waypoint launch must be confirmed before the Naver app starts guidance. */
@@ -1102,13 +1102,13 @@ body[data-trip-step] .yg-progress-help{
  body[data-trip-step="3"] #route-results #yg-live-controls{padding:13px 11px;margin-top:16px}
 }
 /* Long navigation list stays visibly scrollable and the user sees a count/hint. */
-body[data-trip-step] .yg-nav-panel{max-height:92dvh;overflow-y:auto;overscroll-behavior:contain}
+body[data-trip-step] .yg-nav-panel{max-height:min(92dvh,780px);overflow:hidden}
 body[data-trip-step] .yg-nav-mode-choices{min-height:0}
 body[data-trip-step] .yg-nav-place-list{
- max-height:min(43dvh,350px);min-height:0;
- overflow-y:scroll!important;touch-action:pan-y;
+ max-height:none;min-height:0;
+ overflow:visible!important;touch-action:pan-y;
  border:1px solid #d9e6f6;border-radius:13px;padding:7px;
- background:#f6f9fd;scrollbar-width:auto;scrollbar-color:#8fb4e8 #edf4fc
+ background:#f6f9fd
 }
 body[data-trip-step] .yg-nav-place-list::-webkit-scrollbar{width:7px}
 body[data-trip-step] .yg-nav-place-list::-webkit-scrollbar-thumb{background:#9bbce9;border-radius:8px}
@@ -1148,3 +1148,49 @@ body[data-trip-step] .yg-nav-single-target:not([hidden]){min-height:0}
 .account-panel .account-trip-open strong{font-size:13px;color:#263f5f}
 .account-panel .account-trip-open small{font-size:11px;color:#7990ae}
 .account-panel .account-bottom{margin-top:23px;padding-top:14px;border-top:1px solid #e6edf6}
+
+/* v7.6: single scroll owner = the body, with a separate permanently visible CTA footer. */
+body[data-trip-step] .yg-nav-header{
+ min-width:0;padding:16px 17px 10px;background:#fff;flex:0 0 auto
+}
+body[data-trip-step] .yg-nav-body{
+ min-height:0;min-width:0;display:flex;flex-direction:column;gap:12px;
+ overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;touch-action:pan-y;
+ padding:8px 17px 18px;scroll-padding-bottom:24px
+}
+body[data-trip-step] .yg-nav-body fieldset{flex:0 0 auto;min-width:0}
+body[data-trip-step] .yg-nav-single-target:not([hidden]){min-width:0;max-width:100%}
+body[data-trip-step] .yg-nav-place-list{flex-shrink:0}
+body[data-trip-step] .yg-nav-footer{
+ min-width:0;min-height:0;display:grid;gap:7px;
+ padding:10px 17px calc(12px + env(safe-area-inset-bottom,0px));
+ background:#fff;border-top:1px solid #e5edf7;
+ box-shadow:0 -4px 12px #1c47700c;z-index:2
+}
+body[data-trip-step] .yg-nav-footer .yg-nav-primary,
+body[data-trip-step] .yg-nav-footer .yg-nav-retry{margin:0;flex:initial}
+body[data-trip-step] .yg-nav-footer .yg-nav-status:not([hidden]):not(:empty){
+ margin:0;padding:5px 0;color:#526d90;font-size:11px;line-height:1.45
+}
+body[data-trip-step] .yg-nav-footer .yg-nav-status[hidden]{display:none!important}
+body[data-trip-step] .yg-nav-footer .yg-nav-disclaimer{font-size:10px;text-align:center}
+body[data-trip-step] #yg-kakao-navi-help{flex-shrink:0}
+@media(max-height:670px){
+ body[data-trip-step] .yg-nav-panel{max-height:96dvh}
+ body[data-trip-step] .yg-nav-footer .yg-nav-disclaimer{display:none}
+}
+/* Compact, accessible deletion of an individual visit without squeezing the lock/move controls. */
+body[data-trip-step="3"] .yg-adjust-row{flex-wrap:wrap;gap:6px 8px}
+body[data-trip-step="3"] .yg-adjust-name{flex:1 1 75px}
+body[data-trip-step="3"] .yg-adjust-delete{
+ display:grid;place-items:center;flex:0 0 44px;min-height:44px;
+ padding:0;border:1px solid #f0d6d8;border-radius:10px;
+ background:#fff5f5;color:#ad3947;font-size:21px;cursor:pointer
+}
+body[data-trip-step="3"] .yg-adjust-delete:focus-visible{outline:2px solid #ae5162;outline-offset:2px}
+@media(max-width:410px){
+ body[data-trip-step="3"] .yg-adjust-name{flex-basis:calc(100% - 95px)}
+ body[data-trip-step="3"] .yg-adjust-lock{margin-left:auto}
+ body[data-trip-step="3"] .yg-adjust-move{margin-left:4px}
+}
