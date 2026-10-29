@@ -46,7 +46,7 @@ test('STEP1 keeps its real date form, accessible promo panel, and normal navigat
  for(const id of ['yg-start-date','yg-end-date','yg-next-places','yg-step1-video','yg-step1-video-fallback'])assert.match(html,new RegExp('id="'+id+'"'));
  assert.match(html,/data-video-src="\/media\/yeohaenggil-step1-guide.mp4"/);
  assert.match(html,/video id="yg-step1-video"[^>]*muted playsinline loop preload="none" hidden/);
- assert.doesNotMatch(html,/video[^>]*src="/);
+ assert.doesNotMatch(html,/<video\\b[^>]*\\ssrc="/);
  assert.match(html,/step1-promo.css\?v=1.0.0/);
  assert.match(html,/step1-promo.js\?v=1.0.0/);
 });
