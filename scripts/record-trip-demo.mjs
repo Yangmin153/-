@@ -38,13 +38,20 @@ async function searchAndAdd(name,kind='stop'){
   await page.locator('#quick-input').fill(name);
   await page.locator('#quick-input').press('Enter');
   await at('#quick-results .quick-direct-add');
-  await record(name+' 검색 결과',650);
+  await record(name+' 검색 결과',900);
   const result=page.locator('#quick-results .quick-result-row').filter({hasText:name}).first();
   const choose=await result.count()?result:page.locator('#quick-results .quick-result-row').first();
-  await choose.locator('.quick-direct-add').click();
   if(kind==='stop'){
+    await choose.locator('.quick-direct-add').click();
     await record(name+' 방문지 담기',850);
   }else{
+    // Inspect the actual result on the map, then confirm from the preview panel.
+    await choose.locator('.quick-result').click();
+    await sleep(300);
+    if(!(await page.locator('#search-picked-add').isVisible())){
+      if(await page.locator('#search-list-toggle').isVisible())await page.locator('#search-list-toggle').click();
+      await choose.locator('.quick-result').click().catch(()=>{});
+    }
     await at('#search-picked-add');
     await page.locator('#search-picked-add').click();
     await record(kind+' 설정',650);
