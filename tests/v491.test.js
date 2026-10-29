@@ -11,15 +11,17 @@ test('fullscreen search reuses one search input and one results list',async()=>{
 });
 test('search results select a map pin before adding, with clear duplicate handling',async()=>{
  const js=await read('public/static/search-screen.js'),q=await read('public/static/quick-add.js');
- assert.match(js,/function preview\(item\)/);assert.match(js,/function paintMarkers\(\)/);
+ assert.match(js,/function preview\(item,source='result'\)/);assert.match(js,/function paintMarkers\(\)/);
  assert.match(js,/TripQuickAdd\?\.addPlace\?\.\(selected\)/);
  assert.match(q,/if\(duplicate\)\{feedback/);assert.match(q,/YeoSearch\?\.onResults/);
 });
 test('search screen traps background scroll and restores position',async()=>{
  const js=await read('public/static/search-screen.js'),css=await read('public/static/design-v53.css');
- assert.match(js,/document\.body\.style\.position='fixed'/);
- assert.match(js,/document\.body\.style\.position=''/);
- assert.match(js,/window\.scrollTo\(0,previousScroll\)/);
+ assert.match(js,/YGScrollLock\?\.lock\('search-screen'\)/);
+ assert.match(js,/YGScrollLock\?\.unlock\('search-screen'\)/);
+ const lock=await read('public/static/scroll-lock.js');
+ assert.match(lock,/body\.style\.position='fixed'/);
+ assert.match(lock,/root\.scrollTo\(\{top:saved\.y,behavior:'instant'\}\)/);
  assert.match(css,/overscroll-behavior:contain/);
 });
 test('route calculation opens results only after success',async()=>{

@@ -1,0 +1,56 @@
+/* STEP 1 promotional preview. Independent of the date form and existing trip steps. */
+body[data-trip-step="1"] #yg-step-one .yg-step1-promo{
+ width:100%;max-width:500px;min-width:0;margin:13px auto 10px;
+ padding:13px;border:1px solid #dce8f7;border-radius:18px;
+ background:#fff;box-shadow:0 5px 20px rgba(26,71,135,.06);
+ box-sizing:border-box
+}
+.yg-step1-promo .yg-promo-copy{display:grid;gap:4px;margin:0 0 10px}
+.yg-step1-promo .yg-promo-eyebrow{font-size:10px;font-weight:850;letter-spacing:.4px;color:#286cf4}
+.yg-step1-promo .yg-promo-copy strong{font-size:14px;line-height:1.4;color:#183556;letter-spacing:-.25px}
+.yg-step1-promo .yg-promo-stage{
+ position:relative;display:grid;place-items:center;overflow:hidden;
+ width:100%;height:clamp(142px,26vw,195px);border-radius:13px;
+ background:linear-gradient(145deg,#ecf5ff,#dbeafa 60%,#cce4ff)
+}
+.yg-step1-promo .yg-promo-fallback{position:relative;display:grid;align-content:center;gap:16px;
+ width:100%;height:100%;padding:14px 12px;box-sizing:border-box}
+.yg-step1-promo .yg-promo-fallback::before{
+ content:"";position:absolute;z-index:0;top:50%;left:14%;right:14%;
+ border-top:3px dashed rgba(38,107,232,.34);transform:translateY(-1px)
+}
+.yg-step1-promo .yg-promo-steps{display:flex;align-items:center;justify-content:space-between;gap:7px;position:relative;z-index:1}
+.yg-step1-promo .yg-promo-step{
+ display:grid;justify-items:center;gap:5px;flex:1 1 0;min-width:0;
+ padding:12px 4px;background:rgba(255,255,255,.96);
+ border:1px solid #cbdff9;border-radius:12px;box-shadow:0 4px 13px rgba(20,76,161,.08)
+}
+.yg-step1-promo .yg-promo-step span{display:grid;place-items:center;width:29px;height:29px;
+ border-radius:10px;background:#e8f1ff;color:#2469df;font-size:14px;font-weight:900}
+.yg-step1-promo .yg-promo-step strong{font-size:11px;line-height:1.3;color:#294a72;white-space:nowrap}
+.yg-step1-promo .yg-promo-fallback>small{text-align:center;z-index:1;font-size:11px;color:#567397}
+.yg-step1-promo .yg-promo-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#132e52}
+.yg-step1-promo .yg-promo-control{position:absolute;right:10px;bottom:10px;min-height:40px;
+ padding:6px 13px;background:rgba(14,39,72,.89);color:#fff;border:1px solid rgba(255,255,255,.42);
+ border-radius:10px;font-size:12px;font-weight:750;cursor:pointer}
+.yg-step1-promo [hidden]{display:none!important}
+.yg-step1-promo .yg-promo-control:focus-visible{outline:3px solid #6ea6fc;outline-offset:2px}
+@media(max-width:768px){
+ body[data-trip-step="1"] #yg-step-one{
+  min-height:0!important;justify-content:flex-start!important;
+  padding:8px 6px calc(104px + env(safe-area-inset-bottom,0px))!important
+ }
+ body[data-trip-step="1"] #yg-step-one .yg-step-intro{margin-bottom:9px!important}
+ body[data-trip-step="1"] #yg-step-one .yg-step1-promo{margin:8px auto;padding:10px;border-radius:15px}
+ body[data-trip-step="1"] #yg-step-one .yg-date-card{margin-top:9px!important}
+ .yg-step1-promo .yg-promo-stage{height:clamp(138px,34vw,174px)}
+ .yg-step1-promo .yg-promo-copy strong{font-size:13px}
+}
+@media(max-width:350px){
+ .yg-step1-promo .yg-promo-stage{height:137px}
+ .yg-step1-promo .yg-promo-fallback{padding:9px 6px;gap:12px}
+ .yg-step1-promo .yg-promo-step strong{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .yg-step1-promo *{animation:none!important;transition:none!important}
+}

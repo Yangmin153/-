@@ -1,0 +1,20 @@
+name: Travel app tests
+on:
+  push:
+    branches: [feature/vnext-three-step-trip]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify Node.js runtime
+        run: node --version
+      - name: Run automated regression tests
+        run: npm test

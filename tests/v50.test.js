@@ -4,8 +4,9 @@ import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 test('지도 조작 버튼은 지도 외부에 있고 기존 네이버 지도 도구는 유지',async()=>{
  const html=await read('public/index.html'),mapStart=html.indexOf('id="map-region"');
- for(const id of ['map-control-bar','map-lock','map-maximize','map-day-select','map-zoom-in','map-zoom-out'])
+ for(const id of ['map-control-bar','map-lock','map-maximize','map-zoom-in','map-zoom-out'])
   assert.ok(html.indexOf('id="'+id+'"')>0&&html.indexOf('id="'+id+'"')<mapStart,id);
+ assert.ok(html.indexOf('id="map-day-select"')>mapStart);
 });
 test('장소만 담기 화면은 제거되고 장소 수집 목록 하나로 통합',async()=>{
  const html=await read('public/index.html'),app=await read('public/static/app.js'),css=await read('public/static/design-v53.css');

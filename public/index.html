@@ -13,23 +13,33 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css">
   <link rel="stylesheet" href="/static/foundation-v49.css?v=4.9.0">
-  <link rel="stylesheet" href="/static/mobile-v49.css?v=4.9.1">
+  <link rel="stylesheet" href="/static/mobile-v49.css?v=7.9.0">
   <link rel="stylesheet" href="/static/design-v50.css?v=5.0.0">
   <link rel="stylesheet" href="/static/design-v51.css?v=5.1.0">
   <link rel="stylesheet" href="/static/design-v52.css?v=5.2.0">
-  <link rel="stylesheet" href="/static/design-v53.css?v=5.3.0">
+  <link rel="stylesheet" href="/static/design-v53.css?v=7.9.0">
   <link rel="stylesheet" href="/static/design-v54.css?v=5.4.0">
+  <link rel="stylesheet" href="/static/vnext.css?v=7.9.0">
+  <link rel="stylesheet" href="/static/step1-promo.css?v=1.0.0">
+  <link rel="stylesheet" href="/static/route-pins.css?v=6.4.0">
   <script defer src="/static/search-utils.js?v=4.2.0"></script>
   <script defer src="/static/place-meta.js?v=4.3.0"></script>
-  <script defer src="/static/app.js?v=5.4.0"></script>
+  <script defer src="/static/route-pins.js?v=6.4.0"></script>
+  <script defer src="/static/route-shape.js?v=6.4.0"></script>
+  <script defer src="/static/scroll-lock.js?v=7.0.0"></script>
+  <script defer src="/static/app.js?v=7.10.0"></script>
   <script type="module" src="/static/mobile-ux.js?v=4.8.0"></script>
-  <script type="module" src="/static/quick-add.js?v=5.4.0"></script>
-  <script type="module" src="/static/search-screen.js?v=5.4.0"></script>
-  <script defer src="/static/map-workspace.js?v=4.3.0"></script>
-  <script type="module" src="/static/accounts.js?v=4.9.0"></script>
-  <script defer src="/static/design-v51.js?v=5.3.0"></script>
+  <script type="module" src="/static/quick-add.js?v=7.9.0"></script>
+  <script type="module" src="/static/search-screen.js?v=7.10.0"></script>
+  <script defer src="/static/map-workspace.js?v=6.7.1"></script>
+  <script type="module" src="/static/accounts.js?v=7.6.0"></script>
+  <!-- Region onboarding removed from vNext daily planner; legacy nodes retained for compatibility. -->
+  <script defer src="/static/vnext.js?v=7.6.0"></script>
+  <script defer src="/static/step1-promo.js?v=1.0.0"></script>
+  <script defer src="/static/navigation.js?v=7.6.0"></script>
+  <script defer src="/static/live-route.js?v=7.5.0"></script>
 </head>
-<body data-mobile-view="edit" class="region-needs-choice">
+<body data-mobile-view="edit" data-trip-step="1" class="region-ready">
   <div class="app-shell">
     <header class="site-header">
       <div class="brand" aria-label="여행길">
@@ -48,7 +58,63 @@
       <div class="trip-meta"><div class="hero-orbit" aria-hidden="true"><span>1</span><i></i><span>2</span><i></i><span>3</span></div><span class="hero-orbit-caption">어디든, 가장 좋은 순서로</span></div>
     </section>
 
+    <nav id="yg-progress" class="yg-progress" aria-label="여행 계획 진행 단계. 각 단계를 눌러 이동할 수 있습니다"><button type="button" data-yg-step="1" aria-current="step"><span>1</span>여행 일정</button><i></i><button type="button" data-yg-step="2"><span>2</span>장소 담기</button><i></i><button type="button" data-yg-step="3"><span>3</span>나의 여행길</button></nav><p class="yg-progress-help" id="yg-progress-help">위의 단계를 누르면 원하는 화면으로 이동할 수 있어요.</p>
+    <section id="yg-step-one" class="yg-step-one" aria-labelledby="yg-when-heading">
+      <div class="yg-step-intro"><span>STEP 1 · 여행 일정 정하기</span><h1 id="yg-when-heading">언제 여행을 떠나시나요?</h1></div>
+      <section id="yg-step1-promo" class="yg-step1-promo" aria-label="여행길 사용 방법 미리보기" data-video-src="/media/yeohaenggil-step1-guide.mp4">
+        <div class="yg-promo-copy">
+          <span class="yg-promo-eyebrow">여행길은 이렇게 사용해요</span>
+          <strong>가고 싶은 곳을 담으면, 동선은 여행길이 정리해요.</strong>
+        </div>
+        <div class="yg-promo-stage">
+          <div id="yg-step1-video-fallback" class="yg-promo-fallback" role="img" aria-label="가고 싶은 장소를 담고, 동선을 최적화한 뒤 지도에서 확인하는 여행길 사용 순서">
+            <div class="yg-promo-steps" aria-hidden="true">
+              <div class="yg-promo-step"><span>1</span><strong>장소 담기</strong></div>
+              <div class="yg-promo-step"><span>2</span><strong>동선 최적화</strong></div>
+              <div class="yg-promo-step"><span>3</span><strong>지도 확인</strong></div>
+            </div>
+            <small>장소만 담으면 이동 순서를 한 번에 정리해요.</small>
+          </div>
+          <video id="yg-step1-video" class="yg-promo-video" aria-label="실제 여행길 사용 화면" muted playsinline loop preload="none" hidden></video>
+          <button type="button" id="yg-step1-video-toggle" class="yg-promo-control" aria-label="홍보 영상 재생 및 일시정지" hidden>일시정지</button>
+        </div>
+      </section>
+      <div class="yg-date-card"><div class="yg-date-fields"><label>출발일<input type="date" id="yg-start-date" aria-label="출발일"></label><label>돌아오는 날<input type="date" id="yg-end-date" aria-label="돌아오는 날"></label></div><strong id="yg-duration" role="status">날짜를 선택해 주세요</strong></div>
+      
+      <div id="yg-stage-one-error" class="yg-error" role="status" hidden></div>
+      <div class="yg-step-actions"><button type="button" id="yg-next-places" class="yg-primary">다음: 가고 싶은 곳 담기 <span>→</span></button></div>
+    </section>
     <div class="region-onboarding" aria-label="여행 지역 고르기"><div class="onboarding-step"><span class="onboarding-step-number">1</span><div><strong>어디로 떠나시나요?</strong><small>먼저 지역을 선택하면 지도가 그곳으로 이동해요.</small></div></div><div class="trip-region-row"><label for="trip-region">직접 입력</label><input id="trip-region" list="trip-region-options" type="text" maxlength="28" value="" autocomplete="off" aria-label="여행 지역 선택" placeholder="제주, 부산, 인천처럼 직접 입력하세요"><datalist id="trip-region-options"><option value="제주"><option value="서울"><option value="부산"><option value="인천"><option value="대전"><option value="대구"><option value="광주"><option value="울산"><option value="세종"><option value="수원"><option value="용인"><option value="고양"><option value="성남"><option value="춘천"><option value="원주"><option value="강릉"><option value="경주"><option value="속초"><option value="여수"><option value="전주"><option value="동해"><option value="양양"><option value="평창"><option value="청주"><option value="충주"><option value="단양"><option value="제천"><option value="천안"><option value="아산"><option value="보령"><option value="태안"><option value="공주"><option value="군산"><option value="익산"><option value="남원"><option value="무주"><option value="순천"><option value="광양"><option value="목포"><option value="담양"><option value="해남"><option value="완도"><option value="포항"><option value="안동"><option value="구미"><option value="영주"><option value="문경"><option value="울진"><option value="창원"><option value="김해"><option value="진주"><option value="통영"><option value="거제"><option value="남해"><option value="밀양"><option value="제주시"><option value="서귀포"><option value="강화"><option value="가평"><option value="양평"><option value="파주"><option value="의정부"><option value="화성"><option value="안산"><option value="김포"><option value="평택"><option value="이천"><option value="양산"><option value="울릉"></datalist><small>나중에 바꿔도 괜찮아요</small></div><div class="region-shortcuts" id="region-shortcuts" aria-label="인기 여행 지역 바로 선택"><span>인기 여행지</span><button type="button" data-region-choice="제주">제주</button><button type="button" data-region-choice="부산">부산</button><button type="button" data-region-choice="강릉">강릉</button><button type="button" data-region-choice="경주">경주</button><button type="button" data-region-choice="서울">서울</button><button type="button" data-region-choice="여수">여수</button></div><div class="region-confirm-row"><button type="button" id="region-confirm" class="region-confirm">이 지역으로 여행 시작하기 <span aria-hidden="true">→</span></button><span id="region-selection-state" role="status" aria-live="polite">① 지역을 먼저 골라주세요.</span></div></div>
+    <div id="yg-plan-date" class="yg-plan-date"><div class="yg-date-switch"><label for="yg-active-date">여행 날짜</label><select id="yg-active-date" aria-label="계획할 여행 날짜 선택"></select></div></div>
+    <div id="yg-step-two-intro" class="yg-step-intro"><span>STEP 2 · 가고 싶은 곳 담기</span><h1>어디를 가고 싶으세요?</h1><p>가고 싶은 장소를 검색해 담아보세요.</p></div>
+    <section id="yg-daily-editor" class="yg-daily-editor" aria-label="가고 싶은 방문지 담기">
+      <div class="yg-visit-editor">
+        <button type="button" id="yg-add-visit" class="yg-add-visit yg-search-open" aria-label="장소명 또는 주소 검색"><span aria-hidden="true">⌕</span> 장소명 또는 주소 검색 <span aria-hidden="true">→</span></button>
+        <button type="button" id="yg-open-stops" class="yg-open-stops">담은 장소 <strong id="yg-stop-count">0곳</strong> <span aria-hidden="true">›</span></button>
+        <p id="yg-day-stop-sub" class="yg-collection-hint"></p>
+        <div id="yg-legacy-stops" class="yg-legacy-stops" hidden>
+          <strong>이전에 담은 미배정 장소 <span id="yg-legacy-count">0</span>곳</strong>
+          <p>위에서 날짜를 고른 뒤 한 번에 옮길 수 있어요.</p>
+          <button type="button" id="yg-legacy-assign">선택한 날짜로 옮기기</button>
+        </div>
+        <span id="yg-day-stop-count" hidden>0곳</span><p id="yg-empty-inline" hidden></p>
+      </div>
+    </section>
+    <section id="yg-endpoint-section" class="yg-endpoint-section" aria-label="날짜별 출발지와 도착지">
+      <div class="yg-endpoint-section-title"><h2>어디서 출발하고, 어디로 돌아가나요?</h2><p>출발할 곳과 마지막 도착 장소를 선택하세요.</p></div>
+      
+      <div id="yg-current-endpoints" class="yg-current-endpoints">
+        <div id="yg-day-inherit" class="yg-day-inherit" hidden>
+          <label><input type="radio" name="yg-origin-choice" value="inherit"> 전날 도착지에서 출발</label>
+          <label><input type="radio" name="yg-origin-choice" value="custom"> 다른 장소에서 출발</label>
+        </div>
+        <div class="yg-endpoint-pair">
+          <div class="yg-endpoint-compact yg-origin-card"><span><i aria-hidden="true">↗</i> 출발지</span><button type="button" id="yg-origin-pick" class="yg-pick-place"><strong id="yg-origin-display">어디서 출발하나요?</strong><small id="yg-origin-sub"></small><span class="yg-chevron" aria-hidden="true">›</span></button></div>
+          <div class="yg-endpoint-compact yg-destination-card"><span><i aria-hidden="true">⌖</i> 도착지</span><button type="button" id="yg-dest-pick" class="yg-pick-place"><strong id="yg-dest-display">마지막으로 어디에 도착하나요?</strong><small id="yg-dest-sub"></small><span class="yg-chevron" aria-hidden="true">›</span></button></div>
+        </div>
+      </div>
+    </section>
+    <div id="yg-map-caption" class="yg-section-caption"><strong>방문지 지도</strong><button type="button" id="yg-fit-all">전체 장소 보기 <span aria-hidden="true">⌗</span></button></div>
     <div class="workspace" id="trip-workspace">
       <main class="editor">
         <div class="panel-heading"><div><div class="section-kicker">MY TRIP</div><h2>가고 싶은 곳 담기</h2></div><div class="region-back-actions"><button class="small-quiet" type="button" id="btn-change-region">⌖ 지역 변경</button><button class="small-quiet" id="btn-reset">↺ 초기화</button></div></div>
@@ -77,26 +143,108 @@
 
       <section class="view-panel" aria-label="여행 동선 결과">
         <div class="view-toolbar"><div class="view-title"><span class="live-ring"></span><div><h2>여행 장소 지도</h2><p id="map-caption">오늘 갈 곳을 지도에서 볼 수 있어요</p></div></div><div class="view-actions"><button class="map-fit" id="btn-sidebar-toggle" type="button" aria-pressed="false" title="왼쪽 목록 접기">목록 접기</button></div></div>
-        <div class="map-control-bar" id="map-control-bar" aria-label="지도 조작"><div class="map-overlay-controls" id="map-overlay-controls"><div class="map-current-day"><span>보고 있는 날짜</span><select id="map-day-select" aria-label="지도 날짜 선택"></select></div><div class="map-control-buttons"><button type="button" id="map-zoom-out" class="map-zoom-button" aria-label="지도 축소" title="지도 축소">−</button><button type="button" id="map-zoom-in" class="map-zoom-button" aria-label="지도 확대" title="지도 확대">+</button><button type="button" id="map-lock" aria-pressed="false" title="지도 이동 잠금">지도 움직임 잠그기</button><button type="button" id="map-maximize" aria-pressed="false" title="지도 크게 지도">지도 크게</button></div></div><button type="button" id="map-full-close" class="map-full-close" hidden>✕ 지도 닫기</button></div>
-        <div class="map-region" id="map-region"><div id="map"></div><div class="map-placeholder" id="map-placeholder"><div class="map-pattern"></div><div class="map-illustration">⌖</div><strong>네이버 지도를 연결하면<br>실제 여행 경로가 표시됩니다.</strong><span>잠시 후 다시 시도해 주세요.</span></div><span class="map-watermark">Powered by NAVER Maps</span></div><div class="map-accessories" id="map-accessories"><div id="map-place-preview" class="map-place-preview" hidden aria-live="polite"><div class="map-preview-detail"><strong id="map-preview-name"></strong><small id="map-preview-address"></small></div><div class="map-preview-buttons"><button type="button" id="map-preview-cancel">닫기</button><button type="button" id="map-preview-add">이 장소 추가</button></div></div>
+        <div class="map-control-bar" id="map-control-bar" aria-label="지도 조작"><div class="map-overlay-controls" id="map-overlay-controls"><div class="map-control-buttons"><button type="button" id="yg-route-fit" class="yg-route-fit" title="동선 전체 보기">경로 전체</button><button type="button" id="map-zoom-out" class="map-zoom-button" aria-label="지도 축소" title="지도 축소">−</button><button type="button" id="map-zoom-in" class="map-zoom-button" aria-label="지도 확대" title="지도 확대">+</button><button type="button" id="map-lock" aria-pressed="false" title="지도 이동 잠금">지도 움직임 잠그기</button><button type="button" id="map-maximize" aria-pressed="false" title="지도 크게 보기">지도 크게</button></div></div><button type="button" id="map-full-close" class="map-full-close" hidden>✕ 지도 닫기</button></div>
+        <div class="map-region" id="map-region"><div id="map"></div><div class="map-placeholder" id="map-placeholder"><div class="map-pattern"></div><div class="map-illustration">⌖</div><strong>네이버 지도를 연결하면<br>실제 여행 경로가 표시됩니다.</strong><span>잠시 후 다시 시도해 주세요.</span></div><span class="map-watermark">Powered by NAVER Maps</span></div>
+        <div id="yg-result-date" class="yg-result-date">
+          <div class="map-current-day"><span>여행 날짜</span>
+            <div class="yg-result-day-picker">
+              <button id="yg-result-day-toggle" type="button" class="yg-result-day-toggle" aria-expanded="false" aria-haspopup="true" aria-controls="yg-result-day-menu">
+                <span id="yg-result-day-label">여행 날짜 선택</span><span class="yg-result-day-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div id="yg-result-day-menu" class="yg-result-day-menu" hidden aria-label="확인할 여행 날짜"></div>
+              <select id="map-day-select" class="yg-result-day-native" tabindex="-1" aria-label="지도 날짜 선택" aria-hidden="true"></select>
+            </div>
+          </div>
+        </div>
+        <div class="map-accessories" id="map-accessories"><div id="map-place-preview" class="map-place-preview" hidden aria-live="polite"><div class="map-preview-detail"><strong id="map-preview-name"></strong><small id="map-preview-address"></small></div><div class="map-preview-buttons"><button type="button" id="map-preview-cancel">닫기</button><button type="button" id="map-preview-add">이 장소 추가</button></div></div>
 <div class="map-select-notice hidden" id="map-select-notice"><strong>지도에서 위치를 선택하세요</strong><span>원하는 곳을 지도에서 한 번 눌러주세요</span><button id="btn-cancel-map-pick">취소</button></div></div>
         <div class="map-sheet" id="map-sheet"><button class="map-sheet-toggle" id="map-sheet-toggle" type="button" aria-expanded="false">가는 순서 보기 <span aria-hidden="true">⌃</span></button><div class="map-sheet-list" id="map-sheet-list"></div></div>
         <div class="result-section" id="route-results">
           <div class="result-title"><div><div class="section-kicker">MY ROUTE</div><h2>오늘 얼마나 이동하나요?</h2></div><span class="result-status" id="result-status">계산 전</span></div>
           <div class="metrics"><div class="metric"><span>방문 장소</span><strong id="metric-places">—</strong><small>곳</small></div><div class="metric"><span id="metric-mode-label">자동차 이동</span><strong id="metric-drive">—</strong><small>분</small></div><div class="metric"><span>이동 거리</span><strong id="metric-distance">—</strong><small>km</small></div></div>
           <p id="route-savings" class="route-savings hidden" aria-live="polite"></p><div id="result-alert" class="result-alert hidden" role="status"></div>
+          <div class="yg-nav-entry">
+            <div><strong>완성한 여행길로 이동하기</strong><small>내비 출발지는 현재 위치로 설정돼요.</small></div>
+            <button id="yg-nav-open" type="button">내비게이션 시작 <span aria-hidden="true">›</span></button>
+          </div>
           <div class="result-head"><h3>계산된 방문 순서</h3><span id="timeline-note">최적 동선을 계산하면 표시됩니다.</span></div>
-          <div class="result-edit-actions"><button type="button" id="btn-result-add">+ 방문지 추가</button><button type="button" id="btn-result-recalc">최적 동선 다시 계산</button></div>
+          <div class="result-edit-actions" hidden><button type="button" id="btn-result-add">+ 방문지 추가</button><button type="button" id="btn-result-recalc">최적 동선 다시 계산</button></div>
           <div id="timeline" class="timeline"><div class="blank-timeline">방문할 곳을 담고<br><strong>빠른 길 찾기</strong>를 눌러주세요.</div></div>
+          <details id="yg-route-adjust" class="yg-route-adjust">
+            <summary>방문지 상세 조정 <span aria-hidden="true">⌄</span></summary>
+            <div class="yg-adjust-content">
+              <p>꼭 지켜야 할 순서만 고정하세요. 나머지는 빠른 길로 계산해요.</p>
+              <label class="yg-mode-row" for="yg-route-mode">경로 계산 방식
+                <select id="yg-route-mode" aria-label="경로 계산 방식"><option value="auto">자동 최적화</option><option value="manual">내 순서 유지</option></select>
+              </label>
+              <div id="yg-adjust-list" aria-label="방문지 순서와 고정 설정"></div>
+              <div class="yg-adjust-secondary"><button type="button" id="yg-three-list">담은 장소 보기</button></div>
+            </div>
+          </details>
+          <section id="yg-live-controls" class="yg-live-controls" aria-label="여행 동선 재계산">
+            <h3>동선 다시 계산하기</h3><p>방문지 상세 조정 후 경로를 다시 계산하거나, 현재 위치부터 새 동선을 만들 수 있어요.</p>
+            <button type="button" id="yg-three-recalc" class="yg-recalculate-button">↻ 다시 최적화</button>
+            <button type="button" id="yg-live-optimize" class="yg-live-button">◎ 현재 위치에서 다시 최적화</button>
+            <p id="yg-live-status" role="status" aria-live="polite" hidden></p><small>현재 위치 계산은 이 날짜의 동선에만 적용돼요. 기존 입력 장소는 유지됩니다.</small>
+          </section>
         </div>
       </section>
+    </div>
+    <div id="yg-step-two-actions" class="yg-step-actions"><button type="button" id="yg-back-dates" class="yg-secondary">← 날짜 수정</button><button type="button" id="yg-calculate" class="yg-primary">최적 동선 만들기 <span>→</span></button><p id="yg-calc-progress" role="status" hidden>여행 날짜별 동선을 계산하고 있어요…</p></div>
+    <div id="yg-assign-warning" role="status" aria-live="polite"></div>
+    <div id="yg-step-three-actions" class="yg-step-actions yg-result-toolbar">
+      <button type="button" id="yg-back-places" class="yg-secondary">← 방문지 수정</button>
+      <button type="button" id="yg-three-add" class="yg-outline">＋ 방문지 추가</button>
     </div>
     <footer class="footer"><span>여행길 · 더 편리한 여행 일정</span><span>실제 자동차 이동시간은 네이버 길찾기로 확인합니다.</span></footer>
   </div>
 
+  <div id="yg-nav-modal" class="yg-nav-modal" role="dialog" aria-modal="true" aria-label="내비게이션 선택" hidden>
+    <div class="yg-nav-backdrop" data-nav-close></div>
+    <section class="yg-nav-panel" tabindex="-1">
+      <div class="yg-nav-header">
+        <div><strong>내비게이션 시작</strong><p>현재 위치에서 출발해요.</p></div>
+        <button type="button" id="yg-nav-close" aria-label="내비게이션 창 닫기">✕</button>
+      </div>
+      <div class="yg-nav-body" id="yg-nav-body" tabindex="0">
+      <fieldset class="yg-nav-provider-choices">
+        <legend>어떤 내비게이션으로 갈까요?</legend>
+        <label class="yg-nav-choice yg-nav-choice--naver"><input type="radio" name="yg-nav-provider-choice" value="naver" checked><span class="yg-nav-brand-dot">N</span><strong>네이버지도</strong><span class="yg-nav-check">✓</span></label>
+        <label class="yg-nav-choice yg-nav-choice--kakao"><input type="radio" name="yg-nav-provider-choice" value="kakao"><span class="yg-nav-brand-dot">●</span><strong>카카오내비</strong><span class="yg-nav-check">✓</span></label>
+      </fieldset>
+      <fieldset class="yg-nav-mode-choices">
+        <legend>어디로 안내할까요?</legend>
+        <label class="yg-nav-mode-choice"><input type="radio" name="yg-nav-mode-choice" value="single"><span><strong>방문지 한 곳으로 안내</strong><small>선택한 장소까지 바로 길안내해요.</small></span></label>
+        <label class="yg-nav-mode-choice"><input type="radio" name="yg-nav-mode-choice" value="via" checked><span><strong>모든 방문지 순서대로 안내</strong><small>계산한 순서대로 경유해 최종 도착지로 가요.</small></span></label>
+        <div class="yg-nav-single-target" id="yg-nav-single-target-wrap" hidden>
+          <div class="yg-nav-places-title"><strong>목적지를 선택하세요</strong><small>현재 위치에서 선택한 장소로 바로 이동해요.</small></div>
+          <div id="yg-nav-place-list" class="yg-nav-place-list" role="group" aria-label="방문지 중 안내할 장소" tabindex="0"></div>
+          <p id="yg-nav-scroll-hint" class="yg-nav-scroll-hint" hidden></p>
+          <select id="yg-nav-single-target" aria-label="안내할 방문지 선택" hidden tabindex="-1" aria-hidden="true"></select>
+        </div>
+      </fieldset>
+      <div class="yg-nav-summary"><strong id="yg-nav-provider-name">네이버지도</strong><span id="yg-nav-segment-count">방문지 0곳</span></div>
+      <div id="yg-nav-segments" class="yg-nav-segments" hidden></div>
+      <details id="yg-kakao-navi-help" class="yg-kakao-navi-help" hidden>
+        <summary>카카오내비에서 서비스 오류가 뜨나요?</summary>
+        <p>카카오 디벨로퍼스 → 앱 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인에 아래 주소를 등록해 주세요.</p>
+        <code id="yg-kakao-navi-domain"></code>
+        <p>JavaScript 키가 발급된 앱과 실제 사용 앱이 같아야 합니다. 등록 후에도 실패하면 카카오내비를 최신 버전으로 업데이트하고 앱을 다시 실행해 보세요.</p>
+        <p>SDK 초기화가 성공해도 카카오내비 앱의 인증 성공을 보장하지는 않습니다.</p>
+      </details>
+      </div>
+      <div class="yg-nav-footer" id="yg-nav-footer">
+        <p id="yg-nav-status" class="yg-nav-status" role="status" aria-live="polite"></p>
+        <button id="yg-nav-start" class="yg-nav-primary" type="button">길안내 시작</button>
+        <button id="yg-nav-retry" type="button" class="yg-nav-retry" hidden>방금 길안내 다시 열기</button>
+        <small class="yg-nav-disclaimer">다음 길안내는 안전하게 정차한 뒤 실행해 주세요.</small>
+      </div>
+    </section>
+  </div>
+  <div id="yg-place-sheet" class="yg-place-sheet" hidden aria-label="담은 장소 목록" role="dialog" aria-modal="true"><div class="yg-sheet-shade" data-close-sheet></div><section class="yg-sheet-panel"><div class="yg-sheet-head"><div><strong>담은 장소 <span id="yg-sheet-count">0</span>곳</strong><p id="yg-sheet-date">선택한 날짜의 방문지</p></div><button type="button" data-close-sheet aria-label="목록 닫기">✕</button></div><div id="yg-sheet-list" class="yg-sheet-list"></div><button class="yg-outline" type="button" id="yg-sheet-map">+ 장소 더 담기</button></section></div>
   <div class="mobile-bottom-actions" id="mobile-bottom-actions" aria-label="일정 빠른 실행">
         <div id="quick-results" class="quick-results" role="listbox" aria-label="장소 검색 결과" hidden></div>
-    <form id="quick-form" class="quick-form" role="search" autocomplete="off"><span id="quick-region-label" class="quick-region-label">제주</span><input id="quick-input" type="search" enterkeyhint="search" autocomplete="off" placeholder="여기를 눌러 여행 장소 추가" aria-label="장소 검색하고 방문지에 추가하기"><button id="quick-submit" type="submit" aria-label="장소 검색">검색</button></form>
+    <form id="quick-form" class="quick-form" role="search" autocomplete="off"><span id="quick-region-label" class="quick-region-label">전국</span><input id="quick-input" type="search" enterkeyhint="search" autocomplete="off" placeholder="여기를 눌러 여행 장소 추가" aria-label="장소 검색하고 방문지에 추가하기"><button id="quick-submit" type="submit" aria-label="장소 검색">검색</button></form>
     <div id="quick-feedback" role="status" aria-live="polite" class="quick-feedback" hidden></div>
     <button type="button" id="mobile-add-place" class="mobile-add" hidden>+ 장소 추가</button>
     <button type="button" id="mobile-route" class="mobile-calculate">최적 동선 만들기</button><p id="mobile-route-status" class="mobile-route-status" role="status" aria-live="polite" hidden>가장 빠른 길을 찾고 있어요</p>
@@ -133,45 +281,91 @@
  <div class="search-screen-top">
   <button type="button" id="search-screen-back" aria-label="검색 닫고 일정으로 돌아가기">✕</button>
   <span id="search-screen-region">장소 검색</span>
-  <span id="search-screen-count" aria-live="polite"></span>
+  <button type="button" id="search-screen-count" class="yg-search-saved-button" aria-label="현재 날짜에 담은 방문지 목록 열기" aria-live="polite">담은 장소 보기 (0)</button>
  </div>
  <div id="search-screen-form-mount" class="search-screen-form-mount"></div>
+ <div id="search-screen-toolbar" class="search-screen-toolbar" role="group" aria-label="검색 보기 설정">
+  <button type="button" id="search-global-results" class="search-toolbar-action" hidden>전국 관련도순</button>
+  <button type="button" id="search-list-toggle" class="search-list-toggle" aria-pressed="false">검색 결과</button>
+ </div>
+ <div id="search-area-tools" class="search-area-tools">
+  <p id="search-scope-note" role="status">장소명으로 검색하고 여행지 주변 결과를 우선 보여줘요.</p>
+  <p id="search-map-hint" class="search-map-hint">지도를 눌러 위치를 선택할 수 있어요.</p>
+ </div>
  <p id="search-screen-feedback" role="status" aria-live="polite" hidden></p>
- <button type="button" id="search-list-toggle" class="search-list-toggle" aria-pressed="false">목록보기</button>
  <div class="search-map-stage" id="search-map-stage">
    <div id="search-naver-map" aria-label="네이버 방문지 검색 지도"></div>
    <div class="search-map-message" id="search-map-message" role="status">지도를 불러오는 중이에요.</div>
-   <div class="search-map-hint" id="search-map-hint">장소를 검색하거나 지도를 눌러 위치를 선택하세요.</div>
+
  </div>
  <div class="search-picked" id="search-picked" hidden>
-   <div class="search-picked-text"><strong id="search-picked-name"></strong><small id="search-picked-address"></small></div>
+  <div class="search-picked-text"><strong id="search-picked-name"></strong><small id="search-picked-address"></small></div>
+  <div class="search-picked-actions">
+   <button type="button" id="search-picked-cancel" class="search-picked-cancel">취소</button>
    <button type="button" id="search-picked-add">+ 방문지 추가</button>
+  </div>
  </div>
  <div id="search-screen-results-mount" class="search-screen-results-mount" hidden></div>
 </div>
 <div id="account-panel" class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-panel-title" hidden>
  <section class="account-sheet">
   <div class="account-top"><h2 id="account-panel-title">내 여행</h2><button id="account-close" type="button" aria-label="닫기">×</button></div>
-  <p id="account-user">비회원으로도 여행을 계획할 수 있습니다.</p>
+  <p id="account-user" hidden></p>
   <p id="account-feedback" role="status" aria-live="polite"></p>
   <div id="account-auth-form" class="account-auth-form">
-   <label>이메일 <input id="account-email" type="email" autocomplete="username" placeholder="name@example.com"></label>
-   <label>비밀번호 <input id="account-password" type="password" autocomplete="current-password" minlength="8" placeholder="8자 이상"></label>
-   <div class="account-auth-buttons">
-    <button data-account-action="signin" type="button">로그인</button>
-    <button data-account-action="signup" type="button">회원가입</button>
-   </div>
-   <button data-account-action="reset" type="button" class="account-link">비밀번호 재설정</button>
-   <p class="account-caption">가입 시 이메일 인증이 필요합니다. 로그인하지 않아도 일정 만들기와 자동차 동선 계산이 가능합니다.</p>
+    <div id="account-auth-welcome" class="account-auth-view">
+      <div class="account-welcome-icon" aria-hidden="true">⌖</div>
+      <h3>여행길에 오신 것을 환영해요.</h3>
+      <p>여행을 저장하고 다른 기기에서도 이어서 계획하세요.</p>
+      <div id="account-social-buttons" class="account-social-buttons" hidden>
+        <button type="button" id="account-oauth-google" data-oauth-provider="google" class="account-social-google" hidden><span aria-hidden="true" class="account-social-g">G</span> Google로 계속하기</button>
+        <button type="button" id="account-oauth-kakao" data-oauth-provider="kakao" class="account-social-kakao" hidden><span aria-hidden="true" class="account-social-k">●</span> 카카오로 계속하기</button>
+        <div class="account-social-separator"><span>또는 이메일로</span></div>
+      </div>
+      <button type="button" class="account-auth-primary" data-auth-view="signin">로그인하기</button>
+      <button type="button" class="account-auth-outline" data-auth-view="signup">이메일로 회원가입</button>
+      <small>로그인하지 않아도 여행 계획을 만들 수 있어요.</small>
+    </div>
+    <div id="account-auth-credentials" class="account-auth-view" hidden>
+      <button class="account-auth-back" type="button" data-auth-view="welcome">‹ 돌아가기</button>
+      <h3 id="account-auth-title">로그인</h3>
+      <label>이메일 <input id="account-email" type="email" inputmode="email" autocomplete="username" maxlength="254" placeholder="name@example.com"></label>
+      <p class="account-field-hint" id="account-email-hint" aria-live="polite"></p>
+      <div id="account-password-field">
+        <label>비밀번호 <span class="account-password-wrap"><input id="account-password" type="password" autocomplete="current-password" maxlength="128" minlength="8" placeholder="8자 이상"><button type="button" data-toggle-password="account-password" aria-label="비밀번호 보기">보기</button></span></label>
+      </div>
+      <div id="account-confirm-field" hidden>
+        <label>비밀번호 확인 <span class="account-password-wrap"><input id="account-password-confirm" type="password" autocomplete="new-password" maxlength="128" placeholder="비밀번호 한 번 더 입력"><button type="button" data-toggle-password="account-password-confirm" aria-label="비밀번호 확인 보기">보기</button></span></label>
+      </div>
+      <p class="account-field-hint" id="account-password-hint" aria-live="polite"></p>
+      <button type="button" class="account-auth-primary" id="account-auth-submit" data-account-action="signin">로그인</button>
+      <button type="button" class="account-link" id="account-auth-alternate" data-auth-view="signup">계정이 없으신가요? 회원가입</button>
+      <button type="button" class="account-link" id="account-auth-reset-link" data-auth-view="reset">비밀번호를 잊으셨나요?</button>
+    </div>
+    <div id="account-auth-verify" class="account-auth-view" hidden>
+      <div class="account-mail-icon" aria-hidden="true">✉</div>
+      <h3 id="account-verify-title">인증 메일을 보냈어요.</h3>
+      <p><strong id="account-verify-email"></strong><span>메일함에서 인증 링크를 눌러주세요.</span></p>
+      <button class="account-auth-primary" type="button" data-account-action="resend">인증 메일 다시 보내기</button>
+      <button type="button" class="account-auth-outline" data-auth-view="signin">로그인 화면으로</button>
+    </div>
+    <div id="account-auth-recovery" class="account-auth-view" hidden>
+      <h3>새 비밀번호 설정</h3>
+      <p>계속 사용할 비밀번호를 입력해 주세요.</p>
+      <label>새 비밀번호 <span class="account-password-wrap"><input id="account-recovery-password" type="password" autocomplete="new-password" minlength="8" maxlength="128"><button type="button" data-toggle-password="account-recovery-password" aria-label="새 비밀번호 보기">보기</button></span></label>
+      <label>비밀번호 확인 <input id="account-recovery-confirm" type="password" autocomplete="new-password" maxlength="128"></label>
+      <button class="account-auth-primary" type="button" data-account-action="setrecovery">비밀번호 변경하기</button>
+    </div>
   </div>
   <div id="account-signed" hidden>
+    <div class="account-signed-hero"><span class="account-signed-mark" aria-hidden="true">✓</span><div><strong>내 여행 보관함</strong><p>계정에 저장한 여행을 언제든 불러올 수 있어요.</p></div></div>
    <label>여행 이름 <input id="account-trip-name" maxlength="90" value="새 여행" autocomplete="off"></label>
    <div class="account-toolbar">
     <button data-account-action="save" type="button">여행 저장</button>
     <button data-account-action="new" type="button">새 여행</button>
     <button data-account-action="import" type="button">기존 브라우저 일정 가져오기</button>
    </div>
-   <h3>저장된 여행</h3><div id="account-trips" class="account-trips"></div>
+   <div class="account-trips-heading"><h3>저장된 여행</h3><button type="button" data-account-action="list" class="account-refresh">새로고침</button></div><p id="account-trips-status" class="account-trips-status" role="status" aria-live="polite">저장된 여행을 확인하고 있어요…</p><div id="account-trips" class="account-trips"></div>
    <div class="account-bottom">
     <button data-account-action="password" type="button">비밀번호 변경</button>
     <button data-account-action="signout" type="button">로그아웃</button>
