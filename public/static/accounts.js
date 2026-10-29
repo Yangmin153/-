@@ -1,6 +1,7 @@
 /* Email auth & owner-scoped travel plans; never handles raw passwords outside Supabase SDK. */
 const $=id=>document.getElementById(id),app=()=>window.TripApp;
-let api=null,session=null,user=null,activeId=null,config=null,lastId=null,busy=false,authView='welcome',pendingEmail='',pendingEmailType='signup',oauthCheckedAt=0;
+let api=null,session=null,user=null,activeId=null,config=null,lastId=null,busy=false,authView='signin',pendingEmail='',pendingEmailType='signup',oauthCheckedAt=0;
+let tripCache=null,tripCacheUser=null,tripLoadedAt=0,tripPending=null,tripRequestId=0;
 const enabledOAuth={google:false,kakao:false};
 const panel=$('account-panel'),feedback=$('account-feedback'),travelList=$('account-trips');
 const notice=(msg,error=false)=>{feedback.textContent=msg;feedback.dataset.error=String(error)};
@@ -20,8 +21,10 @@ function setView(view){
   $('account-password').autocomplete=view==='signup'?'new-password':'current-password';
   $('account-auth-submit').dataset.accountAction=view;
   $('account-auth-submit').textContent=view==='signup'?'회원가입':view==='reset'?'재설정 메일 보내기':'로그인';
-  $('account-auth-alternate').hidden=view==='signup';
-  $('account-auth-reset-link').hidden=view==='reset';
+  $('account-auth-alternate').hidden=view==='reset';
+   $('account-auth-alternate').dataset.authView=view==='signup'?'signin':'signup';
+   $('account-auth-alternate').textContent=view==='signup'?'이미 가입하셨나요? 로그인':'계정이 없으신가요? 회원가입';
+  $('account-auth-reset-link').hidden=view!=='signin';
   $('account-password-hint').textContent=view==='signup'?'비밀번호는 8~128자로 입력해 주세요.':'';
  }
  if(view==='verify'){
@@ -87,8 +90,11 @@ async function refreshOAuthProviders(force=false){
  $('account-social-buttons').hidden=!google&&!kakao;
 }
 function applySession(next){
- const id=next?.user?.id||null;
- if(lastId!==null&&id!==lastId){activeId=null;travelList.replaceChildren();app().restoreGuestDays();}
+ const id=next?.user?.id||null,changed=id!==lastId;
+ if(changed){
+   ++tripRequestId;tripCache=null;tripCacheUser=null;tripLoadedAt=0;tripPending=null;
+   if(lastId!==null){activeId=null;travelList.replaceChildren();app().restoreGuestDays();}
+  }
  lastId=id;session=next;user=next?.user||null;
  $('account-button').textContent=user?'내 여행':'로그인';
  $('account-user').textContent=user?.email||'';
@@ -97,9 +103,10 @@ function applySession(next){
  $('account-auth-form').hidden=loggedIn()&&authView!=='recovery';
  $('account-signed').hidden=!loggedIn();
  $('cloud-save').hidden=!loggedIn();
- // The former account-guest element was removed from the current 3-step layout.
+ // Prefetch as soon as Supabase restores a session; keep the current unsaved plan intact.
+  if(id&&changed)void loadTrips();
 }
-function open(){panel.hidden=false;document.body.classList.add('account-open');window.YGScrollLock?.lock('account');if(!loggedIn()&&authView==='recovery'&&!session)setView('welcome');if(loggedIn())void loadTrips();else if(api)void refreshOAuthProviders();}
+function open(){panel.hidden=false;document.body.classList.add('account-open');window.YGScrollLock?.lock('account');if(!loggedIn()&&authView==='recovery'&&!session)setView('signin');if(loggedIn())void loadTrips();else if(api)void refreshOAuthProviders();}
 function close(){panel.hidden=true;document.body.classList.remove('account-open');window.YGScrollLock?.unlock('account');}
 async function request(path,method='GET',payload){
  if(!loggedIn())throw Error('로그인이 필요합니다.');
@@ -119,12 +126,39 @@ function tripRow(trip){
  const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='삭제';del.onclick=async()=>{if(!confirm('여행 '+trip.name+'을(를) 삭제할까요?'))return;try{await request('?id='+trip.id,'DELETE');if(activeId===trip.id)activeId=null;await loadTrips();notice('삭제 완료')}catch(e){notice(e.message,true)}};
  const opts=document.createElement('div');opts.className='account-trip-ops';opts.append(edit,del);row.append(openBtn,opts);return row;
 }
-async function loadTrips(){if(!loggedIn())return;try{const {trips}=await request('');travelList.replaceChildren(...trips.map(tripRow));if(!trips.length){const p=document.createElement('p');p.textContent='저장된 여행이 없습니다. 아래에서 첫 여행을 저장해 보세요.';travelList.append(p)}}catch(e){notice(e.message,true)}}
+function showTrips(trips){
+ travelList.replaceChildren(...trips.map(tripRow));
+ if(!trips.length){const p=document.createElement('p');p.className='account-empty';p.textContent='아직 저장한 여행이 없어요. 여행 이름을 입력하고 저장해 보세요.';travelList.append(p);}
+}
+async function loadTrips(force=false){
+ if(!loggedIn())return;
+ const owner=user.id,status=$('account-trips-status'),hasCached=tripCacheUser===owner&&Array.isArray(tripCache);
+ if(hasCached)showTrips(tripCache);
+ if(!force&&hasCached&&Date.now()-tripLoadedAt<30000){status.textContent=tripCache.length+'개 여행이 저장되어 있어요.';return;}
+ if(tripPending)return tripPending;
+ const requestId=++tripRequestId;
+ status.textContent=hasCached?'최신 저장 목록을 확인하는 중…':'저장된 여행을 불러오는 중…';
+ const pending=(async()=>{
+  try{
+   const {trips}=await request('');
+   if(user?.id!==owner||requestId!==tripRequestId)return;
+   tripCacheUser=owner;tripCache=Array.isArray(trips)?trips:[];tripLoadedAt=Date.now();
+   showTrips(tripCache);
+   status.textContent=tripCache.length?tripCache.length+'개 여행이 저장되어 있어요.':'아직 저장한 여행이 없습니다.';
+  }catch(e){
+   if(user?.id!==owner||requestId!==tripRequestId)return;
+   status.textContent=hasCached?'최근 목록을 표시 중이에요. 새로고침해 주세요.':'목록을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.';
+   notice(humanError(e),true);
+  }
+ })();
+ tripPending=pending;
+ try{await pending;}finally{if(tripPending===pending)tripPending=null;}
+}
 async function saveCloud(){
  if(!loggedIn()){open();notice('다른 기기에서 이어서 보려면 로그인해 주세요.');return;}
  const name=$('account-trip-name').value.trim();if(!name||name.length>90)throw Error('여행 이름은 1~90자로 입력해 주세요.');
  const data=await request(activeId?'?id='+activeId:'',activeId?'PATCH':'POST',payload(name));
- activeId=data.trip.id;notice('서버 저장이 완료됐습니다.');app().toast('클라우드에 저장했어요.');await loadTrips();
+ activeId=data.trip.id;notice('서버 저장이 완료됐습니다.');app().toast('클라우드에 저장했어요.');void loadTrips(true);
 }
 async function importLocal(){
  if(!loggedIn())throw Error('먼저 로그인해 주세요.');
@@ -185,7 +219,7 @@ async function perform(action){
        await api.auth.signInWithPassword({email,password});
      if(error)throw error;
      $('account-password').value='';$('account-password-confirm').value='';
-     if(data.session){applySession(data.session);await loadTrips();notice('로그인했습니다.');}
+     if(data.session){applySession(data.session);notice('로그인이 완료됐어요. 저장된 여행을 확인할 수 있어요.');app().toast('로그인했어요.');}
      else{
       pendingEmail=email;pendingEmailType='signup';setView('verify');
       notice('메일이 오지 않으면 스팸함도 확인해 주세요.');
@@ -193,11 +227,11 @@ async function perform(action){
     }
    }
   }else if(action==='save')await saveCloud();
-  else if(action==='list')await loadTrips();
+  else if(action==='list')await loadTrips(true);
   else if(action==='import')await importLocal();
   else if(action==='new'){if(confirm('새 여행을 시작할까요? 기존 클라우드 여행은 별도로 저장해야 합니다.')){activeId=null;app().newTrip();$('account-trip-name').value='새 여행';close();}}
-  else if(action==='signout'){const {error}=await api.auth.signOut();if(error)throw error;applySession(null);setView('welcome');close();}
-  else if(action==='password'){const password=prompt('새 비밀번호 (8자 이상)');if(password===null)return;if(password.length<8)throw Error('비밀번호는 8자 이상이어야 합니다.');const {error}=await api.auth.updateUser({password});if(error)throw error;notice('비밀번호가 변경됐습니다.');}
+  else if(action==='signout'){const {error}=await api.auth.signOut();if(error)throw error;applySession(null);setView('signin');close();}
+  else if(action==='password'){if(!user?.email)throw Error('계정 이메일을 확인할 수 없어요.');const {error}=await api.auth.resetPasswordForEmail(user.email,{redirectTo:location.origin+location.pathname});if(error)throw error;notice('비밀번호 변경 링크를 이메일로 보냈어요. 메일함을 확인해 주세요.');}
   else if(action==='delete'){if(prompt('계정 삭제와 여행 데이터 영구 삭제에 동의한다면 DELETE를 입력하세요.')!=='DELETE')return;const response=await fetch('/api/account',{method:'DELETE',headers:{authorization:'Bearer '+session.access_token}});const body=await response.json();if(!response.ok)throw Error(body.error||'계정 삭제를 완료하지 못했습니다.');await api.auth.signOut();applySession(null);close();}
  }catch(e){notice(humanError(e),true)}finally{busy=false;panel.querySelectorAll('button').forEach(b=>b.disabled=false);if(['signin','signup','reset'].includes(authView))$('account-auth-submit').textContent=authView==='signup'?'회원가입':authView==='reset'?'재설정 메일 보내기':'로그인';}
 }
@@ -215,7 +249,8 @@ function init(){
  });
  for(const id of ['account-email','account-password','account-password-confirm'])$(id).addEventListener('input',validateFields);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
- setView('welcome');
+ setView('signin');
+ const social=$('account-social-buttons');if(social)$('account-auth-credentials').append(social);
  const query=new URLSearchParams(location.search),fragment=new URLSearchParams(location.hash.replace(/^#/,'')),
   errorCode=query.get('error_code')||fragment.get('error_code')||query.get('error')||fragment.get('error');
  if(errorCode){open();setView('signin');notice(humanError({code:errorCode,message:query.get('error_description')||fragment.get('error_description')||errorCode}),true);}
