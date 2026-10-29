@@ -44,7 +44,7 @@ test('daily route requests are scoped per day and preserve configured auto/manua
 test('search markers and duplicated places are day scoped without forced region',async()=>{
  const quick=await read('public/static/quick-add.js'),search=await read('public/static/search-screen.js'),css=await read('public/static/vnext.css');
  assert.match(quick,/const duplicate=app\.getDay\(\)\.stops\.some/);
- assert.match(quick,/window\.YeoNext\?\.searchRegion/);
+ assert.match(quick,/tripSearchAnchor\(app\.getDay\(\)\)/);
  assert.match(search,/function savedPlaces\(\)\{return window\.TripApp\?\.getDay\?\.\(\)\?\.stops\|\|\[\];\}/);
  assert.match(search,/showSavedPlace:showSaved/);
  assert.match(css,/\.quick-region-label\{display:none!important\}/);
