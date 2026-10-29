@@ -6,7 +6,19 @@ const feedback=$('search-screen-feedback'),picked=$('search-picked');
 const centers={제주:[33.489,126.498],서울:[37.5665,126.978],부산:[35.1796,129.0756],강릉:[37.7519,128.8761],경주:[35.8562,129.2247],속초:[38.207,128.5918],여수:[34.7604,127.6622],전주:[35.8242,127.148],인천:[37.4563,126.7052],서귀포:[33.254,126.559]};
 let opened=false,historyEntry=false,previousFocus=null,previousScroll=0,searchKind='stop',returnStep=2,searchDayId=null;
 let mode='map',selected=null,items=[],searchMap=null,markers=[],selectedMarker=null,savedMarkers=[],savedSignature='',isSavedSelection=false;
-let feedbackTimer=null, lastChosenRegion='';
+let feedbackTimer=null, lastChosenRegion='',backgroundInert=[];
+function lockBackground(){
+ backgroundInert=[];
+ for(const node of document.body.children){
+  if(node===screen||node.id==='yg-place-sheet'||node.tagName==='SCRIPT'||node.tagName==='STYLE')continue;
+  backgroundInert.push([node,node.inert]);node.inert=true;
+ }
+}
+function unlockBackground(){
+ for(const [node,prior] of backgroundInert)if(node.isConnected)node.inert=prior;
+ backgroundInert=[];
+}
+
 function updateSize(){
  const viewport=window.visualViewport;
  screen.style.setProperty('--search-height',Math.round(viewport?.height||innerHeight)+'px');
@@ -156,7 +168,7 @@ function show(kind='stop'){
  $('search-screen-region').textContent=(window.YeoNext?.dateLabel?.()||'오늘')+' · '+(searchKind==='origin'?'출발지 검색':searchKind==='destination'?'도착지 검색':'방문지 추가');
  $('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';
  screen.hidden=false;screen.querySelector('#search-screen-form-mount').append(form);resultMount.append(results);
- window.YGScrollLock?.lock('search-screen');document.body.classList.add('search-open');
+ window.YGScrollLock?.lock('search-screen');document.body.classList.add('search-open');lockBackground();
  updateSize();showMode('map');
  const region=String(window.TripApp?.getDay?.()?.id||'');
  if(searchMap&&lastChosenRegion!==region){const [lat,lng]=mapCenter();searchMap.setCenter(new window.naver.maps.LatLng(lat,lng));searchMap.setZoom(11);paintMarkers();}
@@ -169,7 +181,7 @@ function hide(fromPopstate=false){
  opened=false;selected=null;items=[];searchKind='stop';clearMarkers();clearSavedMarkers();savedSignature='';input.blur();
  original.insertBefore(results,original.firstChild);original.insertBefore(form,$('quick-feedback'));
  screen.hidden=true;mapStage.hidden=false;resultMount.hidden=true;results.hidden=true;
- document.body.classList.remove('search-open');window.YGScrollLock?.unlock('search-screen');
+ document.body.classList.remove('search-open');unlockBackground();window.YGScrollLock?.unlock('search-screen');
  clearTimeout(feedbackTimer);feedback.hidden=true;picked.hidden=true;
  if(!fromPopstate&&historyEntry&&history.state?.yeohaenggilSearch)history.back();
  historyEntry=false;
@@ -207,6 +219,10 @@ input.addEventListener('input',()=>{selected=null;picked.hidden=true;});
 input.addEventListener('focus',()=>{if(!opened&&matchMedia('(max-width:768px)').matches)show()});
 input.addEventListener('pointerdown',e=>{if(!opened&&matchMedia('(max-width:768px)').matches){e.preventDefault();show();}});
 window.addEventListener('popstate',()=>{if(opened)hide(true)});
+window.addEventListener('touchmove',e=>{
+ if(!opened||e.target.closest?.('#search-screen, #yg-place-sheet'))return;
+ if(e.cancelable)e.preventDefault();
+},{passive:false,capture:true});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened){e.preventDefault();hide();}});
 window.visualViewport?.addEventListener('resize',updateSize);
 window.visualViewport?.addEventListener('scroll',updateSize);
