@@ -57,3 +57,8 @@ test('search UI strings are explicit and buttons have minimum 44px target',async
  assert.match(screen,/textContent='담은 장소 보기'/);
  assert.match(html,/search-screen\.js\?v=7\.10\.0/);
 });
+
+test('pagination does not steal focus from an actively selected map preview',async()=>{
+ const js=await read('public/static/search-screen.js');
+ assert.match(js,/if\\(opened&&input\\.value\\.trim\\(\\)\\.length>=2&&!selected\\)showMode\\('list'\\)/);
+});
