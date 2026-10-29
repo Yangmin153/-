@@ -11,7 +11,7 @@ test('fullscreen search reuses one search input and one results list',async()=>{
 });
 test('search results select a map pin before adding, with clear duplicate handling',async()=>{
  const js=await read('public/static/search-screen.js'),q=await read('public/static/quick-add.js');
- assert.match(js,/function preview\(item\)/);assert.match(js,/function paintMarkers\(\)/);
+ assert.match(js,/function preview\(item,source='result'\)/);assert.match(js,/function paintMarkers\(\)/);
  assert.match(js,/TripQuickAdd\?\.addPlace\?\.\(selected\)/);
  assert.match(q,/if\(duplicate\)\{feedback/);assert.match(q,/YeoSearch\?\.onResults/);
 });
