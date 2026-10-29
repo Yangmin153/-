@@ -1073,3 +1073,78 @@ body[data-trip-step] .yg-nav-modal .yg-nav-status:empty{display:none}
 @media(prefers-reduced-motion:reduce){
  body[data-trip-step] .yg-nav-place-option{transition:none}
 }
+
+/* v7.5 — route actions beneath visit adjustments; no duplicate bottom recalculation. */
+body[data-trip-step="3"] #route-results #yg-live-controls{
+ display:grid!important;gap:10px;max-width:none;width:100%;
+ margin:18px 0 3px;padding:16px 14px;border:1px solid #dce7f5;border-radius:16px;
+ background:#f7faff;box-sizing:border-box
+}
+body[data-trip-step="3"] #route-results #yg-live-controls h3{font-size:15px;margin:0;color:#223d62}
+body[data-trip-step="3"] #route-results #yg-live-controls>p:not([id]){font-size:12px;line-height:1.5;margin:0;color:#6b819d}
+body[data-trip-step="3"] #route-results #yg-live-controls>small{font-size:11px;text-align:left;color:#8192aa}
+body[data-trip-step="3"] #route-results #yg-three-recalc{
+ display:block;width:100%;min-height:49px;padding:11px;border:0;border-radius:12px;
+ background:#266bed;color:white;font-weight:850;font-size:14px;cursor:pointer
+}
+body[data-trip-step="3"] #route-results #yg-live-optimize{background:#fff;border-color:#accaf1}
+body[data-trip-step="3"] #route-results #yg-three-recalc:disabled{opacity:.55;cursor:wait}
+body[data-trip-step="3"] #yg-step-three-actions{justify-content:space-between}
+body[data-trip-step] .yg-progress-help{
+ margin:-12px auto 20px;max-width:690px;text-align:center;
+ font-size:11px;line-height:1.5;color:#69809e
+}
+.yg-progress button{cursor:pointer}
+.yg-progress button:focus-visible{outline:2px solid #2671ed;outline-offset:2px;border-radius:9px}
+.yg-progress button:not([aria-current="step"]):hover{color:#225cb2}
+@media(max-width:768px){
+ body[data-trip-step] .yg-progress-help{margin:-8px 4px 14px;text-align:left;font-size:10px}
+ body[data-trip-step="3"] #route-results #yg-live-controls{padding:13px 11px;margin-top:16px}
+}
+/* Long navigation list stays visibly scrollable and the user sees a count/hint. */
+body[data-trip-step] .yg-nav-panel{max-height:92dvh;overflow-y:auto;overscroll-behavior:contain}
+body[data-trip-step] .yg-nav-mode-choices{min-height:0}
+body[data-trip-step] .yg-nav-place-list{
+ max-height:min(43dvh,350px);min-height:0;
+ overflow-y:scroll!important;touch-action:pan-y;
+ border:1px solid #d9e6f6;border-radius:13px;padding:7px;
+ background:#f6f9fd;scrollbar-width:auto;scrollbar-color:#8fb4e8 #edf4fc
+}
+body[data-trip-step] .yg-nav-place-list::-webkit-scrollbar{width:7px}
+body[data-trip-step] .yg-nav-place-list::-webkit-scrollbar-thumb{background:#9bbce9;border-radius:8px}
+body[data-trip-step] .yg-nav-scroll-hint:not([hidden]){
+ margin:0;padding:7px 9px;border-radius:9px;background:#eaf3ff;
+ font-size:11px;line-height:1.45;color:#35649d;font-weight:700
+}
+body[data-trip-step] .yg-nav-single-target:not([hidden]){min-height:0}
+/* Search context prioritization remains optional; never silently hide distant regions. */
+.search-area-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 16px 9px}
+.search-area-tools p{font-size:11px;line-height:1.4;margin:0;color:#546f91;min-width:0}
+.search-area-tools button:not([hidden]){flex:0 0 auto;min-height:33px;padding:6px 10px;border-radius:9px;
+ border:1px solid #b9d0ed;background:white;color:#2660b2;font-size:11px;font-weight:800}
+.search-area-tools button[hidden]{display:none!important}
+@media(max-width:370px){.search-area-tools{padding:3px 10px 8px}.search-area-tools p{font-size:10px}}
+/* Signed-in account is a clear trip library, with visible loading and empty states. */
+.account-panel .account-signed-hero{display:flex;align-items:center;gap:13px;
+ border:1px solid #d5e5f9;background:#f3f8ff;border-radius:15px;
+ padding:15px;margin:4px 0 17px}
+.account-panel .account-signed-mark{display:grid;place-items:center;flex:0 0 41px;
+ width:41px;height:41px;border-radius:13px;background:#2870dc;color:#fff;font-weight:900;font-size:20px}
+.account-panel .account-signed-hero strong{font-size:16px;color:#1f3e64}
+.account-panel .account-signed-hero p{font-size:12px;line-height:1.5;color:#6581a3;margin:4px 0 0}
+.account-panel #account-signed>label{display:grid;gap:8px;font-size:12px;font-weight:750;color:#527199}
+.account-panel #account-trip-name{height:46px;border:1px solid #d0e1f5;border-radius:11px;padding:9px 12px;font-size:14px}
+.account-panel .account-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 20px}
+.account-panel .account-toolbar button{min-height:44px;border-radius:11px;font-size:12px}
+.account-panel .account-toolbar button:first-child{grid-column:1/-1;background:#266bea;color:#fff;font-weight:850}
+.account-panel .account-trips-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0 5px}
+.account-panel .account-trips-heading h3{margin:0;font-size:15px;color:#233f63}
+.account-panel .account-refresh{min-height:34px;border:1px solid #d6e4f4;background:#fff;
+ color:#3a67a0;padding:6px 11px;border-radius:9px;font-size:11px}
+.account-panel .account-trips-status{min-height:18px;margin:4px 0 11px;font-size:11px;line-height:1.5;color:#6b829f}
+.account-panel .account-empty{padding:16px 12px;text-align:center;color:#7085a1;font-size:12px}
+.account-panel .account-trip-row{border:1px solid #e1eaf6;border-radius:12px;padding:10px;margin:8px 0;background:#fff}
+.account-panel .account-trip-open{text-align:left;min-height:48px}
+.account-panel .account-trip-open strong{font-size:13px;color:#263f5f}
+.account-panel .account-trip-open small{font-size:11px;color:#7990ae}
+.account-panel .account-bottom{margin-top:23px;padding-top:14px;border-top:1px solid #e6edf6}
