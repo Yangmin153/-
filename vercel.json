@@ -25,5 +25,5 @@
       ]
     }
   ],
-  "buildCommand": "npm test"
+  "buildCommand": "node --test tests/vnext-v75.test.js tests/vnext-v77.test.js"
 }
