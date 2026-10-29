@@ -1,5 +1,5 @@
 /** Modal-free, continuous place collection; existing itinerary schema stays intact. */
-import {cleanQuery,searchTerms,rankResults,samePlace,splitPaste,tripSearchAnchor,isRegionQualified} from './region-search.js';
+import {cleanQuery,searchTerms,rankResults,samePlace,splitPaste,tripSearchAnchor,isRegionQualified,searchIntent,distanceKm} from './region-search.js';
 const $=id=>document.getElementById(id),app=window.TripApp;
 const input=$('quick-input'),results=$('quick-results'),form=$('quick-form'),region=$('trip-region');
 let selectedPreview=null,timer=null,abort=null,sequence=0,items=[],lastKey='',lastItems=[],dirty=false,feedbackTimer=0,composing=false,nationwide=false;
@@ -13,7 +13,7 @@ function setSearchActive(on){document.body.classList.toggle('quick-search-active
 function syncView(view){if(view==='map')setSearchActive(false);else sync();}
 function cancel(){clearTimeout(timer);++sequence;if(abort){metrics.aborts++;abort.abort();abort=null;}}
 function cached(path){const hit=cache.get(path);if(hit&&Date.now()-hit.at<TTL){metrics.cacheHits++;cache.delete(path);cache.set(path,hit);return hit.data;}cache.delete(path);return null;}
-async function request(term,signal,page=1){const params=new URLSearchParams({q:term,page:String(page)});const path='/api/places?'+params,hit=cached(path);if(hit)return hit;metrics.requests++;const start=performance.now();const response=await fetch(path,{signal,headers:{accept:'application/json'}});const data=await response.json();metrics.latencies.push(Math.round(performance.now()-start));if(!response.ok)throw Error(data?.detail||'장소 검색을 완료할 수 없습니다.');if(signal.aborted)throw new DOMException('검색 취소','AbortError');cache.set(path,{at:Date.now(),data});while(cache.size>LIMIT)cache.delete(cache.keys().next().value);return data;}
+async function request(term,signal,page=1,category=''){const params=new URLSearchParams({q:term,page:String(page)});if(category)params.set('category',category);const path='/api/places?'+params,hit=cached(path);if(hit)return hit;metrics.requests++;const start=performance.now();const response=await fetch(path,{signal,headers:{accept:'application/json'}});const data=await response.json();metrics.latencies.push(Math.round(performance.now()-start));if(!response.ok)throw Error(data?.detail||'장소 검색을 완료할 수 없습니다.');if(signal.aborted)throw new DOMException('검색 취소','AbortError');cache.set(path,{at:Date.now(),data});while(cache.size>LIMIT)cache.delete(cache.keys().next().value);return data;}
 function render(next){
  metrics.renderCount++;items=next;results.replaceChildren();
  for(const item of next.slice(0,30)){
@@ -23,7 +23,7 @@ function render(next){
   const heading=document.createElement('span');heading.className='quick-result-heading';
   const title=document.createElement('strong');title.textContent=item.name;
   const category=document.createElement('span');category.className='quick-result-category';category.textContent=String(item.category||'장소').split('>').at(-1).trim();
-  const address=document.createElement('small');address.textContent=(item.address||'주소 정보 없음')+(item._distanceKm!==null&&item._distanceKm!==undefined&&item._distanceKm<75?' · 동선 주변':'');
+  const address=document.createElement('small');address.textContent=(item.address||'주소 정보 없음')+(item._distanceKm!==null&&item._distanceKm!==undefined&&item._distanceKm<=30?' · 동선 주변':'');
   heading.append(title,category);info.append(heading,address);
   const categoryIcon=document.createElement('span');categoryIcon.className='yg-search-category-icon';
   categoryIcon.innerHTML=window.TripMeta?.icon?.(item,19)||'';
@@ -43,35 +43,65 @@ async function search(force=false,all=false){
  if(all)nationwide=true;
  const text=cleanQuery(input.value);
  if(text.length<2){cancel();if(text)setMessage('두 글자 이상 입력해 주세요.');else results.hidden=true;return;}
- // The server always searches nationally by relevance; already collected stops affect display order only.
- const anchor=!isRegionQualified(text)?tripSearchAnchor(app.getDay()):null;
+ const explicitRegion=isRegionQualified(text),anchor=!explicitRegion?tripSearchAnchor(app.getDay()):null;
+ const intent=searchIntent(text),city=anchor?.city||'',district=anchor?.district||'';
  const scope=$('search-scope-note'),globalButton=$('search-global-results');
- if(scope)scope.textContent=anchor&&!nationwide?'전국에서 찾은 결과 중 동선 주변을 우선 보여줘요.':'전국 검색 결과를 관련도순으로 보여줘요.';
- if(globalButton){globalButton.hidden=!anchor;globalButton.textContent=nationwide?'동선 주변 우선':'관련도순 보기';}
- const key=(nationwide?'relevance':'nearby')+'::'+(anchor?anchor.lat.toFixed(3)+','+anchor.lng.toFixed(3):'all')+'::'+text;
+ const placeLabel=[city,district].filter(Boolean).join(' ');
+ if(scope)scope.textContent=anchor&&!nationwide?placeLabel+' 여행지 주변 결과를 우선 보여줘요.':'전국에서 장소명을 기준으로 검색해요.';
+ if(globalButton){globalButton.hidden=!anchor;globalButton.textContent=nationwide?'여행지 주변 우선':'전국 관련도순';}
+ const key=(nationwide?'national':'context')+'::'+(anchor?anchor.lat.toFixed(3)+','+anchor.lng.toFixed(3):'all')+'::'+text;
  if(!force&&key===lastKey&&lastItems.length){render(lastItems);return;}
  cancel();const current=sequence;abort=new AbortController();const signal=abort.signal;
- setMessage('전국에서 장소를 검색하고 있어요…',false,true);setSearchActive(true);
+ setMessage('장소를 검색하고 있어요…',false,true);setSearchActive(true);
  try{
-  let found=[];
+  let found=[],hasNext=false;
+  const merge=(other)=>{
+   const ids=new Set(found.map(p=>String(p.id)));
+   for(const item of other||[])if(item&&!ids.has(String(item.id))){found.push(item);ids.add(String(item.id));}
+  };
+  const emit=()=>{if(current!==sequence)return;lastKey=key;lastItems=rankResults(found,'',nationwide?null:anchor,text);render(lastItems);};
   for(const q of searchTerms(text,'')){
-   const first=await request(q,signal,1);
+   // Search nationally by relevance; location is a *ranking* signal, not a restrictive radius.
+   const general=await request(q,signal,1);
    if(current!==sequence)return;
-   found=Array.isArray(first.items)?first.items.slice():[];
-   // Reveal the first nationwide page without waiting for slower subsequent pages.
-   if(found.length){lastKey=key;lastItems=rankResults(found,'',nationwide?null:anchor,text);render(lastItems);}
-   if(first.hasNext){
+   found=Array.isArray(general.items)?general.items.slice():[];
+   hasNext=Boolean(general.hasNext);
+   if(found.length)emit();
+   if(intent==='subway'){
+    // Subway names often include line suffixes, e.g. 부평역 1호선.
+    // Filter with Kakao's official SW8 category so adjacent parking lots don't dominate.
+    try{
+     const station=await request(q,signal,1,'SW8');
+     if(current!==sequence)return;
+     merge(station.items);
+     if(station.items?.length)emit();
+    }catch(e){if(signal.aborted||current!==sequence)return;/* Keep general results if optional type search fails. */}
+   }
+   if(hasNext){
     try{
      const second=await request(q,signal,2);
      if(current!==sequence)return;
-     const seen=new Set(found.map(p=>p.id));
-     for(const item of second.items||[])if(!seen.has(item.id)){found.push(item);seen.add(item.id);}
-    }catch(e){if(signal.aborted||current!==sequence)return;/* Keep first-page results on a partial page error. */}
+     merge(second.items);
+     if(second.items?.length)emit();
+    }catch(e){if(signal.aborted||current!==sequence)return;/* Keep first page if additional page fails. */}
    }
    if(found.length)break;
   }
+  // Search context from the itinerary recovers a missing nearby POI without hiding
+  // other cities. Run only if the national list lacks a close matching result.
+  if(anchor&&!nationwide&&city){
+   const nearbyMatch=found.some(p=>p.name&&String(p.name).replace(/\s/g,'').includes(text.replace(/\s/g,''))&&distanceKm(anchor,p)<=30);
+   if(!nearbyMatch){
+    const contextualQuery=[city,district,text].filter(Boolean).join(' ');
+    try{
+     const contextual=await request(contextualQuery,signal,1,intent==='subway'?'SW8':'');
+     if(current!==sequence)return;
+     merge(contextual.items);
+    }catch(e){if(signal.aborted||current!==sequence)return;/* A localized search is optional. */}
+   }
+  }
   if(current!==sequence)return;
-  lastKey=key;lastItems=rankResults(found,'',nationwide?null:anchor,text);render(lastItems);
+  emit();
  }catch(e){if(signal.aborted||current!==sequence)return;setMessage('검색에 실패했어요: '+e.message,true);}
  finally{if(current===sequence)abort=null;}
 }
