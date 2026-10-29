@@ -172,10 +172,16 @@ function transferStop(id,toIndex){
  toast(stop.name+' · DAY '+(toIndex+1)+'로 이동했어요.');
 }
 function removeStop(id){
- const pool=unassignedStops();
- if(pool.some(p=>p.id===id))state.days[0].unassignedStops=pool.filter(p=>p.id!==id);
- else{const owner=state.days.find(d=>d.stops.some(p=>p.id===id));if(!owner)return false;owner.stops=owner.stops.filter(p=>p.id!==id);}
- invalidateRoutes();refresh();document.dispatchEvent(new Event('trip:stops-changed'));toast('장소를 삭제했습니다.');return true;
+ const pool=unassignedStops(),owner=state.days.find(d=>d.stops.some(p=>p.id===id));
+ if(!owner&&!pool.some(p=>p.id===id))return false;
+ if(owner){
+  owner.stops=owner.stops.filter(p=>p.id!==id);
+  if(owner.result)state.dirtyDayIds.add(owner.id);
+  owner.result=null;delete owner.liveOrigin;liveRoutes.delete(owner.id);
+ }else state.days[0].unassignedStops=pool.filter(p=>p.id!==id);
+ sceneSignature='';sceneResult=null;mapFitQueued=true;
+ refresh();document.dispatchEvent(new Event('trip:stops-changed'));
+ return true;
 }
 function syncLinkedOrigins(from=1){
  for(let i=Math.max(1,from);i<state.days.length;i++){
