@@ -4,7 +4,7 @@ const screen=$('search-screen'),form=$('quick-form'),results=$('quick-results'),
 const mapNode=$('search-naver-map'),mapStage=$('search-map-stage'),resultMount=$('search-screen-results-mount');
 const feedback=$('search-screen-feedback'),picked=$('search-picked');
 const centers={제주:[33.489,126.498],서울:[37.5665,126.978],부산:[35.1796,129.0756],강릉:[37.7519,128.8761],경주:[35.8562,129.2247],속초:[38.207,128.5918],여수:[34.7604,127.6622],전주:[35.8242,127.148],인천:[37.4563,126.7052],서귀포:[33.254,126.559]};
-let opened=false,historyEntry=false,previousFocus=null,previousScroll=0,searchKind='stop';
+let opened=false,historyEntry=false,previousFocus=null,previousScroll=0,searchKind='stop',returnStep=2,searchDayId=null;
 let mode='map',selected=null,items=[],searchMap=null,markers=[],selectedMarker=null,savedMarkers=[],savedSignature='',isSavedSelection=false;
 let feedbackTimer=null, lastChosenRegion='';
 function updateSize(){
@@ -145,6 +145,8 @@ function preview(item){
 function show(kind='stop'){
  if(opened)return;
  searchKind=['origin','destination'].includes(kind)?kind:'stop';
+ returnStep=Number(document.body.dataset.tripStep)===3?3:2;
+ searchDayId=window.TripApp?.getDay?.()?.id||null;
  $('search-list-toggle').hidden=true;
   $('search-global-results').hidden=true;
   $('search-scope-note').textContent='방문지를 담으면 해당 지역부터 우선 검색해요. 처음에는 지역명과 장소명을 함께 입력해 보세요.';
@@ -171,6 +173,9 @@ function hide(fromPopstate=false){
  clearTimeout(feedbackTimer);feedback.hidden=true;picked.hidden=true;
  if(!fromPopstate&&historyEntry&&history.state?.yeohaenggilSearch)history.back();
  historyEntry=false;
+ // Search is a standalone overlay. Never navigate the itinerary just to close it.
+ if(returnStep===3&&document.body.dataset.tripStep!=='3')window.YeoNext?.go?.(3);
+ searchDayId=null;
  (previousFocus?.isConnected?previousFocus:$('btn-add-place'))?.focus?.({preventScroll:true});
 }
 function addSuccess(message){
@@ -212,4 +217,4 @@ document.addEventListener('trip:stops-changed',()=>{if(opened){paintMarkers();$(
 document.addEventListener('trip:day-changed',()=>{if(opened){selected=null;picked.hidden=true;isSavedSelection=false;paintMarkers();$('search-screen-count').textContent='담은 장소 보기 ('+savedPlaces().length+')';}});
 window.addEventListener('resize',()=>{if(opened&&mode==='map')paintMarkers();});
 $('search-screen-count').addEventListener('click',()=>window.YeoNext?.openSheet?.());
-window.YeoSearch={show,hide,isOpen:()=>opened,mode:()=>searchKind,isEndpointMode:endpointMode,completeEndpoint,preview,showSavedPlace:showSaved,searchStarted,onResults,addSuccess,refreshSavedMarkers};
+window.YeoSearch={show,hide,isOpen:()=>opened,returnStep:()=>returnStep,mode:()=>searchKind,isEndpointMode:endpointMode,completeEndpoint,preview,showSavedPlace:showSaved,searchStarted,onResults,addSuccess,refreshSavedMarkers};
