@@ -1,0 +1,39 @@
+name: Publish verified actual trip demo to STEP1
+on:
+  push:
+    branches: [feature/vnext-three-step-trip]
+    paths:
+      - .github/workflows/publish-recorded-demo.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: true
+      - name: Retrieve successfully recorded real browser video
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p public/media
+          gh run download 40917073092 --name yeohaenggil-actual-demo-mp4 --dir public/media
+          test -s public/media/yeohaenggil-step1-guide.mp4
+          ls -lh public/media/yeohaenggil-step1-guide.mp4
+      - name: Commit actual MP4 without overwriting concurrent changes
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add public/media/yeohaenggil-step1-guide.mp4
+          git commit -m "media: show real guest trip search recording on STEP1" || exit 0
+          for attempt in 1 2 3; do
+            git fetch origin feature/vnext-three-step-trip
+            git rebase origin/feature/vnext-three-step-trip
+            if git push origin HEAD:feature/vnext-three-step-trip; then exit 0; fi
+          done
+          exit 1
