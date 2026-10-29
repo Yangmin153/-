@@ -25,5 +25,5 @@
       ]
     }
   ],
-  "buildCommand": "npm test > /tmp/yeohaenggil-v76-test.log 2>&1; grep -E '^not ok|^  error:|^  expected:|^  actual:|^# tests|^# pass|^# fail|^# duration_ms' /tmp/yeohaenggil-v76-test.log > public/_v76_test_diagnostics.txt; exit 0"
+  "buildCommand": "npm test"
 }
