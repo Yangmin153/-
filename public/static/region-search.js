@@ -20,16 +20,26 @@ export function distanceKm(a,b){
  return 6371*2*Math.asin(Math.min(1,Math.sqrt(h)));
 }
 export function isRegionQualified(query){return /(?:^|\s)(?:서울|부산|인천|대구|대전|광주|울산|세종|제주|경기|강원|충북|충남|전북|전남|경북|경남|수원|강릉|경주|속초|여수|전주|포항|춘천|청주|천안|안동|통영|거제|진주|목포|서귀포|제주시)(?:시|도|군|구|특별시|광역시|특별자치도)?(?:\s|$)/.test(String(query||''));}
-export function rankResults(items,region,anchor=null){
- const r=String(region||'').trim();
+export function rankResults(items,region,anchor=null,query=''){
+ const r=String(region||'').trim(),term=cleanQuery(query).replace(/\s/g,'').toLowerCase();
+ const relevance=name=>{
+  const n=String(name||'').replace(/\s/g,'').toLowerCase();
+  return !term?0:n===term?3:n.startsWith(term)?2:n.includes(term)?1:0;
+ };
  return (Array.isArray(items)?items:[]).map((item,i)=>{
   const km=distanceKm(anchor,item);
-  return {...item,_rank:i,_local:Boolean(r&&(item.address||item.roadAddress||'').includes(r)),_distanceKm:Number.isFinite(km)?km:null};
+  return {...item,_rank:i,_local:Boolean(r&&(item.address||item.roadAddress||'').includes(r)),
+   _distanceKm:Number.isFinite(km)?km:null,_textMatch:relevance(item.name)};
  }).sort((a,b)=>{
-  if(anchor){const aNear=a._distanceKm!==null&&a._distanceKm<=75,bNear=b._distanceKm!==null&&b._distanceKm<=75;if(aNear!==bNear)return Number(bNear)-Number(aNear);
+  // Don't put a nearby unrelated shop above an exact nationwide name match.
+  if(a._textMatch!==b._textMatch)return b._textMatch-a._textMatch;
+  if(a._local!==b._local)return Number(b._local)-Number(a._local);
+  if(anchor){
+   const aNear=a._distanceKm!==null&&a._distanceKm<=75,bNear=b._distanceKm!==null&&b._distanceKm<=75;
+   if(aNear!==bNear)return Number(bNear)-Number(aNear);
    if(aNear&&bNear)return a._distanceKm-b._distanceKm||a._rank-b._rank;
   }
-  return Number(b._local)-Number(a._local)||a._rank-b._rank;
+  return a._rank-b._rank;
  });
 }
 export function samePlace(a,b){if(!a||!b)return false;return Boolean(a.sourceId&&b.id&&String(a.sourceId)===String(b.id))||(a.name===b.name&&Number.isFinite(Number(a.lat))&&Number.isFinite(Number(a.lng))&&Math.abs(Number(a.lat)-Number(b.lat))<0.00003&&Math.abs(Number(a.lng)-Number(b.lng))<0.00003);}
