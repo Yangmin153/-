@@ -146,6 +146,8 @@ function show(kind='stop'){
  if(opened)return;
  searchKind=['origin','destination'].includes(kind)?kind:'stop';
  $('search-list-toggle').hidden=true;
+  $('search-global-results').hidden=true;
+  $('search-scope-note').textContent='방문지를 담으면 해당 지역부터 우선 검색해요. 처음에는 지역명과 장소명을 함께 입력해 보세요.';
  if(window.YeoRegion&&!window.YeoRegion.ensureSelected())return;
  opened=true;historyEntry=true;previousFocus=document.activeElement;previousScroll=window.scrollY;
  feedback.hidden=true;picked.hidden=true;selected=null;items=[];isSavedSelection=false;input.value='';results.replaceChildren();results.hidden=true;
