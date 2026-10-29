@@ -61,7 +61,7 @@ test('endpoint search uses exact same full-screen screen and retains saved visit
  assert.match(screen,/function endpointMode\(\)/);
  assert.match(screen,/refreshSavedMarkers\(\);selectedMarker=mark\(selected,true\)/);
  assert.match(screen,/function completeEndpoint\(item\)/);
- assert.match(quick,/window\.YeoSearch\.completeEndpoint\(item\)/);
+ assert.match(quick,/window\.YeoSearch\.preview\(item\)/);
  assert.match(vnext,/window\.YeoSearch\.show\('origin'\)/);
  assert.match(vnext,/window\.YeoSearch\.show\('destination'\)/);
  assert.match(app,/function setEndpointFromSearch\(kind,item\)/);
