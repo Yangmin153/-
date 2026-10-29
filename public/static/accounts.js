@@ -143,9 +143,47 @@ function tripRow(trip){
  const openBtn=document.createElement('button');openBtn.type='button';openBtn.className='account-trip-open';
  const name=document.createElement('strong');name.textContent=trip.name;
  const sub=document.createElement('small');sub.textContent=[trip.region,new Date(trip.updated_at).toLocaleDateString('ko-KR')+' 수정'].filter(Boolean).join(' · ');
- openBtn.append(name,sub);openBtn.onclick=async()=>{if(!confirm('이 여행을 열까요? 현재 화면의 여행이 교체됩니다. 저장하지 않은 변경사항은 사라질 수 있어요.'))return;openBtn.disabled=true;const former=name.textContent;name.textContent='여행을 여는 중…';try{const {trip:full}=await request('?id='+encodeURIComponent(trip.id));if(!full?.days||!app().importDays(full.days))throw Error('저장된 여행 데이터가 올바르지 않습니다.');activeId=trip.id;$('account-trip-name').value=full.name||trip.name;close();if(full.days.some(d=>d.result)&&window.YeoNext?.go)window.YeoNext.go(3);app().toast('저장한 여행을 불러왔어요.');}catch(e){notice(humanError(e),true);}finally{name.textContent=former;openBtn.disabled=false;}};
- const edit=document.createElement('button');edit.type='button';edit.textContent='이름';edit.onclick=async()=>{const value=prompt('여행 이름 변경',trip.name);if(value===null)return;const name=value.trim();if(!name||name.length>90)return notice('이름을 1~90자로 입력해 주세요.',true);try{const {trip:full}=await request('?id='+encodeURIComponent(trip.id));await request('?id='+encodeURIComponent(trip.id),'PATCH',payload(name,full.days,full.import_fingerprint));if(activeId===trip.id)$('account-trip-name').value=name;await loadTrips(true);notice('변경 완료');}catch(e){notice(e.message,true)}};
- const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='삭제';del.onclick=async()=>{if(!confirm('여행 '+trip.name+'을(를) 삭제할까요?'))return;try{await request('?id='+trip.id,'DELETE');if(activeId===trip.id)activeId=null;await loadTrips(true);notice('삭제 완료')}catch(e){notice(e.message,true)}};
+ openBtn.append(name,sub);openBtn.onclick=async()=>{
+  if(busy||openBtn.disabled)return;
+  if(!confirm('이 여행을 열까요? 현재 화면의 여행이 교체됩니다. 저장하지 않은 변경사항은 사라질 수 있어요.'))return;
+  const requested=++openRequestId,owner=user?.id,former=name.textContent;
+  openBtn.disabled=true;name.textContent='여행을 여는 중…';
+  try{
+   const {trip:full}=await request('?id='+encodeURIComponent(trip.id));
+   if(owner!==user?.id||requested!==openRequestId)return;
+   if(!full?.days||!app().validateDays(full.days))throw Error('저장된 여행 데이터가 올바르지 않습니다.');
+   if(!app().importDays(full.days))throw Error('여행 데이터를 적용하지 못했어요. 기존 일정은 유지됩니다.');
+   activeId=full.id;$('account-trip-name').value=full.name||trip.name;
+   close();if(full.days.some(d=>d.result)&&window.YeoNext?.go)window.YeoNext.go(3);
+   app().toast('저장한 여행을 불러왔어요.');
+  }catch(e){if(owner===user?.id)notice(humanError(e),true);}
+  finally{name.textContent=former;openBtn.disabled=false;}
+ };
+ const edit=document.createElement('button');edit.type='button';edit.textContent='이름';edit.onclick=async()=>{
+  if(busy||edit.disabled)return;
+  const value=prompt('여행 이름 변경',trip.name);if(value===null)return;
+  const nextName=value.trim();if(!nextName||nextName.length>90)return notice('이름을 1~90자로 입력해 주세요.',true);
+  edit.disabled=true;
+  try{
+   const {trip:full}=await request('?id='+encodeURIComponent(trip.id));
+   if(!full?.days)throw Error('저장된 여행 데이터를 찾을 수 없어요.');
+   const {trip:updated}=await request('?id='+encodeURIComponent(trip.id),'PATCH',payload(nextName,full.days,full.import_fingerprint));
+   if(activeId===trip.id)$('account-trip-name').value=nextName;
+   mergeCachedTrip(updated);notice('이름을 변경했어요.');void loadTrips(true);
+  }catch(e){notice(humanError(e),true);}
+  finally{edit.disabled=false;}
+ };
+ const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='삭제';del.onclick=async()=>{
+  if(busy||del.disabled)return;
+  if(!confirm('여행 '+trip.name+'을(를) 삭제할까요?'))return;
+  del.disabled=true;
+  try{
+   await request('?id='+encodeURIComponent(trip.id),'DELETE');
+   if(activeId===trip.id)activeId=null;
+   removeCachedTrip(trip.id);notice('여행을 삭제했어요.');void loadTrips(true);
+  }catch(e){notice(humanError(e),true);}
+  finally{del.disabled=false;}
+ };
  const opts=document.createElement('div');opts.className='account-trip-ops';opts.append(edit,del);row.append(openBtn,opts);return row;
 }
 function mergeCachedTrip(trip){
